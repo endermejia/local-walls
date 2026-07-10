@@ -199,8 +199,7 @@ import { handleErrorToast } from '../../utils';
             }}</label>
             <textarea
               id="ascentComment"
-              tuiTextarea
-              [formField]="$any(ascentForm.comment)"
+              [formField]="ascentForm.comment"
               [placeholder]="'ascent.thoughtsPlaceholder' | translate"
               rows="5"
             ></textarea>
@@ -209,7 +208,7 @@ import { handleErrorToast } from '../../utils';
             <input
               tuiCheckbox
               type="checkbox"
-              [formField]="$any(ascentForm.private_ascent)"
+              [formField]="ascentForm.private_ascent"
               (click)="onPrivateClick($event)"
               autocomplete="off"
             />
@@ -337,7 +336,7 @@ import { handleErrorToast } from '../../utils';
             <input
               id="ascentVideo"
               tuiInput
-              [formField]="$any(ascentForm.video_url)"
+              [formField]="ascentForm.video_url"
               placeholder="https://youtube.com/..."
               autocomplete="off"
             />
@@ -476,7 +475,7 @@ import { handleErrorToast } from '../../utils';
                         type="button"
                         size="s"
                         [appearance]="
-                          $any(model())[key] ? 'primary' : 'neutral'
+                          modelDict()[key] ? 'primary' : 'neutral'
                         "
                         (click)="toggleBool(key)"
                       >
@@ -498,7 +497,7 @@ import { handleErrorToast } from '../../utils';
                       tuiButton
                       type="button"
                       size="s"
-                      [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
+                      [appearance]="modelDict()[key] ? 'primary' : 'neutral'"
                       (click)="toggleBool(key)"
                     >
                       {{ 'ascent.climbing.' + key | translate }}
@@ -518,7 +517,7 @@ import { handleErrorToast } from '../../utils';
                       tuiButton
                       type="button"
                       size="s"
-                      [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
+                      [appearance]="                  modelDict()[key] ? 'primary' : 'neutral'"
                       (click)="toggleBool(key)"
                     >
                       {{ 'ascent.steepness.' + key | translate }}
@@ -540,7 +539,7 @@ import { handleErrorToast } from '../../utils';
                         type="button"
                         size="s"
                         [appearance]="
-                          $any(model())[key] ? 'primary' : 'neutral'
+                          modelDict()[key] ? 'primary' : 'neutral'
                         "
                         (click)="toggleBool(key)"
                       >
@@ -562,7 +561,7 @@ import { handleErrorToast } from '../../utils';
                       tuiButton
                       type="button"
                       size="s"
-                      [appearance]="$any(model())[key] ? 'primary' : 'neutral'"
+                      [appearance]="modelDict()[key] ? 'primary' : 'neutral'"
                       (click)="toggleBool(key)"
                     >
                       {{ 'ascent.other.' + key | translate }}
@@ -741,12 +740,14 @@ export default class AscentFormComponent {
     no_score: false,
     first_ascent: false,
     traditional: false,
-    video_url: null as string | null,
+    video_url: '',
     photoControl: null as File | null,
     sit_start: false,
     top_out: false,
     highball: false,
   });
+
+  protected readonly modelDict = computed(() => this.model() as unknown as Record<string, boolean | null>);
 
   ascentForm = form(this.model, (path) => {
     required(path.type);
@@ -972,7 +973,7 @@ export default class AscentFormComponent {
       first_ascent: !!data.first_ascent,
       traditional: !!data.traditional,
       grade: data.grade ?? null,
-      video_url: data.video_url ?? null,
+      video_url: data.video_url ?? '',
       date: dateObj,
       photoControl: null,
       sit_start: !!data.sit_start,

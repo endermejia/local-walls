@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { RouteAscentWithExtras } from '../../models';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
@@ -419,26 +420,25 @@ import { IndoorVouchersComponent } from '../../components/indoor/indoor-vouchers
                 <app-indoor-topos [centerId]="c.id" [centerSlug]="c.slug" />
               }
               @case (2) {
-                @if (centerAscentsResource.value(); as ascents) {
-                  @if (ascents.length > 0) {
-                    <div
-                      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-                    >
-                      @for (ascent of ascents; track ascent.id) {
-                        <app-ascent-card
-                          [data]="ascent"
-                          [showRoute]="true"
-                          [showUser]="true"
-                        />
-                      }
-                    </div>
-                  } @else {
-                    <app-empty-state />
-                  }
+                @let ascents = mappedAscents();
+                @if (ascents.length > 0) {
+                  <div
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                  >
+                    @for (ascent of ascents; track ascent.id) {
+                      <app-ascent-card
+                        [data]="ascent"
+                        [showRoute]="true"
+                        [showUser]="true"
+                      />
+                    }
+                  </div>
                 } @else if (centerAscentsResource.isLoading()) {
                   <div class="flex items-center justify-center p-8">
                     <tui-loader size="m"></tui-loader>
                   </div>
+                } @else {
+                  <app-empty-state />
                 }
               }
               @case (3) {
@@ -467,6 +467,10 @@ import { IndoorVouchersComponent } from '../../components/indoor/indoor-vouchers
   host: { class: 'flex grow min-h-0' },
 })
 export class IndoorCenterComponent implements OnDestroy {
+  protected readonly mappedAscents = computed(() =>
+    (this.centerAscentsResource.value() ?? []) as unknown as RouteAscentWithExtras[],
+  );
+
   slug = input.required<string>();
 
   protected readonly global = inject(GlobalData);

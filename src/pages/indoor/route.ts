@@ -40,6 +40,11 @@ import {
   GRADE_NUMBER_TO_LABEL,
   VERTICAL_LIFE_GRADES,
   INDOOR_ROUTE_COLORS,
+  AscentType,
+  ClimbingKind,
+  RouteAscentWithExtras,
+  IndoorAscentWithExtras,
+  IndoorCenterDto,
 } from '../../models';
 import { ChartAscentsByGradeComponent } from '../../components/charts/chart-ascents-by-grade';
 import { AscentCardComponent } from '../../components/ascent/ascent-card';
@@ -127,7 +132,7 @@ import { AscentCardComponent } from '../../components/ascent/ascent-card';
             <!-- Chart -->
             <div class="flex items-center justify-center">
               <app-chart-ascents-by-grade
-                [ascents]="ascents()"
+                [ascents]="mappedAscents()"
                 [gradeLabel]="gradeLabel()"
                 class="w-40 h-40"
               />
@@ -153,10 +158,10 @@ import { AscentCardComponent } from '../../components/ascent/ascent-card';
                     [style.background]="ownAscentInfo()?.background"
                     class="text-(--tui-text-primary-on-accent-1)! grow"
                     size="m"
-                    (click.zoneless)="onEditAscent(ownAscent())"
+                    (click.zoneless)="ownAscent() && onEditAscent(ownAscent()!)"
                   >
                     <tui-icon [icon]="ownAscentInfo()?.icon || ''" />
-                    {{ 'ascentTypes.' + $any(ownAscent()?.type) | translate }}
+                    {{ 'ascentTypes.' + (ownAscent()?.type ?? '') | translate }}
                   </button>
                   <button
                     tuiIconButton
@@ -189,7 +194,7 @@ import { AscentCardComponent } from '../../components/ascent/ascent-card';
                 <div class="flex items-center gap-2">
                   <span
                     [tuiAvatar]="
-                      $any(climbingIcons)[$any(r.climbing_kind)] ||
+                      climbingIcons[r.climbing_kind ?? 'sport'] ||
                       '@tui.mountain'
                     "
                     size="s"
@@ -215,7 +220,7 @@ import { AscentCardComponent } from '../../components/ascent/ascent-card';
                       [style.backgroundColor]="r.color"
                     ></span>
                     <span class="text-xl font-semibold">
-                      {{ getColorName(r.color) }}
+                      {{ routeColorName() }}
                     </span>
                   } @else {
                     <span class="opacity-50 text-base">-</span>
@@ -325,7 +330,7 @@ export class IndoorRouteComponent implements OnDestroy {
           center_name: routeVal.center_name,
           center_slug: routeVal.center_slug,
         },
-      } as any;
+      } as unknown as RouteAscentWithExtras;
     });
   });
 
@@ -333,7 +338,9 @@ export class IndoorRouteComponent implements OnDestroy {
     const own = this.ownAscent();
     if (!own) return null;
     const type = own.type || 'default';
-    const info = (this.ascentsService.ascentInfo() as any)[type];
+    const info = this.ascentsService.ascentInfo()[
+      type as AscentType | 'default'
+    ];
     return info || null;
   });
 
@@ -382,10 +389,10 @@ export class IndoorRouteComponent implements OnDestroy {
       const r = this.route();
       if (r) {
         this.global.selectedIndoorCenter.set({
-          id: r.center_id,
+          id: r.center_id ?? '',
           name: r.center_name || '',
           slug: r.center_slug || '',
-        } as any);
+        } as IndoorCenterDto);
         this.global.selectedIndoorRoute.set(r);
       } else {
         this.global.selectedIndoorCenter.set(null);
@@ -404,10 +411,10 @@ export class IndoorRouteComponent implements OnDestroy {
     if (!r) return;
     const success = await firstValueFrom(
       this.ascentsService.openAscentForm({
-        routeId: r.id as any,
+        routeId: r.id,
         routeName: r.name,
         isIndoor: true,
-        climbingKind: r.climbing_kind as any,
+        climbingKind: r.climbing_kind as ClimbingKind | undefined,
         grade: r.grade || undefined,
       }),
       { defaultValue: false },
@@ -417,7 +424,7 @@ export class IndoorRouteComponent implements OnDestroy {
     }
   }
 
-  async onEditAscent(ascent: any): Promise<void> {
+  async onEditAscent(ascent: IndoorAscentWithExtras): Promise<void> {
     const r = this.route();
     if (!r) return;
     const success = await firstValueFrom(
@@ -435,11 +442,11 @@ export class IndoorRouteComponent implements OnDestroy {
             center_name: r.center_name,
             center_slug: r.center_slug,
           },
-        } as any,
-        routeId: r.id as any,
+        } as unknown as RouteAscentWithExtras,
+        routeId: r.id,
         routeName: r.name,
         isIndoor: true,
-        climbingKind: r.climbing_kind as any,
+        climbingKind: r.climbing_kind as ClimbingKind | undefined,
         grade: r.grade || undefined,
       }),
       { defaultValue: false },
@@ -476,12 +483,14 @@ export class IndoorRouteComponent implements OnDestroy {
     });
   }
 
-  protected getColorName(colorValue: string): string {
-    const colorName = INDOOR_ROUTE_COLORS[colorValue];
+  protected readonly routeColorName = computed(() => {
+    const color = this.route()?.color;
+    if (!color) return '';
+    const colorName = INDOOR_ROUTE_COLORS[color];
     return colorName
       ? this.translate.instant('colors.' + colorName)
-      : colorValue;
-  }
+      : color;
+  });
 
   async openEditRoute(): Promise<void> {
     const r = this.route();

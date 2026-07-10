@@ -102,4 +102,54 @@ export interface IndoorAscentWithExtras extends IndoorAscentDto {
     IndoorRouteWithExtras,
     'id' | 'name' | 'grade' | 'climbing_kind' | 'center_name' | 'center_slug'
   >;
+  user_profile?: { id: string; name: string | null; avatar: string | null };
+  user?: { id: string; name: string | null; avatar: string | null };
+}
+
+// --- Query result shapes (raw Supabase joins) ---
+
+/** Row returned by getCenterTopos query */
+export interface IndoorTopoQueryRow extends IndoorTopoDto {
+  indoor_topo_routes: {
+    route: {
+      id: string;
+      grade: number | null;
+      ascents: { id: string; user_id: string | null }[];
+    } | null;
+  }[];
+}
+
+/** Row returned by getRouteAscents / getCenterAscents queries */
+export interface IndoorAscentQueryRow extends IndoorAscentDto {
+  route: {
+    id: string;
+    name: string;
+    color: string | null;
+    climbing_kind: string | null;
+    grade: number | null;
+    center: { id: string; name: string; slug: string } | null;
+  } | null;
+  user_profile: { id: string; name: string | null; avatar: string | null } | null;
+}
+
+/** Row returned by openIndoorTopoForm initial routes query */
+export interface IndoorTopoRouteWithRoute {
+  id: string;
+  topo_id: string;
+  route_id: string;
+  number: number;
+  path: import('./topo.model').TopoPath | null;
+  route: IndoorRouteDto;
+}
+
+/** Enriched topo returned by getCenterTopos after mapping */
+export interface IndoorTopoListItem extends IndoorTopoDto {
+  photo: string | null;
+  grades: Record<number, number>;
+  total_routes: number;
+  own_ascents_count: number;
+  slug: string;
+  shade_afternoon: boolean;
+  shade_change_hour: string | null;
+  shade_morning: boolean;
 }

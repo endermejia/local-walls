@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -250,7 +251,7 @@ interface ExistingUserAscentKey {
                     <span>{{ 'selectAll' | translate }}</span>
                   </label>
                   <span class="text-xs font-semibold opacity-70"
-                    >{{ selectedIndices().size }} / {{ ascents().length }}
+                    >{{ selectedIndices().size }} / {{ ascentsWithResolved().length }}
                     {{ 'selected' | translate }}</span
                   >
                 </div>
@@ -258,21 +259,21 @@ interface ExistingUserAscentKey {
 
               <div class="max-h-[35dvh] overflow-auto border rounded p-2">
                 @for (
-                  ascent of ascents();
+                  ascent of ascentsWithResolved();
                   track ascent.name + ascent.sector_name + ascent.date;
                   let idx = $index
                 ) {
                   @defer (on viewport) {
                     <div
                       class="p-2 border-b last:border-0 flex justify-between items-center gap-4 transition-all duration-150"
-                      [class.opacity-40]="!isSelected(idx)"
+                      [class.opacity-40]="!selectedMap()[idx]"
                     >
                       <div class="flex items-center gap-3">
                         <label class="flex items-center gap-2 cursor-pointer">
                           <input
                             tuiCheckbox
                             type="checkbox"
-                            [ngModel]="isSelected(idx)"
+                            [ngModel]="selectedMap()[idx]"
                             (ngModelChange)="toggleSelect(idx, $event)"
                           />
                         </label>
@@ -290,7 +291,7 @@ interface ExistingUserAscentKey {
                             {{ ascent.sector_name }} -
                             {{ ascent.date | date }}
                           </div>
-                          @if (getResolvedData(ascent); as data) {
+                          @if (ascent._resolvedData; as data) {
                             <div class="text-[10px] opacity-50 flex gap-2">
                               <span>slug: {{ data.slug }}</span>
                               @for (
@@ -399,6 +400,26 @@ export class Import8aComponent {
   protected importing = signal(false);
   protected ascents = signal<EightAnuAscent[]>([]);
   protected selectedIndices = signal<Set<number>>(new Set());
+
+  protected readonly ascentsWithResolved = computed(() => {
+    return this.ascents().map(
+      (a): EightAnuAscent & { _resolvedData: { slug: string; eightAnuSlugs: string[] } | undefined } => ({
+        ...a,
+        _resolvedData: this.resolvedSlugsMap.get(
+          `${slugify(a.location_name)}|${slugify(a.sector_name)}|${slugify(a.name)}`,
+        ),
+      }),
+    );
+  });
+
+  protected readonly selectedMap = computed(() => {
+    const set = this.selectedIndices();
+    const map: Record<number, boolean> = {};
+    for (const idx of set) {
+      map[idx] = true;
+    }
+    return map;
+  });
 
   protected toggleSelect(index: number, checked: boolean): void {
     this.selectedIndices.update((set) => {

@@ -238,7 +238,7 @@ export class AreaAccessManagerDialogComponent {
         return [];
       }
 
-      const userIds = purchases.map((row: any) => row.user_id);
+      const userIds = purchases.map((row) => row.user_id);
       const { data: profiles, error: profilesError } =
         await this.supabase.client
           .from('user_profiles')
@@ -253,11 +253,11 @@ export class AreaAccessManagerDialogComponent {
         throw profilesError;
       }
 
-      const profileMap = new Map<string, any>(
-        (profiles || []).map((p: any) => [p.id, p]),
+      const profileMap = new Map<string, ProfileSearchResult>(
+        (profiles || []).map((p) => [p.id, p]),
       );
 
-      return purchases.map((row: any) => {
+      return purchases.map((row) => {
         const profile = profileMap.get(row.user_id);
         return {
           purchaseId: row.id,
@@ -295,8 +295,8 @@ export class AreaAccessManagerDialogComponent {
         if (error) throw error;
 
         return (data || [])
-          .filter((profile: any) => !existingUserIds.has(profile.id))
-          .map((profile: any) => ({
+          .filter((profile) => !existingUserIds.has(profile.id))
+          .map((profile) => ({
             id: profile.id,
             name: profile.name,
             avatar: profile.avatar,

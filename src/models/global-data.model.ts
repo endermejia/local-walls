@@ -5,8 +5,8 @@ export interface MapIndoorCenterRaw {
   id: string;
   name: string;
   slug: string;
-  latitude: number | string;
-  longitude: number | string;
+  latitude: number | string | null;
+  longitude: number | string | null;
   city?: string | null;
   country?: string | null;
   avatar_url?: string | null;

@@ -27,6 +27,7 @@ import { IndoorService } from '../../services/indoor.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { TopoCardComponent } from '../topo/topo-card';
+import type { IndoorTopoListItem } from '../../models/indoor.model';
 
 @Component({
   selector: 'app-indoor-topos',
@@ -116,11 +117,11 @@ export class IndoorToposComponent {
       id: this.centerId(),
       showLegacyTopos: this.showLegacyTopos(),
     }),
-    loader: ({ params }): Promise<any[]> =>
+    loader: ({ params }): Promise<IndoorTopoListItem[]> =>
       this.indoor.getCenterTopos(params.id, params.showLegacyTopos),
   });
 
-  onCardClick(topo: any): void {
+  onCardClick(topo: IndoorTopoListItem): void {
     void this.router.navigate(['/indoor', this.centerSlug(), 'topo', topo.id]);
   }
 
@@ -131,7 +132,7 @@ export class IndoorToposComponent {
     }
   }
 
-  async editTopo(topo: any, event: Event): Promise<void> {
+  async editTopo(topo: IndoorTopoListItem, event: Event): Promise<void> {
     event.stopPropagation();
     const success = await this.indoor.openIndoorTopoForm(this.centerId(), topo);
     if (success) {
@@ -139,7 +140,7 @@ export class IndoorToposComponent {
     }
   }
 
-  async deleteTopo(topo: any, event: Event): Promise<void> {
+  async deleteTopo(topo: IndoorTopoListItem, event: Event): Promise<void> {
     event.stopPropagation();
     const confirmed = await firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {

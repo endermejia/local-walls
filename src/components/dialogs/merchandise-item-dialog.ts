@@ -38,9 +38,8 @@ import { MerchandiseItemDetail } from '../../models';
       >
         @let images = item.image_urls || [];
         @if (images.length > 0) {
-          @let carouselItems = getCarouselItems(images);
           <app-custom-carousel
-            [items]="carouselItems"
+            [items]="carouselItems()"
             [(index)]="index"
             class="w-full h-full"
             [objectCover]="true"
@@ -97,7 +96,7 @@ import { MerchandiseItemDetail } from '../../models';
                 </span>
                 <div class="flex flex-wrap gap-2">
                   @for (size of item.available_sizes; track $index) {
-                    @let inStock = isSizeInStock(size);
+                    @let inStock = stockMap()[size];
                     <button
                       type="button"
                       (click)="inStock && selectedSize.set(size)"
@@ -189,7 +188,7 @@ import { MerchandiseItemDetail } from '../../models';
             (click)="addToCart()"
             [disabled]="
               (item.available_sizes?.length &&
-                (!selectedSize() || !isSizeInStock(selectedSize()!))) ||
+                (!selectedSize() || !stockMap()[selectedSize()!])) ||
               (item.available_colors?.length && !selectedColor()) ||
               !canAddMore()
             "
@@ -217,20 +216,23 @@ export class MerchandiseItemDialogComponent {
     injectContext<TuiDialogContext<void, MerchandiseItemDetail>>();
   protected readonly item: MerchandiseItemDetail = this.context.data;
 
-  protected getCarouselItems(images: string[]) {
-    return images.map((url) => ({
+  protected index = signal(0);
+
+  protected readonly carouselItems = computed(() => {
+    return (this.item.image_urls || []).map((url) => ({
       type: 'image' as const,
       url,
       alt: this.item.name,
     }));
-  }
+  });
 
-  protected isSizeInStock(size: string): boolean {
-    const stock = this.item.stock?.find((s) => s.size === size);
-    return (stock?.stock ?? 0) > 0;
-  }
-
-  protected index = signal(0);
+  protected readonly stockMap = computed(() => {
+    const map: Record<string, boolean> = {};
+    for (const s of this.item.stock || []) {
+      map[s.size] = (s.stock ?? 0) > 0;
+    }
+    return map;
+  });
   protected readonly selectedSize = signal<string | undefined>(
     this.item.available_sizes?.length === 1
       ? this.item.available_sizes[0]

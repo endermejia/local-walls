@@ -533,6 +533,7 @@ export class GlobalData {
               topos: (c.topos || []).map((t: MapIndoorTopoRaw) => ({
                 id: t.id,
                 name: t.name,
+                slug: t.id,
               })),
             } as MapIndoorCenterItem;
           });
@@ -1039,15 +1040,15 @@ export class GlobalData {
         if (error) throw error;
 
         return (data || [])
-          .map((d: { route: IndoorRouteWithExtras | null }) => {
-            const r = d.route;
+          .map((d) => {
+            const r = d.route as Record<string, unknown> & { equippers?: { equipper: EquipperDto }[]; center?: { name: string; slug: string } } | null;
             if (!r) return null;
             return {
               ...r,
-              center_name: r.center?.name || '',
-              center_slug: r.center?.slug || '',
+              center_name: (r.center?.name) || '',
+              center_slug: (r.center?.slug) || '',
               equippers: (r.equippers || [])
-                .map((e: { equipper: EquipperDto }) => e.equipper)
+                .map((e) => e.equipper)
                 .filter(Boolean),
             } as IndoorRouteWithExtras;
           })
@@ -1114,7 +1115,7 @@ export class GlobalData {
     params: () => ({ user: this.userProfile() }),
     loader: async () => {
       if (!isPlatformBrowser(this.platformId)) {
-        return [] as IndoorRouteWithExtras[];
+        return [] as MapIndoorCenterItem[];
       }
       try {
         await this.supabase.whenReady();
@@ -1131,7 +1132,7 @@ export class GlobalData {
           const grades: AmountByEveryGrade = {};
           (c.routes || []).forEach((r: MapIndoorRouteRaw) => {
             const g = r.grade;
-            if (g >= 0) {
+            if (g != null && g >= 0) {
               grades[g as VERTICAL_LIFE_GRADES] =
                 (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
             }
@@ -1140,7 +1141,7 @@ export class GlobalData {
             ...c,
             routes_count: c.routes?.length || 0,
             grades,
-          };
+          } as MapIndoorCenterItem;
         });
       } catch (e) {
         console.error('[GlobalData] indoorCentersResource error', e);
@@ -1268,14 +1269,17 @@ export class GlobalData {
               }
             }
             return {
-              id: t.id,
+              id: t.id as unknown as number,
               name: t.name,
               slug: t.id,
               crag_slug: '',
               photo: t.image_url,
               grades,
+              shade_afternoon: false,
+              shade_change_hour: null,
+              shade_morning: false,
             };
-          }) as MapIndoorCenterItem[];
+          }) as (TopoListItem & { crag_slug: string })[];
         } catch (e) {
           console.error('[GlobalData] areaToposResource indoor error', e);
           return [];
@@ -1289,7 +1293,7 @@ export class GlobalData {
         const { data, error } = await this.supabase.client
           .from('topos')
           .select(
-            '*, crags!inner(slug, areas!inner(slug)), topo_routes(route:routes(grade))',
+            '*, crags!inner(slug, areas!inner(slug)), topo_routes(route_id, route:routes(grade))',
           )
           .eq('crags.areas.slug', areaSlug);
 
@@ -1302,7 +1306,7 @@ export class GlobalData {
           const grades: AmountByEveryGrade = {};
           (t.topo_routes || []).forEach((tr) => {
             const g = tr.route?.grade;
-            if (g >= 0) {
+            if (g != null && g >= 0) {
               grades[g as VERTICAL_LIFE_GRADES] =
                 (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
             }
@@ -1391,8 +1395,7 @@ export class GlobalData {
 
           if (trsErr) throw trsErr;
 
-          const topo_routes: { route_id: number; route: RouteWithExtras }[] =
-            [];
+          const topo_routes: TopoRouteWithRoute[] = [];
           const seenRouteIds = new Set<string>();
 
           if (trs) {
@@ -1401,7 +1404,7 @@ export class GlobalData {
                 seenRouteIds.add(tr.route_id);
 
                 // Sort ascents to prioritize real ascents over attempts
-                const ascents = (tr.route.own_ascent || []) as RouteAscentDto[];
+                const ascents = (tr.route.own_ascent || []) as unknown as RouteAscentDto[];
                 ascents.sort((a, b) => {
                   const isAttemptA = a.type === 'attempt';
                   const isAttemptB = b.type === 'attempt';
@@ -1415,17 +1418,16 @@ export class GlobalData {
                 const bestAscent = ascents[0] || null;
 
                 topo_routes.push({
-                  topo_id: tr.topo_id,
-                  route_id: tr.route_id,
-                  number: tr.number,
-                  path: tr.path,
+                  topo_id: Number(tr.topo_id),
+                  route_id: Number(tr.route_id),
+                  number: tr.number ?? 0,
+                  path: tr.path as TopoPath | null,
                   route: {
-                    id: tr.route.id,
+                    id: Number(tr.route.id),
                     name: tr.route.name,
                     slug: tr.route.slug,
-                    grade: tr.route.grade,
-                    climbing_kind: tr.route.climbing_kind,
-                    color: tr.route.color,
+                    grade: tr.route.grade ?? 0,
+                    climbing_kind: (tr.route.climbing_kind ?? 'sport') as ClimbingKind,
                     own_ascent: bestAscent,
                     project: false,
                   },
@@ -1435,10 +1437,15 @@ export class GlobalData {
           }
 
           const result: TopoDetail = {
-            id: topo.id,
+            id: Number(topo.id),
             name: topo.name,
             photo: topo.image_url,
-            climbing_kind: topo.climbing_kind,
+            crag_id: 0,
+            created_at: '',
+            slug: '',
+            shade_afternoon: false,
+            shade_change_hour: null,
+            shade_morning: false,
             legacy: topo.legacy,
             center_id: topo.center_id,
             topo_routes,
@@ -1450,8 +1457,11 @@ export class GlobalData {
                   area_id: 0,
                   user_creator_id: null,
                   area: {
+                    id: 0,
+                    name: '',
+                    slug: '',
                     is_public: true,
-                    price: null,
+                    price: 0,
                     purchased: true,
                   },
                 }

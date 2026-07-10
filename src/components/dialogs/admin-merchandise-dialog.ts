@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -192,7 +193,7 @@ const MERCHANDISE_CATEGORIES = [
                     [id]="'stock-' + size"
                     tuiInputNumber
                     [min]="0"
-                    [ngModel]="getStockForSize(size)"
+                    [ngModel]="stockBySize()[size] || 0"
                     (ngModelChange)="updateStockForSize(size, $event)"
                   />
                 </tui-textfield>
@@ -409,9 +410,13 @@ export class AdminMerchandiseDialogComponent {
     }));
   }
 
-  protected getStockForSize(size: string): number {
-    return this.model().stock.find((s) => s.size === size)?.stock || 0;
-  }
+  protected readonly stockBySize = computed(() => {
+    const map: Record<string, number> = {};
+    for (const s of this.model().stock) {
+      map[s.size] = s.stock;
+    }
+    return map;
+  });
 
   protected updateStockForSize(size: string, stock: number): void {
     const currentStock = [...this.model().stock];

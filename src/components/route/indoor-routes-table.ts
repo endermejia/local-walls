@@ -69,7 +69,7 @@ import { mapRouteToTableRow, handleErrorToast } from '../../utils';
     <ng-template #equippersTpl let-item>
       @if (canEditIndoor()) {
         <app-indoor-route-equippers-input
-          [route]="getIndoorRef(item)"
+          [route]="indoorRefMap()[item.id]"
           (equippersChanged)="indoorService.reloadCenterRoutes()"
         />
       } @else {
@@ -140,6 +140,14 @@ export class IndoorRoutesTableComponent {
       row.canAddTopo = isEdit;
       return row;
     });
+  });
+
+  protected readonly indoorRefMap = computed(() => {
+    const map: Record<string, IndoorRouteWithExtras> = {};
+    for (const r of this.data()) {
+      map[String(r.id)] = r;
+    }
+    return map;
   });
 
   protected readonly columns = computed(() => {

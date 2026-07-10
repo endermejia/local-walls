@@ -224,20 +224,20 @@ import { getEmbedUrl } from '../../utils';
                   class="font-bold hover:underline cursor-pointer"
                   [routerLink]="[
                     '/indoor',
-                    $any(ascent.route).center_slug,
+                    ascent.route.center_slug,
                     'route',
                     ascent.route.slug,
                   ]"
                 >
                   {{ ascent.route.name }}
                 </a>
-                <span class="mx-1.5 opacity-70 text-sm">•</span>
+                <span class="mx-1.5 opacity-70 text-sm">&bull;</span>
                 <span class="text-sm opacity-70">
                   <a
                     class="hover:underline cursor-pointer"
-                    [routerLink]="['/indoor', $any(ascent.route).center_slug]"
+                    [routerLink]="['/indoor', ascent.route.center_slug]"
                   >
-                    {{ $any(ascent.route).center_name }}
+                    {{ ascent.route.center_name }}
                   </a>
                 </span>
               } @else {

@@ -24,6 +24,7 @@ import { TuiDialogService } from '@taiga-ui/core';
 import {
   TUI_CONFIRM,
   TuiAvatar,
+  TuiBadge,
   type TuiConfirmData,
   TuiInputNumber,
 } from '@taiga-ui/kit';
@@ -130,6 +131,7 @@ export interface TopoRouteRow {
     AscentInfoPipe,
     TableSorterPipe,
     TuiAvatar,
+    TuiBadge,
     TuiButton,
     TuiCell,
     TuiDataList,
@@ -166,8 +168,20 @@ export interface TopoRouteRow {
             >
               <!-- Shade info as title additional info -->
               <ng-container titleInfo>
-                @if (t | shadeInfo; as info) {
-                  <tui-icon [icon]="info.icon" class="text-2xl opacity-70" />
+                @if (t.legacy) {
+                  <span
+                    tuiBadge
+                    size="s"
+                    appearance="neutral"
+                    class="uppercase text-[10px] shrink-0"
+                  >
+                    {{ 'indoor.legacy' | translate }}
+                  </span>
+                }
+                @if (!isIndoor()) {
+                  @if (t | shadeInfo; as info) {
+                    <tui-icon [icon]="info.icon" class="text-2xl opacity-70" />
+                  }
                 }
               </ng-container>
 
@@ -261,11 +275,11 @@ export interface TopoRouteRow {
                 class="relative w-full h-full lg:col-span-2 bg-(--tui-background-neutral-1) md:rounded-xl md:border md:border-(--tui-border-normal) overflow-hidden cursor-grab active:cursor-grabbing touch-none"
                 #scrollContainer
                 (wheel.zoneless)="onWheel($event)"
-                (touchstart.zoneless)="onTouchStart($any($event))"
-                (touchmove.zoneless)="onTouchMove($any($event))"
+                (touchstart.zoneless)="onTouchStart($event)"
+                (touchmove.zoneless)="onTouchMove($event)"
                 (touchend.zoneless)="onTouchEnd()"
-                (mousedown.zoneless)="onMouseDown($any($event))"
-                (mousemove.zoneless)="onMouseMove($any($event))"
+                (mousedown.zoneless)="onMouseDown($event)"
+                (mousemove.zoneless)="onMouseMove($event)"
                 (mouseup.zoneless)="onMouseUp()"
                 (mouseleave.zoneless)="onMouseUp()"
               >
@@ -434,12 +448,12 @@ export interface TopoRouteRow {
                   tabindex="0"
                   (keydown.enter)="toggleFullscreen(false)"
                   (click)="toggleFullscreen(false)"
-                  (wheel.zoneless)="onWheel($any($event))"
-                  (touchstart.zoneless)="onTouchStart($any($event))"
-                  (touchmove.zoneless)="onTouchMove($any($event))"
+                  (wheel.zoneless)="onWheel($event)"
+                  (touchstart.zoneless)="onTouchStart($event)"
+                  (touchmove.zoneless)="onTouchMove($event)"
                   (touchend.zoneless)="onTouchEnd()"
-                  (mousedown.zoneless)="onMouseDown($any($event))"
-                  (mousemove.zoneless)="onMouseMove($any($event))"
+                  (mousedown.zoneless)="onMouseDown($event)"
+                  (mousemove.zoneless)="onMouseMove($event)"
                   (mouseup.zoneless)="onMouseUp()"
                   (mouseleave.zoneless)="onMouseUp()"
                   (window:keydown.arrowLeft)="selectPrevRoute()"
@@ -808,13 +822,13 @@ export interface TopoRouteRow {
                                               (blur.zoneless)="
                                                 onUpdateRouteNumber(
                                                   item._ref,
-                                                  $any($event.target).value
+                                                  $event
                                                 )
                                               "
                                               (keydown.enter)="
                                                 onUpdateRouteNumber(
                                                   item._ref,
-                                                  $any($event.target).value
+                                                  $event
                                                 );
                                                 $event.stopPropagation()
                                               "
@@ -873,13 +887,13 @@ export interface TopoRouteRow {
                                               (blur.zoneless)="
                                                 onUpdateRouteHeight(
                                                   item._ref,
-                                                  $any($event.target).value
+                                                  $event
                                                 )
                                               "
                                               (keydown.enter)="
                                                 onUpdateRouteHeight(
                                                   item._ref,
-                                                  $any($event.target).value
+                                                  $event
                                                 );
                                                 $event.stopPropagation()
                                               "
@@ -1210,14 +1224,14 @@ export class TopoComponent implements OnDestroy {
     this.dragState.isDragging = false;
   }
 
-  protected onMouseDown(event: MouseEvent): void {
-    handleViewerMouseDown(event, this.viewerState, this.dragState);
+  protected onMouseDown(event: Event): void {
+    handleViewerMouseDown(event as MouseEvent, this.viewerState, this.dragState);
   }
 
-  protected onMouseMove(event: MouseEvent): void {
+  protected onMouseMove(event: Event): void {
     const el = this.getViewerElements();
     if (!el) return;
-    handleViewerMouseMove(event, this.viewerState, this.dragState, el);
+    handleViewerMouseMove(event as MouseEvent, this.viewerState, this.dragState, el);
   }
 
   protected onMouseUp(): void {
@@ -1558,8 +1572,9 @@ export class TopoComponent implements OnDestroy {
 
   protected onUpdateRouteNumber(
     tr: TopoRouteWithRoute,
-    newNumber: number | string | null,
+    event: Event,
   ): void {
+    const newNumber = (event.target as HTMLInputElement).value;
     const val =
       typeof newNumber === 'string' ? parseInt(newNumber, 10) : newNumber;
     if (val === null || isNaN(val) || val === tr.number) return;
@@ -1586,8 +1601,9 @@ export class TopoComponent implements OnDestroy {
 
   protected onUpdateRouteHeight(
     tr: TopoRouteWithRoute,
-    newHeight: number | string | null,
+    event: Event,
   ): void {
+    const newHeight = (event.target as HTMLInputElement).value;
     const val =
       newHeight === null || newHeight === ''
         ? null
@@ -1603,6 +1619,8 @@ export class TopoComponent implements OnDestroy {
       .catch((err) => handleErrorToast(err, this.toast));
   }
 
+
+
   protected readonly canEdit = computed(() => {
     if (this.isIndoor()) {
       const centerId = this.topo()?.center_id ?? '';
@@ -1615,8 +1633,24 @@ export class TopoComponent implements OnDestroy {
     if (!isPlatformBrowser(this.platformId)) return;
     if (this.isIndoor()) {
       const centerId = topo.center_id as string;
+      // TopoDetail.id is NaN for indoor topos (Number(UUID)), use original route param
+      const topoId = this.id();
+      if (!topoId || !centerId) return;
       this.indoorService
-        .openIndoorTopoForm(centerId, topo as unknown as IndoorTopoDto)
+        .openIndoorTopoForm(
+          centerId,
+          {
+            id: topoId,
+            name: topo.name,
+            image_url: topo.photo ?? '',
+            climbing_kind: null,
+            legacy: topo.legacy ?? false,
+            center_id: centerId,
+            created_at: '',
+            end_date: null,
+            start_date: null,
+          } as IndoorTopoDto,
+        )
         .then((success) => {
           if (success) {
             this.global.topoDetailResource.reload();

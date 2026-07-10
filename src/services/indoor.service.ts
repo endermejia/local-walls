@@ -19,8 +19,14 @@ import {
   IndoorInventoryDto,
   IndoorRouteWithExtras,
   IndoorAscentDto,
+  IndoorAscentWithExtras,
   EquipperDto,
+  IndoorTopoQueryRow,
+  IndoorAscentQueryRow,
+  IndoorTopoRouteWithRoute,
+  IndoorTopoListItem,
 } from '../models';
+import type { TopoPath } from '../models/topo.model';
 
 type CenterRouteQuery = IndoorRouteDto & {
   ascents: Pick<IndoorAscentDto, 'id' | 'type' | 'user_id' | 'rate'>[];
@@ -205,7 +211,7 @@ export class IndoorService {
   async getCenterTopos(
     centerId: string,
     showLegacyTopos = false,
-  ): Promise<any[]> {
+  ): Promise<IndoorTopoListItem[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
     let query = this.supabase.client
@@ -224,8 +230,9 @@ export class IndoorService {
 
     const userId = this.global.userProfile()?.id;
     return (data || []).map((t) => {
+      const row = t as unknown as IndoorTopoQueryRow;
       const grades: Record<number, number> = {};
-      const topoRoutes = (t as any).indoor_topo_routes || [];
+      const topoRoutes = row.indoor_topo_routes || [];
       let ownAscentsCount = 0;
       for (const tr of topoRoutes) {
         const grade = tr.route?.grade;
@@ -234,17 +241,21 @@ export class IndoorService {
         }
         if (
           userId &&
-          tr.route?.ascents?.some((a: any) => a.user_id === userId)
+          tr.route?.ascents?.some((a) => a.user_id === userId)
         ) {
           ownAscentsCount++;
         }
       }
       return {
-        ...t,
-        photo: t.image_url,
+        ...row,
+        photo: row.image_url,
         grades,
         total_routes: topoRoutes.length,
         own_ascents_count: ownAscentsCount,
+        slug: row.id,
+        shade_afternoon: false,
+        shade_change_hour: null,
+        shade_morning: false,
       };
     });
   }
@@ -443,7 +454,7 @@ export class IndoorService {
     centerId: string,
     topoData?: IndoorTopoDto,
   ): Promise<boolean> {
-    let initialRoutes: any[] = [];
+    let initialRoutes: IndoorRouteDto[] & { path?: TopoPath | null }[] = [];
     if (topoData) {
       try {
         await this.supabase.whenReady();
@@ -459,10 +470,12 @@ export class IndoorService {
           .order('number', { ascending: true });
 
         if (data) {
-          initialRoutes = data.map((tr: any) => ({
-            ...tr.route,
-            path: tr.path,
-          }));
+          initialRoutes = data.map((tr: unknown) => {
+            const row = tr as IndoorTopoRouteWithRoute;
+            return { ...row.route, path: row.path } as IndoorRouteDto & {
+              path?: TopoPath | null;
+            };
+          });
         }
       } catch (e) {
         console.error('[IndoorService] Error loading initial topo routes:', e);
@@ -542,7 +555,9 @@ export class IndoorService {
     if (error) throw error;
     if (!data) return null;
 
-    const route = data as any;
+    const route = data as IndoorRouteDto & {
+      center?: { name: string; slug: string } | null;
+    };
     const equippers = await this.getRouteEquippers(route.id);
     return {
       ...route,
@@ -655,7 +670,7 @@ export class IndoorService {
     }
   }
 
-  async getRouteAscents(routeId: string): Promise<any[]> {
+  async getRouteAscents(routeId: string): Promise<IndoorAscentWithExtras[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
     const { data, error } = await this.supabase.client
@@ -668,18 +683,23 @@ export class IndoorService {
 
     if (error) throw error;
 
-    return (data || []).map((ascent: any) => ({
-      ...ascent,
-      route: {
-        ...ascent.route,
-        center_slug: ascent.route?.center?.slug,
-        center_name: ascent.route?.center?.name,
-      },
-      user: ascent.user_profile,
-    }));
+    return (data || []).map((ascent) => {
+      const row = ascent as unknown as IndoorAscentQueryRow;
+      return {
+        ...row,
+        route: row.route
+          ? {
+              ...row.route,
+              center_slug: row.route.center?.slug,
+              center_name: row.route.center?.name,
+            }
+          : undefined,
+        user: row.user_profile,
+      } as IndoorAscentWithExtras;
+    });
   }
 
-  async getCenterAscents(centerId: string): Promise<any[]> {
+  async getCenterAscents(centerId: string): Promise<IndoorAscentWithExtras[]> {
     if (!isPlatformBrowser(this.platformId)) return [];
     await this.supabase.whenReady();
 
@@ -705,15 +725,20 @@ export class IndoorService {
 
     if (error) throw error;
 
-    return (data || []).map((ascent: any) => ({
-      ...ascent,
-      route: {
-        ...ascent.route,
-        center_slug: ascent.route?.center?.slug,
-        center_name: ascent.route?.center?.name,
-      },
-      user: ascent.user_profile,
-    }));
+    return (data || []).map((ascent) => {
+      const row = ascent as unknown as IndoorAscentQueryRow;
+      return {
+        ...row,
+        route: row.route
+          ? {
+              ...row.route,
+              center_slug: row.route.center?.slug,
+              center_name: row.route.center?.name,
+            }
+          : undefined,
+        user: row.user_profile,
+      } as IndoorAscentWithExtras;
+    });
   }
 
   async createRouteAscent(payload: {
@@ -729,7 +754,7 @@ export class IndoorService {
     type: string;
     date: string;
     notes?: string;
-  }): Promise<any> {
+  }): Promise<IndoorAscentWithExtras> {
     const { data, error } = await this.supabase.client
       .from('indoor_ascents')
       .insert(payload)
@@ -739,15 +764,18 @@ export class IndoorService {
       .single();
 
     if (error) throw error;
+    const row = data as unknown as IndoorAscentQueryRow;
     return {
-      ...data,
-      route: {
-        ...(data as any).route,
-        center_slug: (data as any).route?.center?.slug,
-        center_name: (data as any).route?.center?.name,
-      },
-      user: (data as any).user_profile,
-    };
+      ...row,
+      route: row.route
+        ? {
+            ...row.route,
+            center_slug: row.route.center?.slug,
+            center_name: row.route.center?.name,
+          }
+        : undefined,
+      user: row.user_profile,
+    } as IndoorAscentWithExtras;
   }
 
   async updateRouteAscent(

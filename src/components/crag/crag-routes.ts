@@ -148,7 +148,7 @@ import { gradeToVerticalLife, matchesQuery, slugify } from '../../utils';
 
     @let routesList = filteredRoutes();
     @let isSearchingAnu = eightAnuResource.isLoading();
-    @let anuResults = eightAnuResource.value() || [];
+    @let anuResults = mappedAnuResults();
 
     @if (routesList.length > 0) {
       <app-outdoor-routes-table
@@ -183,7 +183,7 @@ import { gradeToVerticalLife, matchesQuery, slugify } from '../../utils';
                 <div class="flex flex-col gap-1 min-w-0">
                   <div class="flex items-center gap-2">
                     <app-grade
-                      [grade]="mapEightAnuGrade(item.difficulty)"
+                      [grade]="item._grade"
                       [kind]="cragKind()"
                     />
                     <span class="font-bold truncate">
@@ -431,7 +431,12 @@ export class CragRoutesComponent {
     return sorted[0][0] as ClimbingKind;
   });
 
-  protected readonly mapEightAnuGrade = gradeToVerticalLife;
+  protected readonly mappedAnuResults = computed(() => {
+    return (this.eightAnuResource.value() || []).map((item) => ({
+      ...item,
+      _grade: gradeToVerticalLife(item.difficulty),
+    }));
+  });
 
   protected importRoute(item: SearchRouteItem): void {
     const crag = this.crag();
@@ -444,7 +449,7 @@ export class CragRoutesComponent {
         crag_id: crag.id,
         name: item.zlaggableName,
         slug: '',
-        grade: this.mapEightAnuGrade(item.difficulty),
+        grade: gradeToVerticalLife(item.difficulty),
         climbing_kind: ClimbingKinds.SPORT,
         height: null,
         eight_anu_route_slugs: [slugify(item.zlaggableName)],

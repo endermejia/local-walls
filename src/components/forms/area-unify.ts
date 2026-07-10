@@ -131,7 +131,7 @@ import { AreaDto, AreaListItem } from '../../models';
           tuiInput
           id="new-name"
           autocomplete="off"
-          [formField]="$any(unifyForm.newName)"
+          [formField]="unifyForm.newName"
           type="text"
           [placeholder]="model().targetArea?.name || ''"
         />
@@ -177,11 +177,11 @@ export class AreaUnifyComponent {
   model = signal<{
     targetArea: AreaDto | null;
     sourceAreas: AreaDto[];
-    newName: string | null;
-  }>({
-    targetArea: null,
-    sourceAreas: [],
-    newName: null,
+      newName: string;
+    }>({
+      targetArea: null,
+      sourceAreas: [],
+      newName: '',
   });
 
   unifyForm = form(this.model, (schemaPath) => {

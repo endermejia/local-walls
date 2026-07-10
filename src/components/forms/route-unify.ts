@@ -133,7 +133,7 @@ import { RouteDto } from '../../models';
           tuiInput
           id="new-name"
           autocomplete="off"
-          [formField]="$any(unifyForm.newName)"
+          [formField]="unifyForm.newName"
           type="text"
           [placeholder]="model().targetRoute?.name || ''"
         />
@@ -167,6 +167,7 @@ import { RouteDto } from '../../models';
   host: { class: 'block w-full' },
 })
 export class RouteUnifyComponent {
+
   protected readonly global = inject(GlobalData);
   protected readonly context =
     injectContext<TuiDialogContext<boolean, { candidates?: RouteDto[] }>>();
@@ -177,11 +178,11 @@ export class RouteUnifyComponent {
   model = signal<{
     targetRoute: RouteDto | null;
     sourceRoutes: RouteDto[];
-    newName: string | null;
+    newName: string;
   }>({
     targetRoute: null,
     sourceRoutes: [],
-    newName: null,
+    newName: '',
   });
 
   unifyForm = form(this.model, (schemaPath) => {

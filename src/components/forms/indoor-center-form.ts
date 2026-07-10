@@ -136,9 +136,8 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                   'description' | translate
                 }}</label>
                 <textarea
-                  tuiTextarea
                   id="center-desc"
-                  [formField]="$any(centerForm.description)"
+                  [formField]="centerForm.description"
                   class="h-32"
                 ></textarea>
               </tui-textfield>
@@ -148,9 +147,8 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                   'indoor.warning' | translate
                 }}</label>
                 <textarea
-                  tuiTextarea
                   id="center-warning"
-                  [formField]="$any(centerForm.warning)"
+                  [formField]="centerForm.warning"
                   class="h-24"
                 ></textarea>
               </tui-textfield>
@@ -233,13 +231,13 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                   cdkDropListOrientation="mixed"
                   (cdkDropListDropped)="dropImage($event)"
                 >
-                  @for (img of model().gallery_urls; track img) {
+                  @for (img of galleryUrls(); track img) {
                     <div
                       cdkDrag
                       class="relative aspect-square rounded-xl overflow-hidden border border-(--tui-border-normal) group cursor-grab active:cursor-grabbing"
                     >
                       <img
-                        [src]="supabase.getPublicUrl('indoor-assets', img)"
+                        [src]="img"
                         class="w-full h-full object-cover"
                         alt="Gallery image"
                       />
@@ -647,6 +645,12 @@ export class IndoorCenterFormComponent {
     latitude: null,
     longitude: null,
     gallery_urls: [],
+  });
+
+  protected readonly galleryUrls = computed(() => {
+    return this.model().gallery_urls.map((img) =>
+      this.supabase.getPublicUrl('indoor-assets', img),
+    );
   });
 
   centerForm = form(this.model, (path) => {

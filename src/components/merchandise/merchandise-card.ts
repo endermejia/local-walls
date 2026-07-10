@@ -2,6 +2,7 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   input,
   output,
@@ -47,9 +48,8 @@ import { MerchandiseItemDetail } from '../../models';
         @let images = item().image_urls || [];
 
         @if (images && images.length > 0) {
-          @let carouselItems = getCarouselItems(images);
           <app-custom-carousel
-            [items]="carouselItems"
+            [items]="carouselItems()"
             [(index)]="index"
             [hideArrowsUntilHover]="true"
             [hideDotsUntilHover]="true"
@@ -130,11 +130,11 @@ export class MerchandiseCardComponent {
 
   protected readonly index = signal(0);
 
-  protected getCarouselItems(images: string[]) {
-    return images.map((url) => ({
+  protected readonly carouselItems = computed(() => {
+    return (this.item().image_urls || []).map((url) => ({
       type: 'image' as const,
       url,
       alt: this.item().name,
     }));
-  }
+  });
 }

@@ -58,6 +58,7 @@ import {
   RoutesTableKey,
   RoutesTableRow,
   INDOOR_ROUTE_COLORS,
+  AscentType,
 } from '../../models';
 
 import { IncludesIdPipe } from '../../pipes';
@@ -102,8 +103,8 @@ import { ROUTE_TABLE_SORTERS } from '../../utils';
     NgTemplateOutlet,
   ],
   template: `
-    @if (tableData(); as data) {
-      @if (data.length > 0) {
+    @if (data(); as d) {
+      @if (d.length > 0) {
         @let isMobile = this.isMobile();
         <tui-scrollbar class="grow min-h-0 no-scrollbar">
           <table
@@ -111,14 +112,14 @@ import { ROUTE_TABLE_SORTERS } from '../../utils';
             [size]="isMobile ? 's' : 'm'"
             class="w-full"
             [class.table-fixed]="isMobile"
-            [columns]="columns()"
+            [columns]="visibleColumns()"
             [direction]="currentDirection"
             [sorter]="currentSorter"
             (sortChange)="onSortChange($event)"
           >
             <thead tuiThead>
               <tr tuiThGroup>
-                @for (col of columns(); track col) {
+                @for (col of visibleColumns(); track col) {
                   <th
                     *tuiHead="col"
                     tuiTh
@@ -158,7 +159,7 @@ import { ROUTE_TABLE_SORTERS } from '../../utils';
                 }
               </tr>
             </thead>
-            @let sortedData = data | tuiTableSort;
+            @let sortedData = d | tuiTableSort;
             @for (item of sortedData; track item.key) {
               @let canEditRoute = item.canEdit;
               <tbody tuiTbody>
@@ -175,7 +176,7 @@ import { ROUTE_TABLE_SORTERS } from '../../utils';
                       : ''
                   "
                 >
-                  @for (col of columns(); track col) {
+                @for (col of visibleColumns(); track col) {
                     <td
                       *tuiCell="col"
                       tuiTd
@@ -277,16 +278,10 @@ import { ROUTE_TABLE_SORTERS } from '../../utils';
                                   class="text-center h-full! border-none! p-0! route-height-input"
                                   [ngModel]="item.height"
                                   (blur.zoneless)="
-                                    updateRouteHeight.emit({
-                                      row: item,
-                                      height: $any($event.target).value,
-                                    })
+                                    onBlurHeight(item, $event)
                                   "
                                   (keydown.enter)="
-                                    updateRouteHeight.emit({
-                                      row: item,
-                                      height: $any($event.target).value,
-                                    })
+                                    onEnterHeight(item, $event)
                                   "
                                   autocomplete="off"
                                 />
@@ -539,7 +534,7 @@ import { ROUTE_TABLE_SORTERS } from '../../utils';
                 <tui-table-expand #exp [expanded]="false">
                   <tr>
                     <td
-                      [colSpan]="columns().length"
+                      [colSpan]="visibleColumns().length"
                       class="p-0! border-none! w-full! max-w-full!"
                     >
                       @if (exp.expanded()) {
@@ -569,8 +564,8 @@ import { ROUTE_TABLE_SORTERS } from '../../utils';
 })
 export class RoutesTableComponent {
   // Inputs
-  tableData = input<RoutesTableRow[]>([], { alias: 'data' });
-  inputColumns = input<string[]>([], { alias: 'columns' });
+  data = input<RoutesTableRow[]>([]);
+  columns = input<string[]>([]);
   direction = input<TuiSortDirection>(TuiSortDirection.Desc);
   activeCol = input<RoutesTableKey>('ascents');
   showRowColors = input(true);
@@ -601,7 +596,7 @@ export class RoutesTableComponent {
     isAttached: boolean;
   }>();
   logAscent = output<RoutesTableRow>();
-  editAscent = output<{ row: RoutesTableRow; ascent: any }>();
+  editAscent = output<{ row: RoutesTableRow; ascent: { id: number | string; type: AscentType | null } }>();
   toggleProject = output<RoutesTableRow>();
   editRoute = output<RoutesTableRow>();
   deleteRoute = output<RoutesTableRow>();
@@ -618,12 +613,12 @@ export class RoutesTableComponent {
   protected readonly expanders = viewChildren(TuiTableExpand);
   protected readonly allExpanded = signal(false);
 
-  protected readonly columns = computed(() => {
+  protected readonly visibleColumns = computed(() => {
     const isMobile = this.isMobile() && this.expandableMobile();
     if (isMobile) {
       return ['expand', 'grade', 'route'];
     }
-    return this.inputColumns();
+    return this.columns();
   });
 
   protected toggleAllExpanded() {
@@ -634,6 +629,16 @@ export class RoutesTableComponent {
         exp.expanded.set(expandState);
       }
     }
+  }
+
+  protected onBlurHeight(item: RoutesTableRow, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.updateRouteHeight.emit({ row: item, height: input.value });
+  }
+
+  protected onEnterHeight(item: RoutesTableRow, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.updateRouteHeight.emit({ row: item, height: input.value });
   }
 
   constructor() {

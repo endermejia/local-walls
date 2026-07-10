@@ -41,13 +41,13 @@ import { normalizeNameStrict } from '../../utils';
             >
               <div class="flex-1 min-w-0">
                 <div class="font-bold">
-                  {{ group[0].name }}
+                  {{ group.items[0].name }}
                   <span class="font-normal opacity-70 text-sm">
-                    ({{ getAreaName(group[0]) }})
+                    ({{ group.areaName }})
                   </span>
                 </div>
                 <div class="flex flex-col gap-1 mt-1">
-                  @for (crag of group; track crag.id) {
+                  @for (crag of group.items; track crag.id) {
                     <div class="text-sm opacity-70">
                       @if (crag.area?.slug && crag.slug) {
                         <a
@@ -67,7 +67,7 @@ import { normalizeNameStrict } from '../../utils';
                 tuiButton
                 size="m"
                 appearance="primary"
-                (click)="onUnify(group)"
+                (click)="onUnify(group.items)"
               >
                 {{ 'unify' | translate }}
               </button>
@@ -99,12 +99,13 @@ export class SuggestedUnifiedCragsComponent {
       groups.get(key)!.push(crag);
     }
 
-    return Array.from(groups.values()).filter((g) => g.length > 1);
+    return Array.from(groups.values())
+      .filter((g) => g.length > 1)
+      .map((group) => ({
+        items: group,
+        areaName: group[0]?.area?.name || '',
+      }));
   });
-
-  protected getAreaName(crag: CragSimple): string {
-    return crag.area?.name || '';
-  }
 
   protected async onUnify(group: CragSimple[]) {
     // Cast to CragDto[] for the service call

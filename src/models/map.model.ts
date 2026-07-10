@@ -52,7 +52,7 @@ export interface MapIndoorCenterItem {
   is_indoor: true;
   grades?: AmountByEveryGrade;
   routes_count?: number;
-  topos?: { id: string; name: string }[];
+  topos?: { id: string | number; name: string; slug: string }[];
 }
 
 export type MapItem = MapCragItem | MapAreaItem | MapIndoorCenterItem;

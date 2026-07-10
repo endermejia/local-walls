@@ -36,11 +36,11 @@ export interface PhotoViewerData {
       #container
       class="fixed inset-0 z-1000 flex items-center justify-center overflow-hidden touch-none p-0 bg-black/80 backdrop-blur-xl cursor-grab active:cursor-grabbing"
       (wheel.zoneless)="onWheel($event)"
-      (touchstart.zoneless)="onTouchStart($any($event))"
-      (touchmove.zoneless)="onTouchMove($any($event))"
+      (touchstart.zoneless)="onTouchStart($event)"
+      (touchmove.zoneless)="onTouchMove($event)"
       (touchend.zoneless)="onTouchEnd()"
-      (mousedown.zoneless)="onMouseDown($any($event))"
-      (mousemove.zoneless)="onMouseMove($any($event))"
+      (mousedown.zoneless)="onMouseDown($event)"
+      (mousemove.zoneless)="onMouseMove($event)"
       (mouseup.zoneless)="onMouseUp()"
       (mouseleave.zoneless)="onMouseUp()"
       (click)="onBackgroundClick()"
@@ -153,13 +153,13 @@ export class PhotoViewerDialogComponent {
     this.dragState.isDragging = false;
   }
 
-  protected onMouseDown(event: MouseEvent): void {
-    handleViewerMouseDown(event, this.viewerState, this.dragState);
+  protected onMouseDown(event: Event): void {
+    handleViewerMouseDown(event as MouseEvent, this.viewerState, this.dragState);
   }
 
-  protected onMouseMove(event: MouseEvent): void {
+  protected onMouseMove(event: Event): void {
     const el = this.getViewerElements();
-    if (el) handleViewerMouseMove(event, this.viewerState, this.dragState, el);
+    if (el) handleViewerMouseMove(event as MouseEvent, this.viewerState, this.dragState, el);
   }
 
   protected onMouseUp(): void {

@@ -55,7 +55,7 @@ import { MerchandisePackDialogComponent } from './merchandise-pack-dialog';
             @if (order.status) {
               <span
                 class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm border"
-                [ngClass]="getStatusColor(order.status)"
+                [ngClass]="statusColorClass"
               >
                 {{ 'merchandising.order.status.' + order.status | translate }}
               </span>
@@ -171,6 +171,26 @@ export class OrderDetailsDialogComponent {
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
 
+  protected readonly statusColorClass = (() => {
+    const status = this.order.status;
+    if (!status) return 'text-gray-600 bg-gray-500/10 border-gray-500/20';
+    switch (status) {
+      case 'pending':
+        return 'text-yellow-600 bg-yellow-500/10 border-yellow-500/20';
+      case 'paid':
+        return 'text-blue-600 bg-blue-500/10 border-blue-500/20';
+      case 'shipped':
+        return 'text-purple-600 bg-purple-500/10 border-purple-500/20';
+      case 'delivered':
+        return 'text-green-600 bg-green-500/10 border-green-500/20';
+      case 'cancelled':
+      case 'refunded':
+        return 'text-red-600 bg-red-500/10 border-red-500/20';
+      default:
+        return 'text-gray-600 bg-gray-500/10 border-gray-500/20';
+    }
+  })();
+
   protected openItemDetail(item: OrderDetail['items'][number]): void {
     if (item.item_type === 'area' && item.product_slug) {
       this.context.completeWith();
@@ -198,25 +218,6 @@ export class OrderDetailsDialogComponent {
           size: 'l',
         })
         .subscribe();
-    }
-  }
-
-  protected getStatusColor(status: string | null): string {
-    if (!status) return 'text-gray-600 bg-gray-500/10 border-gray-500/20';
-    switch (status) {
-      case 'pending':
-        return 'text-yellow-600 bg-yellow-500/10 border-yellow-500/20';
-      case 'paid':
-        return 'text-blue-600 bg-blue-500/10 border-blue-500/20';
-      case 'shipped':
-        return 'text-purple-600 bg-purple-500/10 border-purple-500/20';
-      case 'delivered':
-        return 'text-green-600 bg-green-500/10 border-green-500/20';
-      case 'cancelled':
-      case 'refunded':
-        return 'text-red-600 bg-red-500/10 border-red-500/20';
-      default:
-        return 'text-gray-600 bg-gray-500/10 border-gray-500/20';
     }
   }
 }

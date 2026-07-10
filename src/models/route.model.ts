@@ -19,6 +19,8 @@ export interface RouteWithExtras extends RouteDto {
   project: boolean;
   crag_slug?: string;
   crag_name?: string;
+  center_slug?: string;
+  center_name?: string;
   area_id?: number;
   area_slug?: string;
   area_name?: string;

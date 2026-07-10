@@ -109,7 +109,7 @@ import {
           <div class="flex items-center gap-3">
             @if (item.own_ascent; as ascent) {
               <app-button-ascent-type
-                [type]="$any(ascent.type)"
+                [type]="ascent.type"
                 [active]="true"
                 class="cursor-pointer"
                 [tuiHint]="'ascent.edit' | translate"

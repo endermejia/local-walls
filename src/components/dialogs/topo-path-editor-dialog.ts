@@ -240,11 +240,7 @@ export interface TopoPathEditorConfig {
             >
               @for (entry of pathsMap | keyvalue; track entry.key) {
                 @let isSelected = selectedRoute()?.route_id === +entry.key;
-                @let style =
-                  getRouteStyle(
-                    entry.value._ref.route.grade.toString(),
-                    +entry.key
-                  );
+                @let style = routeStyleMap()[entry.key];
                 <g
                   class="path-group"
                   (click)="
@@ -258,38 +254,20 @@ export interface TopoPathEditorConfig {
                 >
                   <!-- Hit area -->
                   <polyline
-                    [attr.points]="getPointsString(entry.value)"
+                    [attr.points]="pointsStringMap()[entry.key]"
                     fill="none"
                     stroke="transparent"
-                    [attr.stroke-width]="
-                      getRouteStrokeWidth(
-                        isSelected,
-                        false,
-                        lineWidth(),
-                        'editor'
-                      ) *
-                      width() *
-                      5
-                    "
+                    [attr.stroke-width]="routeStrokeWidthMap()[entry.key] * width() * 5"
                     stroke-linejoin="round"
                     stroke-linecap="round"
                   />
                   <!-- Shadow -->
                   <polyline
-                    [attr.points]="getPointsString(entry.value)"
+                    [attr.points]="pointsStringMap()[entry.key]"
                     fill="none"
                     stroke="white"
                     [style.opacity]="style.isDashed ? 1 : 0.7"
-                    [attr.stroke-width]="
-                      getRouteStrokeWidth(
-                        isSelected,
-                        false,
-                        lineWidth(),
-                        'editor'
-                      ) *
-                        width() +
-                      (style.isDashed ? 2.5 : 1.5)
-                    "
+                    [attr.stroke-width]="routeStrokeWidthMap()[entry.key] * width() + (style.isDashed ? 2.5 : 1.5)"
                     [attr.stroke-dasharray]="
                       style.isDashed
                         ? width() * 0.01 + ' ' + width() * 0.01
@@ -300,18 +278,11 @@ export interface TopoPathEditorConfig {
                   />
                   <!-- Main line -->
                   <polyline
-                    [attr.points]="getPointsString(entry.value)"
+                    [attr.points]="pointsStringMap()[entry.key]"
                     fill="none"
                     [attr.stroke]="style.stroke"
                     [style.opacity]="style.opacity"
-                    [attr.stroke-width]="
-                      getRouteStrokeWidth(
-                        isSelected,
-                        false,
-                        lineWidth(),
-                        'editor'
-                      ) * width()
-                    "
+                    [attr.stroke-width]="routeStrokeWidthMap()[entry.key] * width()"
                     [attr.stroke-dasharray]="
                       style.isDashed
                         ? width() * 0.01 + ' ' + width() * 0.01
@@ -329,14 +300,7 @@ export interface TopoPathEditorConfig {
                     <circle
                       [attr.cx]="last.x * width()"
                       [attr.cy]="last.y * height()"
-                      [attr.r]="
-                        getRouteStrokeWidth(
-                          isSelected,
-                          false,
-                          lineWidth(),
-                          'editor'
-                        ) * width()
-                      "
+                      [attr.r]="routeStrokeWidthMap()[entry.key] * width()"
                       fill="white"
                       [style.opacity]="style.opacity"
                       stroke="black"
@@ -356,8 +320,7 @@ export interface TopoPathEditorConfig {
                       "
                       (contextmenu)="removePoint($event, entry.key, $index)"
                     >
-                      @let strokeW =
-                        getRouteStrokeWidth(true, false, lineWidth(), 'editor');
+                      @let strokeW = routeStrokeWidthMap()[entry.key];
                       <circle
                         [attr.cx]="pt.x * width()"
                         [attr.cy]="pt.y * height()"
@@ -861,11 +824,40 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
   >();
   lineWidth = signal(5);
 
-  protected readonly getRouteStrokeWidth = getRouteStrokeWidth;
-
   width = signal(0);
   height = signal(0);
   viewBox = computed(() => `0 0 ${this.width()} ${this.height()}`);
+
+  protected readonly routeStrokeWidthMap = computed(() => {
+    const selected = this.selectedRoute();
+    const lw = this.lineWidth();
+    const map: Record<string, number> = {};
+    for (const [key] of this.pathsMap) {
+      const isSelected = selected?.route_id === +key;
+      map[key] = getRouteStrokeWidth(isSelected, false, lw, 'editor');
+    }
+    return map;
+  });
+
+  protected readonly routeStyleMap = computed(() => {
+    const selected = this.selectedRoute();
+    const map: Record<string, ReturnType<typeof getRouteStyleProperties>> = {};
+    for (const [key, entry] of this.pathsMap) {
+      const isSelected = selected?.route_id === +key;
+      map[key] = getRouteStyleProperties(isSelected, false, entry._ref.route.grade.toString());
+    }
+    return map;
+  });
+
+  protected readonly pointsStringMap = computed(() => {
+    const w = this.width();
+    const h = this.height();
+    const map: Record<string, string> = {};
+    for (const [key, entry] of this.pathsMap) {
+      map[key] = getPointsStringUtil(entry.points, w, h);
+    }
+    return map;
+  });
 
   draggingPoint: { routeId: number; index: number } | null = null;
   scale = signal(1);
@@ -1098,18 +1090,6 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     this.translateX.set(targetX);
     this.translateY.set(targetY);
     this.cdr.markForCheck();
-  }
-
-  getPointsString(pathData: {
-    points: { x: number; y: number }[];
-    color?: string;
-  }): string {
-    return getPointsStringUtil(pathData.points, this.width(), this.height());
-  }
-
-  getRouteStyle(grade: string | number, routeId: number) {
-    const isSelected = this.selectedRoute()?.route_id === routeId;
-    return getRouteStyleProperties(isSelected, false, grade);
   }
 
   onImageClick(event: Event): void {

@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 
 import { TuiAppearance, TuiIcon, TuiTitle } from '@taiga-ui/core';
+import { TuiBadge } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -21,6 +22,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
 import { ShadeInfoPipe } from '../../pipes/shade-info.pipe';
 import { TopoImagePipe } from '../../pipes/topo-image.pipe';
 import { TopoListItem } from '../../models';
+import { IndoorTopoListItem } from '../../models/indoor.model';
 
 @Component({
   selector: 'app-topo-card',
@@ -32,6 +34,7 @@ import { TopoListItem } from '../../models';
     TopoImagePipe,
     TranslatePipe,
     TuiAppearance,
+    TuiBadge,
     TuiHeader,
     TuiIcon,
     TuiTitle,
@@ -46,25 +49,49 @@ import { TopoListItem } from '../../models';
     >
       <div class="flex flex-col min-w-0 grow gap-2">
         <header tuiHeader>
-          <h2 tuiTitle>{{ item.name }}</h2>
+          <h2 tuiTitle>
+            {{ item.name }}
+            @if (legacy()) {
+              <span
+                tuiBadge
+                size="s"
+                appearance="neutral"
+                class="uppercase text-[10px] shrink-0"
+              >
+                {{ 'indoor.legacy' | translate }}
+              </span>
+            }
+          </h2>
         </header>
         <section class="flex flex-col gap-2">
           @if (item.photo; as photo) {
-            <img
-              [src]="
-                ({
-                  path: photo,
-                  version: global.topoPhotoVersion(),
-                  isIndoor: isIndoor(),
-                }
-                  | topoImage
-                  | async) || ('topo' | iconSrc)
-              "
-              alt="topo"
-              class="w-full h-40 object-cover rounded shadow-sm"
-              loading="lazy"
-              decoding="async"
-            />
+            <div class="relative">
+              <img
+                [src]="
+                  ({
+                    path: photo,
+                    version: global.topoPhotoVersion(),
+                    isIndoor: isIndoor(),
+                  }
+                    | topoImage
+                    | async) || ('topo' | iconSrc)
+                "
+                alt="topo"
+                class="w-full h-40 object-cover rounded shadow-sm"
+                loading="lazy"
+                decoding="async"
+              />
+              @if (legacy()) {
+                <span
+                  tuiBadge
+                  size="s"
+                  appearance="neutral"
+                  class="absolute top-2 left-2 uppercase text-[10px]"
+                >
+                  {{ 'indoor.legacy' | translate }}
+                </span>
+              }
+            </div>
           }
           <div class="flex items-center justify-between gap-2 mt-auto">
             @if (!isIndoor()) {
@@ -123,11 +150,16 @@ import { TopoListItem } from '../../models';
 })
 export class TopoCardComponent {
   protected readonly global = inject(GlobalData);
-  topo = input.required<TopoListItem>();
+  topo = input.required<TopoListItem | IndoorTopoListItem>();
   isIndoor = input<boolean>(false);
   pendingRoutes = input<number | null>(null);
   totalRoutes = input<number | null>(null);
   selected = output<void>();
+
+  protected readonly legacy = computed(() => {
+    const item = this.topo();
+    return 'legacy' in item && !!item.legacy;
+  });
 
   protected readonly allCompleted = computed(
     () => this.totalRoutes() !== null && this.pendingRoutes() === 0,

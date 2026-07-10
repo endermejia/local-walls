@@ -130,7 +130,7 @@ import { CragDto } from '../../models';
           tuiInput
           id="new-name"
           autocomplete="off"
-          [formField]="$any(unifyForm.newName)"
+          [formField]="unifyForm.newName"
           type="text"
           [placeholder]="model().targetCrag?.name || ''"
         />
@@ -174,11 +174,11 @@ export class CragUnifyComponent {
   model = signal<{
     targetCrag: CragDto | null;
     sourceCrags: CragDto[];
-    newName: string | null;
+    newName: string;
   }>({
     targetCrag: null,
     sourceCrags: [],
-    newName: null,
+    newName: '',
   });
 
   unifyForm = form(this.model, (schemaPath) => {

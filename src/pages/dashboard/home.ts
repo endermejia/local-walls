@@ -662,8 +662,14 @@ export class HomeComponent implements OnDestroy {
 
       const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
 
-      return ascents.map((a: any) => {
-        const { route, ...ascentRest } = a;
+      return ascents.map((a) => {
+        const { route, ...ascentRest } = a as {
+          route?: {
+            center?: { slug?: string; name?: string } | { slug?: string; name?: string }[];
+          };
+          user_id: string;
+          [key: string]: unknown;
+        };
         let mappedRoute: RouteAscentWithExtras['route'] = undefined;
         if (route) {
           const center = Array.isArray(route.center)
@@ -675,12 +681,12 @@ export class HomeComponent implements OnDestroy {
             crag_name: center?.name,
             liked: false,
             project: false,
-          } as any;
+          } as RouteAscentWithExtras['route'];
         }
         return {
           ...ascentRest,
           kind: 'ascent',
-          user: profileMap.get(a.user_id),
+          user: a.user_id ? profileMap.get(a.user_id) : undefined,
           route: mappedRoute,
         } as RouteAscentWithExtras & { kind: 'ascent' };
       });
@@ -821,7 +827,7 @@ export class HomeComponent implements OnDestroy {
         return {
           ...ascentRest,
           kind: 'ascent',
-          user: profileMap.get(a.user_id),
+          user: a.user_id ? profileMap.get(a.user_id) : undefined,
           route: mappedRoute,
         } as RouteAscentWithExtras & { kind: 'ascent' };
       });

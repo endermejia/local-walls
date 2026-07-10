@@ -54,6 +54,7 @@ import {
   IndoorRouteWithExtras,
   RouteItem,
   AscentType,
+  ClimbingKind,
   RouteAscentWithExtras,
   INDOOR_ROUTE_COLORS,
   RoutesTableRow,
@@ -178,7 +179,7 @@ import { RouteRowExpandedComponent } from '../route/route-row-expanded';
                   <th
                     *tuiHead="col"
                     tuiTh
-                    [sorter]="getSorter(col)"
+                    [sorter]="columnSorterMap()[col]"
                     [class.text-right]="
                       col === 'actions' || col === 'admin_actions'
                     "
@@ -211,16 +212,12 @@ import { RouteRowExpandedComponent } from '../route/route-row-expanded';
                 }
               </tr>
             </thead>
-            @let sortedData = routes() | tuiTableSort;
+            @let sortedData = displayRoutes() | tuiTableSort;
             <tbody tuiTbody>
               @for (item of sortedData; track item.id) {
                 <tr
                   tuiTr
-                  [style.background]="
-                    item.own_ascent
-                      ? getAscentBackground(item.own_ascent.type)
-                      : ''
-                  "
+                  [style.background]="item._ascentBackground || ''"
                 >
                   @for (col of columns(); track col) {
                     <td
@@ -317,7 +314,7 @@ import { RouteRowExpandedComponent } from '../route/route-row-expanded';
                                   class="shrink-0"
                                 ></div>
                                 <span class="text-sm truncate">
-                                  {{ getColorName(item.color) }}
+                                  {{ item._colorName }}
                                 </span>
                               } @else {
                                 <span class="opacity-50 text-xs">-</span>
@@ -416,7 +413,7 @@ import { RouteRowExpandedComponent } from '../route/route-row-expanded';
                       class="p-0! border-none! w-full! max-w-full!"
                     >
                       <app-route-row-expanded
-                        [route]="mapRoute(item)"
+                        [route]="routeRowMap()['' + item.id]"
                         (logAscent)="logAscent($event)"
                         (editAscent)="
                           editAscent($event.route, $event.own_ascent)
@@ -594,12 +591,69 @@ export class IndoorRoutesComponent {
     });
   }
 
-  protected readonly getColorName = (colorValue: string): string => {
+  protected readonly columnSorterMap = computed(() => {
+    const map: Record<string, TuiComparator<IndoorRouteWithExtras> | null> = {};
+    for (const col of this.columns()) {
+      if (
+        col === 'actions' ||
+        col === 'admin_actions' ||
+        col === 'expand' ||
+        col === 'equippers'
+      ) {
+        map[col] = null;
+      } else {
+        const sorters: Record<string, TuiComparator<IndoorRouteWithExtras>> = {
+          grade: (a, b) => (a.grade || 0) - (b.grade || 0),
+          route: (a, b) => (a.name || '').localeCompare(b.name || ''),
+          color: (a, b) => {
+            const aName = this.resolveColorName(a.color || '');
+            const bName = this.resolveColorName(b.color || '');
+            return aName.localeCompare(bName);
+          },
+        };
+        map[col] = sorters[col] ?? null;
+      }
+    }
+    return map;
+  });
+
+  protected readonly routeRowMap = computed(() => {
+    const map: Record<string, RoutesTableRow> = {};
+    const isEdit = this.canEdit();
+    for (const r of this.routes()) {
+      const row = mapRouteToTableRow(r);
+      row.canEdit = isEdit;
+      row.canDelete = isEdit;
+      row.canAddTopo = isEdit;
+      map[String(r.id)] = row;
+    }
+    return map;
+  });
+
+  protected readonly displayRoutes = computed(() => {
+    const ascentInfo = this.ascentsService.ascentInfo();
+    const colorNames = new Map<string, string>();
+    const routes = this.routes();
+    for (const r of routes) {
+      if (r.color && !colorNames.has(r.color)) {
+        colorNames.set(r.color, this.resolveColorName(r.color));
+      }
+    }
+    return routes.map((r) => ({
+      ...r,
+      _colorName: r.color ? (colorNames.get(r.color) ?? r.color) : '',
+      _ascentBackground: r.own_ascent
+        ? (ascentInfo[(r.own_ascent.type || 'default') as AscentType | 'default']?.backgroundSubtle ?? '')
+        : '',
+    }));
+  });
+
+  private resolveColorName(colorValue: string): string {
     const colorName = INDOOR_ROUTE_COLORS[colorValue];
     return colorName
       ? this.translate.instant('colors.' + colorName)
       : colorValue;
-  };
+  }
 
   protected readonly expanders = viewChildren(TuiTableExpand);
   protected readonly allExpanded = signal(false);
@@ -617,32 +671,6 @@ export class IndoorRoutesComponent {
   protected currentDirection: TuiSortDirection = 1;
   protected currentSorter: TuiComparator<IndoorRouteWithExtras> = (_a, _b) => 0;
 
-  protected readonly sorters: Record<
-    string,
-    TuiComparator<IndoorRouteWithExtras>
-  > = {
-    grade: (a, b) => (a.grade || 0) - (b.grade || 0),
-    route: (a, b) => (a.name || '').localeCompare(b.name || ''),
-    color: (a, b) => {
-      const aName = this.getColorName(a.color || '');
-      const bName = this.getColorName(b.color || '');
-      return aName.localeCompare(bName);
-    },
-  };
-
-  protected getSorter(
-    col: string,
-  ): TuiComparator<IndoorRouteWithExtras> | null {
-    if (
-      col === 'actions' ||
-      col === 'admin_actions' ||
-      col === 'expand' ||
-      col === 'equippers'
-    )
-      return null;
-    return this.sorters[col] ?? null;
-  }
-
   protected onSortChange(
     sort: TuiTableSortChange<IndoorRouteWithExtras>,
   ): void {
@@ -657,7 +685,7 @@ export class IndoorRoutesComponent {
         routeId: r.id,
         routeName: r.name,
         isIndoor: true,
-        climbingKind: r.climbing_kind as any,
+        climbingKind: r.climbing_kind as ClimbingKind | undefined,
         grade: r.grade || undefined,
       }),
       { defaultValue: false },
@@ -667,20 +695,6 @@ export class IndoorRoutesComponent {
         this.routesResource.reload();
       }
     }
-  }
-
-  protected mapRoute(r: IndoorRouteWithExtras): RoutesTableRow {
-    const row = mapRouteToTableRow(r);
-    const isEdit = this.canEdit();
-    row.canEdit = isEdit;
-    row.canDelete = isEdit;
-    row.canAddTopo = isEdit;
-    return row;
-  }
-
-  protected getAscentBackground(type: string | null): string {
-    const info = (this.ascentsService.ascentInfo() as any)[type || 'default'];
-    return info?.backgroundSubtle ?? '';
   }
 
   async editAscent(
@@ -703,11 +717,11 @@ export class IndoorRoutesComponent {
             center_name: r.center_name,
             center_slug: r.center_slug,
           },
-        } as any,
+        } as unknown as RouteAscentWithExtras,
         routeId: r.id,
         routeName: r.name,
         isIndoor: true,
-        climbingKind: r.climbing_kind as any,
+        climbingKind: r.climbing_kind as ClimbingKind | undefined,
         grade: r.grade || undefined,
       }),
       { defaultValue: false },

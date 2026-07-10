@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   resource,
 } from '@angular/core';
@@ -55,7 +56,7 @@ import { CheckoutService } from '../../services/checkout.service';
             <p class="text-(--tui-text-secondary) max-w-md mx-auto">
               {{ 'merchandising.success.description' | translate }}
               <span class="font-bold text-(--tui-text-primary)"
-                >#{{ order.id.slice(0, 8) }}</span
+                >#{{ shortOrderId() }}</span
               >
             </p>
 
@@ -162,4 +163,6 @@ export class OrderSuccessComponent {
       return order;
     },
   });
+
+  protected readonly shortOrderId = computed(() => this.orderResource.value()?.id?.slice(0, 8));
 }

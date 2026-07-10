@@ -80,10 +80,10 @@ interface CragFormModel {
   latitude: number | null;
   longitude: number | null;
   approach: number | null;
-  description_es: string | null;
-  description_en: string | null;
-  warning_es: string | null;
-  warning_en: string | null;
+  description_es: string;
+  description_en: string;
+  warning_es: string;
+  warning_en: string;
   area: AreaDto | null;
   eight_anu_sector_slugs: string[] | null;
 }
@@ -222,9 +222,8 @@ interface CragFormModel {
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="desc-es">{{ 'description_es' | translate }}</label>
         <textarea
-          tuiTextarea
           id="desc-es"
-          [formField]="$any(cragForm.description_es)"
+          [formField]="cragForm.description_es"
           rows="3"
         ></textarea>
       </tui-textfield>
@@ -232,9 +231,8 @@ interface CragFormModel {
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="desc-en">{{ 'description_en' | translate }}</label>
         <textarea
-          tuiTextarea
           id="desc-en"
-          [formField]="$any(cragForm.description_en)"
+          [formField]="cragForm.description_en"
           rows="3"
         ></textarea>
       </tui-textfield>
@@ -242,9 +240,8 @@ interface CragFormModel {
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="warn-es">{{ 'warning_es' | translate }}</label>
         <textarea
-          tuiTextarea
           id="warn-es"
-          [formField]="$any(cragForm.warning_es)"
+          [formField]="cragForm.warning_es"
           rows="3"
         ></textarea>
       </tui-textfield>
@@ -252,9 +249,8 @@ interface CragFormModel {
       <tui-textfield [tuiTextfieldCleaner]="false">
         <label tuiLabel for="warn-en">{{ 'warning_en' | translate }}</label>
         <textarea
-          tuiTextarea
           id="warn-en"
-          [formField]="$any(cragForm.warning_en)"
+          [formField]="cragForm.warning_en"
           rows="3"
         ></textarea>
       </tui-textfield>
@@ -356,10 +352,10 @@ export class CragFormComponent {
     latitude: null,
     longitude: null,
     approach: null,
-    description_es: null,
-    description_en: null,
-    warning_es: null,
-    warning_en: null,
+    description_es: '',
+    description_en: '',
+    warning_es: '',
+    warning_en: '',
     area: null,
     eight_anu_sector_slugs: [],
   });
@@ -442,10 +438,10 @@ export class CragFormComponent {
         latitude: data.latitude ?? null,
         longitude: data.longitude ?? null,
         approach: data.approach ?? null,
-        description_es: data.description_es ?? null,
-        description_en: data.description_en ?? null,
-        warning_es: data.warning_es ?? null,
-        warning_en: data.warning_en ?? null,
+        description_es: data.description_es ?? '',
+        description_en: data.description_en ?? '',
+        warning_es: data.warning_es ?? '',
+        warning_en: data.warning_en ?? '',
         area: this.model().area,
         eight_anu_sector_slugs:
           data.eight_anu_sector_slugs || currentSlugs || [],
