@@ -22,11 +22,10 @@ import {
   TuiDataList,
   TuiDialogService,
   TuiDropdown,
-  TuiIcon,
   TuiLoader,
   TuiTitle,
+  TuiLink,
 } from '@taiga-ui/core';
-import { TuiChevron } from '@taiga-ui/kit';
 import {
   TuiTable,
   TuiTableTbody,
@@ -37,6 +36,7 @@ import {
   TuiTableHead,
   TuiTableCell,
 } from '@taiga-ui/addon-table';
+import { TuiChevron } from '@taiga-ui/kit';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -105,7 +105,6 @@ export class OrderStatusAppearancePipe implements PipeTransform {
     TranslatePipe,
     TuiHeader,
     TuiTitle,
-    TuiIcon,
     TuiButton,
     TuiLoader,
     TuiTable,
@@ -119,6 +118,7 @@ export class OrderStatusAppearancePipe implements PipeTransform {
     TuiDataList,
     TuiDropdown,
     TuiChevron,
+    TuiLink,
     OrderStatusColorPipe,
     OrderStatusAppearancePipe,
   ],
@@ -138,16 +138,20 @@ export class OrderStatusAppearancePipe implements PipeTransform {
                 <th tuiTh *tuiHead="'total'">Total</th>
                 <th tuiTh *tuiHead="'status'">{{ 'status' | translate }}</th>
                 <th tuiTh *tuiHead="'date'">{{ 'date' | translate }}</th>
-                <th tuiTh *tuiHead="'actions'">{{ 'actions' | translate }}</th>
               </tr>
             </thead>
             <tbody tuiTbody [data]="orders">
               @for (order of orders; track order.id) {
                 <tr tuiTr>
                   <td tuiTd *tuiCell="'id'">
-                    <span class="text-xs font-mono">{{
-                      order.id | slice: 0 : 8
-                    }}</span>
+                    <button
+                      tuiLink
+                      type="button"
+                      class="font-mono text-xs"
+                      (click)="viewDetails(order)"
+                    >
+                      {{ order.id | slice: 0 : 8 }}
+                    </button>
                   </td>
                   <td tuiTd *tuiCell="'user'">
                     <div class="flex flex-col">
@@ -226,18 +230,6 @@ export class OrderStatusAppearancePipe implements PipeTransform {
                   <td tuiTd *tuiCell="'date'">
                     {{ order.created_at | date: 'short' }}
                   </td>
-                  <td tuiTd *tuiCell="'actions'">
-                    <button
-                      tuiIconButton
-                      appearance="neutral"
-                      size="s"
-                      type="button"
-                      class="rounded-full!"
-                      (click)="viewDetails(order)"
-                    >
-                      <tui-icon icon="@tui.eye" />
-                    </button>
-                  </td>
                 </tr>
               }
             </tbody>
@@ -270,7 +262,6 @@ export class AdminShopOrdersComponent {
     'total',
     'status',
     'date',
-    'actions',
   ]);
   protected readonly openDropdownId = signal<string | null>(null);
 
