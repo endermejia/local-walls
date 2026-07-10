@@ -91,10 +91,7 @@ import { mapRouteToTableRow, handleErrorToast } from '../../utils';
 
     <ng-template #expandedTpl let-item>
       <app-route-row-expanded
-        [isIndoor]="true"
-        [route]="item._ref"
-        [canEdit]="canEditIndoor()"
-        [centerSlug]="centerSlug()"
+        [route]="item"
         [showAdminActions]="true"
         [showLocation]="false"
         [showAddRouteToTopo]="true"
@@ -134,8 +131,10 @@ export class IndoorRoutesTableComponent {
 
   protected readonly mappedData = computed(() => {
     const isEdit = this.canEditIndoor();
+    const slug = this.centerSlug();
     return this.data().map((r) => {
-      const row = mapRouteToTableRow(r);
+      const route = slug ? { ...r, center_slug: slug } : r;
+      const row = mapRouteToTableRow(route);
       row.canEdit = isEdit;
       row.canDelete = isEdit;
       row.canAddTopo = isEdit;

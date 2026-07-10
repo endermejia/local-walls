@@ -69,9 +69,7 @@ import { mapRouteToTableRow, handleErrorToast } from '../../utils';
 
     <ng-template #expandedTpl let-item>
       <app-route-row-expanded
-        [isIndoor]="false"
         [route]="item"
-        [canEdit]="!!global.canEditCragRoutes()[item.id]"
         [showAdminActions]="showAdminActions()"
         [showLocation]="showLocation()"
         [showAddRouteToTopo]="showAddRouteToTopo()"
