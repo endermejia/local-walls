@@ -67,6 +67,7 @@ import {
   AscentTypes,
   RouteAscentDto,
   RouteAscentInsertDto,
+  RouteAscentWithExtras,
   VERTICAL_LIFE_GRADES,
   GRADE_NUMBER_TO_LABEL,
 } from '../../models';
@@ -645,7 +646,9 @@ export default class AscentFormComponent {
   routeId: InputSignal<number | string | undefined> = input<
     number | string | undefined
   >(undefined);
-  ascentData: InputSignal<any | undefined> = input<any | undefined>(undefined);
+  ascentData: InputSignal<RouteAscentWithExtras | undefined> = input<
+    RouteAscentWithExtras | undefined
+  >(undefined);
 
   private readonly dialogRouteId = this._dialogCtx?.data?.routeId;
   private readonly dialogRouteName = this._dialogCtx?.data?.routeName;
@@ -941,40 +944,40 @@ export default class AscentFormComponent {
 
     this.model.set({
       type: (data.type ?? AscentTypes.RP) as AscentType,
-      rate: (data as any).rate ?? 0,
-      comment: (data as any).comment ?? (data as any).notes ?? '',
-      attempts: (data as any).attempts ?? null,
-      private_ascent: !!(data as any).private_ascent,
-      recommended: !!(data as any).recommended,
-      soft: !!(data as any).soft,
-      hard: !!(data as any).hard,
-      cruxy: !!(data as any).cruxy,
-      athletic: !!(data as any).athletic,
-      sloper: !!(data as any).sloper,
-      endurance: !!(data as any).endurance,
-      technical: !!(data as any).technical,
-      crimpy: !!(data as any).crimpy,
-      slab: !!(data as any).slab,
-      vertical: !!(data as any).vertical,
-      overhang: !!(data as any).overhang,
-      roof: !!(data as any).roof,
-      bad_anchor: !!(data as any).bad_anchor,
-      bad_bolts: !!(data as any).bad_bolts,
-      high_first_bolt: !!(data as any).high_first_bolt,
-      lose_rock: !!(data as any).lose_rock,
-      bad_clipping_position: !!(data as any).bad_clipping_position,
-      chipped: !!(data as any).chipped,
-      with_kneepad: !!(data as any).with_kneepad,
-      no_score: !!(data as any).no_score,
-      first_ascent: !!(data as any).first_ascent,
-      traditional: !!(data as any).traditional,
-      grade: (data as any).grade ?? null,
-      video_url: (data as any).video_url ?? null,
+      rate: data.rate ?? 0,
+      comment: data.comment ?? '',
+      attempts: data.attempts ?? null,
+      private_ascent: !!data.private_ascent,
+      recommended: !!data.recommended,
+      soft: !!data.soft,
+      hard: !!data.hard,
+      cruxy: !!data.cruxy,
+      athletic: !!data.athletic,
+      sloper: !!data.sloper,
+      endurance: !!data.endurance,
+      technical: !!data.technical,
+      crimpy: !!data.crimpy,
+      slab: !!data.slab,
+      vertical: !!data.vertical,
+      overhang: !!data.overhang,
+      roof: !!data.roof,
+      bad_anchor: !!data.bad_anchor,
+      bad_bolts: !!data.bad_bolts,
+      high_first_bolt: !!data.high_first_bolt,
+      lose_rock: !!data.lose_rock,
+      bad_clipping_position: !!data.bad_clipping_position,
+      chipped: !!data.chipped,
+      with_kneepad: !!data.with_kneepad,
+      no_score: !!data.no_score,
+      first_ascent: !!data.first_ascent,
+      traditional: !!data.traditional,
+      grade: data.grade ?? null,
+      video_url: data.video_url ?? null,
       date: dateObj,
       photoControl: null,
-      sit_start: !!(data as any).sit_start,
-      top_out: !!(data as any).top_out,
-      highball: !!(data as any).highball,
+      sit_start: !!data.sit_start,
+      top_out: !!data.top_out,
+      highball: !!data.highball,
     });
   }
 
@@ -1094,9 +1097,11 @@ export default class AscentFormComponent {
             video_url: otherValues.video_url || null,
           };
 
-          let savedAscentId = ascentData?.id;
+          let savedAscentId: string | undefined = ascentData?.id
+            ? String(ascentData.id)
+            : undefined;
           if (ascentData) {
-            await this.indoorService.updateRouteAscent(ascentData.id, {
+            await this.indoorService.updateRouteAscent(String(ascentData.id), {
               type: payload.type,
               date: payload.date,
               notes: payload.notes || '',
@@ -1120,9 +1125,12 @@ export default class AscentFormComponent {
               photoFile,
             );
             if (uploadedPath) {
-              await this.indoorService.updateRouteAscent(savedAscentId, {
-                photo_path: uploadedPath,
-              });
+              await this.indoorService.updateRouteAscent(
+                String(savedAscentId),
+                {
+                  photo_path: uploadedPath,
+                },
+              );
             }
           } else if (savedAscentId && this.isExistingPhotoDeleted()) {
             await this.indoorService.updateRouteAscent(savedAscentId, {
@@ -1142,16 +1150,19 @@ export default class AscentFormComponent {
 
           let savedAscent: RouteAscentDto | null = null;
           if (ascentData) {
-            savedAscent = await this.ascents.update(ascentData.id, payload);
+            savedAscent = await this.ascents.update(
+              Number(ascentData.id),
+              payload,
+            );
           } else if (route_id && user_id) {
             savedAscent = await this.ascents.create({
               ...payload,
-              route_id,
+              route_id: Number(route_id),
               user_id,
             });
 
             if (payload.type !== AscentTypes.ATTEMPT) {
-              await this.routesService.removeRouteProject(route_id);
+              await this.routesService.removeRouteProject(Number(route_id));
             }
           }
 
@@ -1249,11 +1260,11 @@ export default class AscentFormComponent {
     if (confirmed) {
       try {
         if (this.isIndoor()) {
-          await this.indoorService.updateRouteAscent(data.id, {
+          await this.indoorService.updateRouteAscent(String(data.id), {
             photo_path: null,
           });
         } else {
-          await this.ascents.deletePhoto(data.id);
+          await this.ascents.deletePhoto(Number(data.id));
         }
         this.isExistingPhotoDeleted.set(true);
       } catch (e) {
@@ -1286,9 +1297,9 @@ export default class AscentFormComponent {
 
     try {
       if (this.isIndoor()) {
-        await this.indoorService.deleteRouteAscent(data.id);
+        await this.indoorService.deleteRouteAscent(String(data.id));
       } else {
-        await this.ascents.delete(data.id);
+        await this.ascents.delete(Number(data.id));
       }
     } catch (error) {
       handleErrorToast(error, this.toast);

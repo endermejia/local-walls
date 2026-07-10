@@ -43,7 +43,11 @@ import { CustomCarouselComponent } from '../ui/custom-carousel';
 import { GradeComponent } from '../ui/avatar-grade';
 import { PhotoViewerDialogComponent } from '../dialogs/photo-viewer-dialog';
 
-import { CLIMBING_ICONS, RouteAscentWithExtras } from '../../models';
+import {
+  CLIMBING_ICONS,
+  ClimbingKind,
+  RouteAscentWithExtras,
+} from '../../models';
 
 import { AscentDatePipe, AvatarUrlPipe } from '../../pipes';
 import { getEmbedUrl } from '../../utils';
@@ -369,7 +373,11 @@ export class AscentCardComponent {
 
   protected readonly isIndoor = computed(() => {
     const r = this.data().route;
-    return !!(r && (r as any).center_slug);
+    return !!(
+      r &&
+      'center_slug' in r &&
+      (r as { center_slug?: string }).center_slug
+    );
   });
   protected readonly router = inject(Router);
   protected readonly sanitizer = inject(DomSanitizer);
@@ -483,9 +491,9 @@ export class AscentCardComponent {
       this.ascentsService.openAscentForm({
         ascentData: this.data(),
         isIndoor: this.isIndoor(),
-        routeId: this.data().route_id as any,
+        routeId: this.data().route_id as number | string,
         routeName: this.data().route?.name,
-        climbingKind: this.data().route?.climbing_kind as any,
+        climbingKind: this.data().route?.climbing_kind as ClimbingKind,
         grade: this.data().route?.grade || undefined,
       }),
       { defaultValue: false },

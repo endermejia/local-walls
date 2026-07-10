@@ -69,15 +69,18 @@ import { PaywallComponent } from '../../components/paywall/paywall';
 import { SectionHeaderComponent } from '../../components/ui/section-header';
 
 import {
+  IndoorCenterDto,
+  IndoorTopoDto,
   RouteAscentWithExtras,
   RouteWithExtras,
   TopoDetail,
+  TopoListItem,
   TopoRouteWithRoute,
 } from '../../models';
 
-import { GradeLabelPipe } from '../../pipes/grade-label.pipe';
-import { IconSrcPipe } from '../../pipes/icon-src.pipe';
-import { ShadeInfoPipe } from '../../pipes/shade-info.pipe';
+import { GradeLabelPipe } from '../../pipes';
+import { IconSrcPipe } from '../../pipes';
+import { ShadeInfoPipe } from '../../pipes';
 import { AscentInfoPipe } from '../../pipes/ascent-info.pipe';
 import { TableSorterPipe } from '../../pipes/table-sorter.pipe';
 import { handleErrorToast } from '../../utils';
@@ -97,7 +100,7 @@ import {
   handleViewerMouseDown,
   handleViewerMouseMove,
   centerViewerOnPoint,
-} from '../../utils/zoom-pan.utils';
+} from '../../utils';
 
 export interface TopoRouteRow {
   index: number;
@@ -1342,7 +1345,7 @@ export class TopoComponent implements OnDestroy {
         ? ['index', 'grade', 'name']
         : ['index', 'grade', 'name', 'actions'];
       const t = this.topo();
-      const centerId = (t as any)?.center_id ?? '';
+      const centerId = t?.center_id ?? '';
       if (!isMobile && this.global.indoorAdminPermissions()[centerId]) {
         base.push('admin_actions');
       }
@@ -1431,10 +1434,10 @@ export class TopoComponent implements OnDestroy {
       const t = this.topo();
       if (this.isIndoor() && t) {
         this.global.selectedIndoorCenter.set({
-          id: (t as any).center_id,
+          id: t.center_id || '',
           name: t.crag?.name || '',
           slug: t.crag?.slug || '',
-        } as any);
+        } as unknown as IndoorCenterDto);
       }
     });
 
@@ -1564,8 +1567,8 @@ export class TopoComponent implements OnDestroy {
       this.supabase.client
         .from('indoor_topo_routes')
         .update({ number: val })
-        .eq('topo_id', tr.topo_id as any)
-        .eq('route_id', tr.route_id as any)
+        .eq('topo_id', String(tr.topo_id))
+        .eq('route_id', String(tr.route_id))
         .then(({ error }) => {
           if (error) {
             handleErrorToast(error, this.toast);
@@ -1602,7 +1605,7 @@ export class TopoComponent implements OnDestroy {
 
   protected readonly canEdit = computed(() => {
     if (this.isIndoor()) {
-      const centerId = (this.topo() as any)?.center_id ?? '';
+      const centerId = this.topo()?.center_id ?? '';
       return !!this.global.indoorAdminPermissions()[centerId];
     }
     return this.global.canEditCrag();
@@ -1611,9 +1614,9 @@ export class TopoComponent implements OnDestroy {
   openEditTopo(topo: TopoDetail): void {
     if (!isPlatformBrowser(this.platformId)) return;
     if (this.isIndoor()) {
-      const centerId = (topo as any).center_id as string;
+      const centerId = topo.center_id as string;
       this.indoorService
-        .openIndoorTopoForm(centerId, topo as any)
+        .openIndoorTopoForm(centerId, topo as unknown as IndoorTopoDto)
         .then((success) => {
           if (success) {
             this.global.topoDetailResource.reload();
@@ -1649,7 +1652,7 @@ export class TopoComponent implements OnDestroy {
       if (!confirmed) return;
       if (this.isIndoor()) {
         this.indoorService
-          .deleteTopo(topo.id as any)
+          .deleteTopo(String(topo.id))
           .then(() => this.router.navigate(['/indoor', this.centerSlug()]))
           .catch((err) => handleErrorToast(err, this.toast));
       } else {
@@ -1685,8 +1688,8 @@ export class TopoComponent implements OnDestroy {
         this.supabase.client
           .from('indoor_topo_routes')
           .delete()
-          .eq('topo_id', topoRoute.topo_id as any)
-          .eq('route_id', topoRoute.route_id as any)
+          .eq('topo_id', String(topoRoute.topo_id))
+          .eq('route_id', String(topoRoute.route_id))
           .then(({ error }) => {
             if (error) {
               handleErrorToast(error, this.toast);
@@ -1703,7 +1706,9 @@ export class TopoComponent implements OnDestroy {
     });
   }
 
-  protected navigateToTopo(topo: any): void {
+  protected navigateToTopo(
+    topo: TopoDetail | (TopoListItem & { crag_slug: string }),
+  ): void {
     if (this.isIndoor()) {
       void this.router.navigate([
         '/indoor',
@@ -1715,7 +1720,7 @@ export class TopoComponent implements OnDestroy {
       void this.router.navigate([
         '/area',
         this.areaSlug()!,
-        topo.crag_slug || this.cragSlug()!,
+        this.cragSlug()!,
         'topo',
         topo.id,
       ]);

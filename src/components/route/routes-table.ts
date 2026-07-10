@@ -60,7 +60,7 @@ import {
   INDOOR_ROUTE_COLORS,
 } from '../../models';
 
-import { IncludesIdPipe } from '../../pipes/includes-id.pipe';
+import { IncludesIdPipe } from '../../pipes';
 import { ROUTE_TABLE_SORTERS } from '../../utils';
 
 @Component({

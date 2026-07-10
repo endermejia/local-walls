@@ -18,6 +18,12 @@ export interface IndoorAscentDialogData {
   };
 }
 
+export interface IndoorAscentDialogResult {
+  type: string;
+  date: string;
+  notes: string;
+}
+
 @Component({
   selector: 'app-indoor-ascent-dialog',
   standalone: true,
@@ -91,7 +97,9 @@ export interface IndoorAscentDialogData {
 })
 export class IndoorAscentDialogComponent {
   protected readonly context =
-    inject<TuiDialogContext<any, IndoorAscentDialogData>>(POLYMORPHEUS_CONTEXT);
+    inject<
+      TuiDialogContext<IndoorAscentDialogResult | null, IndoorAscentDialogData>
+    >(POLYMORPHEUS_CONTEXT);
   protected readonly data = this.context.data;
 
   protected type = 'rp';

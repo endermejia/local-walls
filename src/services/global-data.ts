@@ -54,6 +54,9 @@ import {
   MapBounds,
   MapCragItem,
   MapIndoorCenterItem,
+  MapIndoorCenterRaw,
+  MapIndoorRouteRaw,
+  MapIndoorTopoRaw,
   MapItem,
   MapResponse,
   ORDERED_GRADE_VALUES,
@@ -161,7 +164,7 @@ export class GlobalData {
           routerLink: ['/indoor', indoorCenter.slug],
         },
       ];
-      if (topo && (topo as any).center_id === indoorCenter.id) {
+      if (topo && topo.center_id === indoorCenter.id) {
         items.push({
           caption: topo.name,
           routerLink: ['/indoor', indoorCenter.slug, 'topo', topo.id],
@@ -503,10 +506,10 @@ export class GlobalData {
             .lte('longitude', bounds.north_east_longitude);
 
         if (!indoorError && sbIndoor) {
-          indoorItems = sbIndoor.map((c: any) => {
+          indoorItems = sbIndoor.map((c: MapIndoorCenterRaw) => {
             const grades: Record<number, number> = {};
             let activeRoutesCount = 0;
-            (c.routes || []).forEach((r: any) => {
+            (c.routes || []).forEach((r: MapIndoorRouteRaw) => {
               if (!r.legacy) {
                 activeRoutesCount++;
                 if (r.grade != null) {
@@ -527,7 +530,7 @@ export class GlobalData {
               is_indoor: true,
               grades,
               routes_count: activeRoutesCount,
-              topos: (c.topos || []).map((t: any) => ({
+              topos: (c.topos || []).map((t: MapIndoorTopoRaw) => ({
                 id: t.id,
                 name: t.name,
               })),
@@ -1017,7 +1020,7 @@ export class GlobalData {
       if (!id || !isPlatformBrowser(this.platformId)) return [];
       await this.supabase.whenReady();
       try {
-        const { data, error } = await (this.supabase.client as any)
+        const { data, error } = await this.supabase.client
           .from('indoor_route_equippers')
           .select(
             `
@@ -1036,7 +1039,7 @@ export class GlobalData {
         if (error) throw error;
 
         return (data || [])
-          .map((d: any) => {
+          .map((d: { route: IndoorRouteWithExtras | null }) => {
             const r = d.route;
             if (!r) return null;
             return {
@@ -1044,11 +1047,11 @@ export class GlobalData {
               center_name: r.center?.name || '',
               center_slug: r.center?.slug || '',
               equippers: (r.equippers || [])
-                .map((e: any) => e.equipper)
+                .map((e: { equipper: EquipperDto }) => e.equipper)
                 .filter(Boolean),
             } as IndoorRouteWithExtras;
           })
-          .filter((r: any): r is IndoorRouteWithExtras => r !== null);
+          .filter((r): r is IndoorRouteWithExtras => r !== null);
       } catch (e) {
         console.error('[GlobalData] equipperIndoorRoutesResource error', e);
         return [];
@@ -1111,7 +1114,7 @@ export class GlobalData {
     params: () => ({ user: this.userProfile() }),
     loader: async () => {
       if (!isPlatformBrowser(this.platformId)) {
-        return [] as any[];
+        return [] as IndoorRouteWithExtras[];
       }
       try {
         await this.supabase.whenReady();
@@ -1124,9 +1127,9 @@ export class GlobalData {
 
         if (error) throw error;
 
-        return (data || []).map((c: any) => {
+        return (data || []).map((c: MapIndoorCenterRaw) => {
           const grades: AmountByEveryGrade = {};
-          (c.routes || []).forEach((r: any) => {
+          (c.routes || []).forEach((r: MapIndoorRouteRaw) => {
             const g = r.grade;
             if (g >= 0) {
               grades[g as VERTICAL_LIFE_GRADES] =
@@ -1146,7 +1149,7 @@ export class GlobalData {
     },
   });
 
-  indoorCentersList: Signal<any[]> = computed(
+  indoorCentersList: Signal<MapIndoorCenterItem[]> = computed(
     () => this.indoorCentersResource.value() ?? [],
   );
 
@@ -1257,7 +1260,7 @@ export class GlobalData {
 
           return (data || []).map((t) => {
             const grades: Record<number, number> = {};
-            const topoRoutes = (t as any).indoor_topo_routes || [];
+            const topoRoutes = t.indoor_topo_routes || [];
             for (const tr of topoRoutes) {
               const grade = tr.route?.grade;
               if (grade !== undefined && grade !== null) {
@@ -1272,7 +1275,7 @@ export class GlobalData {
               photo: t.image_url,
               grades,
             };
-          }) as any;
+          }) as MapIndoorCenterItem[];
         } catch (e) {
           console.error('[GlobalData] areaToposResource indoor error', e);
           return [];
@@ -1315,7 +1318,9 @@ export class GlobalData {
             shade_morning: t.shade_morning,
             shade_afternoon: t.shade_afternoon,
             shade_change_hour: t.shade_change_hour,
-            route_ids: (t.topo_routes || []).map((tr: any) => tr.route_id),
+            route_ids: (t.topo_routes || []).map(
+              (tr: { route_id: number }) => tr.route_id,
+            ),
           };
         });
 
@@ -1386,7 +1391,8 @@ export class GlobalData {
 
           if (trsErr) throw trsErr;
 
-          const topo_routes: any[] = [];
+          const topo_routes: { route_id: number; route: RouteWithExtras }[] =
+            [];
           const seenRouteIds = new Set<string>();
 
           if (trs) {
@@ -1395,7 +1401,7 @@ export class GlobalData {
                 seenRouteIds.add(tr.route_id);
 
                 // Sort ascents to prioritize real ascents over attempts
-                const ascents = (tr.route.own_ascent || []) as any[];
+                const ascents = (tr.route.own_ascent || []) as RouteAscentDto[];
                 ascents.sort((a, b) => {
                   const isAttemptA = a.type === 'attempt';
                   const isAttemptB = b.type === 'attempt';
@@ -1428,7 +1434,7 @@ export class GlobalData {
             }
           }
 
-          const result: any = {
+          const result: TopoDetail = {
             id: topo.id,
             name: topo.name,
             photo: topo.image_url,
@@ -2350,8 +2356,8 @@ export class GlobalData {
 
   readonly userProjects = computed(() => {
     const val = this.userProjectsResource.value();
-    if (val !== undefined) return val as any[];
-    return this.getCachedData<any[]>(
+    if (val !== undefined) return val as RouteWithExtras[];
+    return this.getCachedData<RouteWithExtras[]>(
       `cached_user_projects_${this.supabase.authUserId()}_v2`,
       [],
     );
@@ -2359,8 +2365,8 @@ export class GlobalData {
 
   readonly routeDetail = computed(() => {
     const val = this.routeDetailResource.value();
-    if (val !== undefined) return val as any | null;
-    return this.getCachedData<any | null>(
+    if (val !== undefined) return val as RouteWithExtras | null;
+    return this.getCachedData<RouteWithExtras | null>(
       `cached_route_detail_${this.selectedRouteSlug()}_v2`,
       null,
     );
