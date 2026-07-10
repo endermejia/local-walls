@@ -955,7 +955,7 @@ export interface TopoRouteRow {
                                             />
                                           </span>
                                         }
-                                        @if (!item.climbed) {
+                                        @if (!item.climbed && !isIndoor()) {
                                           <button
                                             tuiIconButton
                                             size="m"
