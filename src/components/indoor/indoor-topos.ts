@@ -7,6 +7,7 @@ import {
   resource,
   computed,
   signal,
+  effect,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -110,7 +111,33 @@ export class IndoorToposComponent {
     return this.global.indoorAdminPermissions()[this.centerId()];
   });
 
-  protected readonly showLegacyTopos = signal<boolean>(false);
+  protected readonly showLegacyTopos = signal<boolean>(
+    (() => {
+      try {
+        return (
+          typeof window !== 'undefined' &&
+          localStorage.getItem('show_legacy_topos') === 'true'
+        );
+      } catch {
+        return false;
+      }
+    })(),
+  );
+
+  constructor() {
+    effect(() => {
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(
+            'show_legacy_topos',
+            String(this.showLegacyTopos()),
+          );
+        }
+      } catch {
+        // localStorage can be unavailable (SSR or privacy-restricted browsers).
+      }
+    });
+  }
 
   protected readonly toposResource = resource({
     params: () => ({

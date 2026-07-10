@@ -118,7 +118,7 @@ export const routes: Routes = [
     path: 'area/:areaSlug/:cragSlug/topo/:id',
     canMatch: [authGuard],
     loadComponent: () =>
-      import('../pages/area/topo').then((m) => m.TopoComponent),
+      import('../pages/area/outdoor-topo').then((m) => m.OutdoorTopoComponent),
   },
   {
     path: 'area/:areaSlug/:cragSlug/:routeSlug',
@@ -152,8 +152,9 @@ export const routes: Routes = [
       {
         path: ':centerSlug/topo/:id',
         loadComponent: () =>
-          import('../pages/area/topo').then((m) => m.TopoComponent),
-        data: { type: 'indoor' },
+          import('../pages/indoor/indoor-topo').then(
+            (m) => m.IndoorTopoComponent,
+          ),
       },
     ],
   },
