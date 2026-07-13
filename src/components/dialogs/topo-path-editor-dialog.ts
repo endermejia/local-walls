@@ -236,41 +236,44 @@ export interface TopoPathEditorConfig {
             <svg
               class="svg-overlay"
               [attr.viewBox]="viewBox()"
+              preserveAspectRatio="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              @for (entry of pathsMap | keyvalue; track entry.key) {
-                @let isSelected = selectedRoute()?.route_id === +entry.key;
-                @let style = routeStyleMap()[entry.key];
+              @for (entry of pathsEntries(); track entry[0]) {
+                @let routeId = entry[0];
+                @let pathData = entry[1];
+                @let isSelected = selectedRoute()?.route_id === +routeId;
+                @let style = routeStyleMap()[routeId];
                 <g
                   class="path-group"
                   (click)="
-                    selectRoute(entry.value._ref || { route_id: +entry.key });
+                    selectRoute(pathData._ref || { route_id: +routeId });
                     $event.stopPropagation()
                   "
                   (touchstart)="
-                    selectRoute(entry.value._ref || { route_id: +entry.key });
+                    selectRoute(pathData._ref || { route_id: +routeId });
                     $event.stopPropagation()
                   "
                 >
                   <!-- Hit area -->
                   <polyline
-                    [attr.points]="pointsStringMap()[entry.key]"
+                    [attr.points]="pointsStringMap()[routeId]"
                     fill="none"
                     stroke="transparent"
                     [attr.stroke-width]="
-                      routeStrokeWidthMap()[entry.key] * width() * 5
+                      routeStrokeWidthMap()[routeId] * width() * 5
                     "
                     stroke-linejoin="round"
                     stroke-linecap="round"
                   />
                   <!-- Shadow -->
                   <polyline
-                    [attr.points]="pointsStringMap()[entry.key]"
+                    [attr.points]="pointsStringMap()[routeId]"
                     fill="none"
                     stroke="white"
                     [style.opacity]="style.isDashed ? 1 : 0.7"
                     [attr.stroke-width]="
-                      routeStrokeWidthMap()[entry.key] * width() +
+                      routeStrokeWidthMap()[routeId] * width() +
                       (style.isDashed ? 2.5 : 1.5)
                     "
                     [attr.stroke-dasharray]="
@@ -283,12 +286,12 @@ export interface TopoPathEditorConfig {
                   />
                   <!-- Main line -->
                   <polyline
-                    [attr.points]="pointsStringMap()[entry.key]"
+                    [attr.points]="pointsStringMap()[routeId]"
                     fill="none"
                     [attr.stroke]="style.stroke"
                     [style.opacity]="style.opacity"
                     [attr.stroke-width]="
-                      routeStrokeWidthMap()[entry.key] * width()
+                      routeStrokeWidthMap()[routeId] * width()
                     "
                     [attr.stroke-dasharray]="
                       style.isDashed
@@ -300,14 +303,11 @@ export interface TopoPathEditorConfig {
                   />
 
                   <!-- End dot -->
-                  @if (
-                    entry.value.points[entry.value.points.length - 1];
-                    as last
-                  ) {
+                  @if (pathData.points[pathData.points.length - 1]; as last) {
                     <circle
                       [attr.cx]="last.x * width()"
                       [attr.cy]="last.y * height()"
-                      [attr.r]="routeStrokeWidthMap()[entry.key] * width()"
+                      [attr.r]="routeStrokeWidthMap()[routeId] * width()"
                       fill="white"
                       [style.opacity]="style.opacity"
                       stroke="black"
@@ -318,16 +318,14 @@ export interface TopoPathEditorConfig {
 
                 <!-- Control points (selected only) -->
                 @if (isSelected) {
-                  @for (pt of entry.value.points; track $index) {
+                  @for (pt of pathData.points; track $index) {
                     <g
                       class="control-point"
-                      (mousedown)="startDragging($event, entry.key, $index)"
-                      (touchstart)="
-                        startDraggingTouch($event, entry.key, $index)
-                      "
-                      (contextmenu)="removePoint($event, entry.key, $index)"
+                      (mousedown)="startDragging($event, routeId, $index)"
+                      (touchstart)="startDraggingTouch($event, routeId, $index)"
+                      (contextmenu)="removePoint($event, routeId, $index)"
                     >
-                      @let strokeW = routeStrokeWidthMap()[entry.key];
+                      @let strokeW = routeStrokeWidthMap()[routeId];
                       <circle
                         [attr.cx]="pt.x * width()"
                         [attr.cy]="pt.y * height()"
@@ -830,6 +828,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     }
   >();
   lineWidth = signal(5);
+  private pathsVersion = signal(0);
 
   width = signal(0);
   height = signal(0);
@@ -860,7 +859,13 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     return map;
   });
 
+  protected readonly pathsEntries = computed(() => {
+    this.pathsVersion();
+    return Array.from(this.pathsMap.entries());
+  });
+
   protected readonly pointsStringMap = computed(() => {
+    this.pathsVersion();
     const w = this.width();
     const h = this.height();
     const map: Record<string, string> = {};
@@ -1129,7 +1134,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       this.pathsMap,
       { _ref: route },
     );
-    // Map mutations are not detected by OnPush — manually trigger re-render
+    this.pathsVersion.update((v) => v + 1);
     this.cdr.markForCheck();
   }
 
@@ -1148,9 +1153,13 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       this.containerElement().nativeElement,
       this.pathsMap,
       {
-        onUpdate: () => this.cdr.markForCheck(),
+        onUpdate: () => {
+          this.pathsVersion.update((v) => v + 1);
+          this.cdr.markForCheck();
+        },
         onEnd: () => {
           this.draggingPoint = null;
+          this.pathsVersion.update((v) => v + 1);
           this.cdr.markForCheck();
         },
       },
@@ -1176,7 +1185,14 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
           this.removePoint(event, numericRouteId, index);
           this.draggingPoint = null;
         },
-        onEnd: () => (this.draggingPoint = null),
+        onUpdate: () => {
+          this.pathsVersion.update((v) => v + 1);
+          this.cdr.markForCheck();
+        },
+        onEnd: () => {
+          this.draggingPoint = null;
+          this.pathsVersion.update((v) => v + 1);
+        },
       },
     );
   }
@@ -1206,6 +1222,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
 
   removePoint(event: Event, routeId: string | number, index: number): void {
     removePoint(event, routeId, index, this.pathsMap);
+    this.pathsVersion.update((v) => v + 1);
     this.cdr.markForCheck();
   }
 
@@ -1226,6 +1243,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     if (confirmed) {
       this.pathsMap.delete(tr.route_id);
       this.pathsMap = new Map(this.pathsMap);
+      this.pathsVersion.update((v) => v + 1);
       this.selectedRoute.set(null);
       this.cdr.markForCheck();
     }

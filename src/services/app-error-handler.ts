@@ -10,6 +10,8 @@ import { ErrorDialogComponent } from '../components/dialogs/error-dialog';
 @Injectable()
 export class AppErrorHandler implements ErrorHandler {
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly dialogs = inject(TuiDialogService);
+  private readonly translate = inject(TranslateService);
   private isOpen = false;
 
   handleError(error: unknown): void {
@@ -38,15 +40,12 @@ export class AppErrorHandler implements ErrorHandler {
   private showError(messageKey: string): void {
     if (this.isOpen) return;
 
-    const dialogs = inject(TuiDialogService);
-    const translate = inject(TranslateService);
-
     this.isOpen = true;
 
-    void firstValueFrom(translate.get(messageKey)).then((message) => {
+    void firstValueFrom(this.translate.get(messageKey)).then((message) => {
       void firstValueFrom(
-        dialogs.open(new PolymorpheusComponent(ErrorDialogComponent), {
-          label: translate.instant('errors.unexpected'),
+        this.dialogs.open(new PolymorpheusComponent(ErrorDialogComponent), {
+          label: this.translate.instant('errors.unexpected'),
           data: {
             message,
           },

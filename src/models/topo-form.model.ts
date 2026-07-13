@@ -31,6 +31,5 @@ export interface TopoFormModel {
   shade_change_hour: string | null;
   selectedRoutes: SelectedRoute[];
   photoControl: File | null;
-  climbing_kind: 'sport' | 'boulder';
   legacy: boolean;
 }

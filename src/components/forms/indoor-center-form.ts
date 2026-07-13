@@ -102,7 +102,7 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
         @switch (activeTabIndex()) {
           @case (0) {
             <div class="grid gap-4">
-              <tui-textfield class="block">
+              <tui-textfield class="block" [tuiTextfieldCleaner]="false">
                 <label tuiLabel for="center-name">{{
                   'name' | translate
                 }}</label>
@@ -118,7 +118,7 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                 <tui-error [error]="'errors.required' | translate" />
               }
 
-              <tui-textfield class="block">
+              <tui-textfield class="block" [tuiTextfieldCleaner]="false">
                 <label tuiLabel for="center-city">{{
                   'city' | translate
                 }}</label>
@@ -131,13 +131,16 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                 />
               </tui-textfield>
 
-              <tui-textfield class="block">
+              <tui-textfield class="block" [tuiTextfieldCleaner]="false">
                 <label tuiLabel for="center-desc">{{
                   'description' | translate
                 }}</label>
                 <textarea
+                  tuiTextarea
                   id="center-desc"
-                  [formField]="centerForm.description"
+                  [ngModel]="model().description"
+                  (ngModelChange)="onDescriptionChange($event)"
+                  name="description"
                   class="h-32"
                 ></textarea>
               </tui-textfield>
@@ -147,8 +150,11 @@ import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
                   'indoor.warning' | translate
                 }}</label>
                 <textarea
+                  tuiTextarea
                   id="center-warning"
-                  [formField]="centerForm.warning"
+                  [ngModel]="model().warning"
+                  (ngModelChange)="onWarningChange($event)"
+                  name="warning"
                   class="h-24"
                 ></textarea>
               </tui-textfield>
@@ -1142,6 +1148,14 @@ export class IndoorCenterFormComponent {
 
   onLngChange(value: number | null): void {
     this.model.update((m) => ({ ...m, longitude: value }));
+  }
+
+  onDescriptionChange(value: string): void {
+    this.model.update((m) => ({ ...m, description: value }));
+  }
+
+  onWarningChange(value: string): void {
+    this.model.update((m) => ({ ...m, warning: value }));
   }
 
   onPasteLocation(event: ClipboardEvent): void {

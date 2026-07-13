@@ -165,6 +165,15 @@ import { IndoorVouchersComponent } from '../../components/indoor/indoor-vouchers
               </div>
 
               <div class="flex flex-col gap-2">
+                @if (c.warning) {
+                  <div
+                    tuiNotification
+                    appearance="warning"
+                    class="rounded-2xl mb-2"
+                  >
+                    {{ c.warning }}
+                  </div>
+                }
                 <p class="text-lg">{{ c.description }}</p>
 
                 @if (c.latitude && c.longitude) {
@@ -337,14 +346,6 @@ import { IndoorVouchersComponent } from '../../components/indoor/indoor-vouchers
                     </tui-textfield>
                   </div>
                 }
-              </div>
-            </div>
-          }
-
-          @if (c.warning) {
-            <div class="mb-4">
-              <div tuiNotification appearance="warning" class="rounded-2xl">
-                {{ c.warning }}
               </div>
             </div>
           }

@@ -40,8 +40,6 @@ import {
   TuiMultiSelect,
   TuiFiles,
   TuiInputFiles,
-  TuiSelect,
-  TuiDataListWrapper,
 } from '@taiga-ui/kit';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -103,9 +101,7 @@ import { handleErrorToast, slugify } from '../../utils';
     TuiMultiSelect,
     TuiOptGroup,
     TuiTitle,
-    TuiSelect,
     TuiLabel,
-    TuiDataListWrapper,
   ],
   template: `
     <form
@@ -150,17 +146,7 @@ import { handleErrorToast, slugify } from '../../utils';
         </div>
       }
 
-      @if (isIndoor()) {
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
-          <tui-select [formField]="topoForm.climbing_kind">
-            {{ 'routes.climbingKind' | translate }}
-            <tui-data-list-wrapper
-              *tuiDropdown
-              [items]="['sport', 'boulder']"
-            ></tui-data-list-wrapper>
-          </tui-select>
-        </div>
-      } @else {
+      @if (!isIndoor()) {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label class="flex items-center gap-2 cursor-pointer">
@@ -488,7 +474,6 @@ export class TopoFormComponent {
         id: data.indoorTopoData.id,
         name: data.indoorTopoData.name,
         photo: data.indoorTopoData.image_url || data.indoorTopoData.photo,
-        climbing_kind: data.indoorTopoData.climbing_kind,
         legacy: data.indoorTopoData.legacy,
         center_id: data.centerId,
         topo_routes: (data.initialRoutes || []).map((r, idx) => ({
@@ -525,7 +510,6 @@ export class TopoFormComponent {
     shade_change_hour: string | null;
     selectedRoutes: SelectedRoute[];
     photoControl: File | null;
-    climbing_kind: 'sport' | 'boulder';
     legacy: boolean;
   }>({
     name: '',
@@ -535,7 +519,6 @@ export class TopoFormComponent {
     shade_change_hour: null,
     selectedRoutes: [],
     photoControl: null,
-    climbing_kind: 'sport',
     legacy: false,
   });
 
@@ -698,7 +681,6 @@ export class TopoFormComponent {
           ...m,
           name: data.name,
           photo: data.image_url || data.photo || null,
-          climbing_kind: data.climbing_kind || 'sport',
           legacy: data.legacy || false,
         }));
       },
@@ -743,7 +725,6 @@ export class TopoFormComponent {
             shade_change_hour: data.shade_change_hour,
             selectedRoutes: selected,
             photoControl: null,
-            climbing_kind: 'sport',
             legacy: false,
           });
           this.isInitialized = true;
@@ -778,8 +759,7 @@ export class TopoFormComponent {
         const centerId = this._dialogCtx?.data?.centerId;
         if (!centerId) return;
 
-        const { name, photo, selectedRoutes, climbing_kind, legacy } =
-          this.model();
+        const { name, photo, selectedRoutes, legacy } = this.model();
         const indoorTopoData = this._dialogCtx?.data?.indoorTopoData;
 
         let finalImageUrl = photo || '';
@@ -797,8 +777,8 @@ export class TopoFormComponent {
         const payload = {
           center_id: centerId,
           name,
-          climbing_kind: climbing_kind || 'sport',
           image_url: finalImageUrl,
+          climbing_kind: null,
           legacy: legacy || false,
           start_date: null,
           end_date: null,
