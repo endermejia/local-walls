@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   ElementRef,
   inject,
   input,
@@ -401,6 +402,20 @@ export class TopoRoutesTableComponent {
     viewChildren<ElementRef<HTMLInputElement>>('indexInput');
   protected readonly heightInputs =
     viewChildren<ElementRef<HTMLInputElement>>('heightInput');
+
+  constructor() {
+    effect(() => {
+      const routeId = this.selectedRouteId();
+      if (!routeId) return;
+      queueMicrotask(() => {
+        const row = document.getElementById(
+          `route-row-${this.topoId()}-${routeId}`,
+        );
+        if (!row) return;
+        row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      });
+    });
+  }
 
   protected selectRoute(routeId: string | number): void {
     this.selectedRouteIdChange.emit(

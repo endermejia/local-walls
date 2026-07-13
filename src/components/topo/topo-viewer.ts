@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   ElementRef,
   inject,
   input,
@@ -425,6 +426,15 @@ export class TopoViewerComponent {
   hoveredRouteIdChange = output<string | number | null>();
   imageRatioChange = output<number>();
 
+  constructor() {
+    effect(() => {
+      const routeId = this.selectedRouteId();
+      if (routeId && this.imageRatio() > 0) {
+        queueMicrotask(() => this.centerOnRoute());
+      }
+    });
+  }
+
   protected readonly scrollContainer =
     viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
   protected readonly fullscreenContainer = viewChild<
@@ -496,7 +506,6 @@ export class TopoViewerComponent {
       this.imageRatio.set(ratio);
       this.imageRatioChange.emit(ratio);
     }
-    if (this.selectedRouteId()) this.centerOnRoute();
   }
 
   protected onPathClick(event: Event, route: TopoRouteWithRoute): void {
