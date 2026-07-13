@@ -423,6 +423,7 @@ export class TopoViewerComponent {
 
   selectedRouteIdChange = output<string | number | null>();
   hoveredRouteIdChange = output<string | number | null>();
+  imageRatioChange = output<number>();
 
   protected readonly scrollContainer =
     viewChild<ElementRef<HTMLDivElement>>('scrollContainer');
@@ -491,7 +492,9 @@ export class TopoViewerComponent {
   protected onImageLoad(event: Event): void {
     const img = event.target as HTMLImageElement;
     if (img.naturalWidth && img.naturalHeight) {
-      this.imageRatio.set(img.naturalWidth / img.naturalHeight);
+      const ratio = img.naturalWidth / img.naturalHeight;
+      this.imageRatio.set(ratio);
+      this.imageRatioChange.emit(ratio);
     }
     if (this.selectedRouteId()) this.centerOnRoute();
   }

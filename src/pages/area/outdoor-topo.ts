@@ -158,6 +158,7 @@ import { TopoPageBase } from './topo-page-base';
                 [hoveredRouteId]="hoveredRouteId()"
                 (selectedRouteIdChange)="selectedRouteId.set($event)"
                 (hoveredRouteIdChange)="hoveredRouteId.set($event)"
+                (imageRatioChange)="imageRatio.set($event)"
               />
 
               <app-topo-routes-table
