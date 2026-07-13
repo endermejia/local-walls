@@ -262,7 +262,9 @@ export class IndoorTopoComponent extends TopoPageBase {
       this.indoorService
         .deleteTopo(String(this.id()))
         .then(() => this.router.navigate(['/indoor', this.centerSlug()]))
-        .catch(() => {});
+        .catch(() => {
+          // noop
+        });
     });
   }
 }

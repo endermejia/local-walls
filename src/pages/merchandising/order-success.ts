@@ -164,5 +164,7 @@ export class OrderSuccessComponent {
     },
   });
 
-  protected readonly shortOrderId = computed(() => this.orderResource.value()?.id?.slice(0, 8));
+  protected readonly shortOrderId = computed(() =>
+    this.orderResource.value()?.id?.slice(0, 8),
+  );
 }

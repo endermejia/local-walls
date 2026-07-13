@@ -154,12 +154,22 @@ export class PhotoViewerDialogComponent {
   }
 
   protected onMouseDown(event: Event): void {
-    handleViewerMouseDown(event as MouseEvent, this.viewerState, this.dragState);
+    handleViewerMouseDown(
+      event as MouseEvent,
+      this.viewerState,
+      this.dragState,
+    );
   }
 
   protected onMouseMove(event: Event): void {
     const el = this.getViewerElements();
-    if (el) handleViewerMouseMove(event as MouseEvent, this.viewerState, this.dragState, el);
+    if (el)
+      handleViewerMouseMove(
+        event as MouseEvent,
+        this.viewerState,
+        this.dragState,
+        el,
+      );
   }
 
   protected onMouseUp(): void {

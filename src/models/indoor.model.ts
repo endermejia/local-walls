@@ -129,7 +129,11 @@ export interface IndoorAscentQueryRow extends IndoorAscentDto {
     grade: number | null;
     center: { id: string; name: string; slug: string } | null;
   } | null;
-  user_profile: { id: string; name: string | null; avatar: string | null } | null;
+  user_profile: {
+    id: string;
+    name: string | null;
+    avatar: string | null;
+  } | null;
 }
 
 /** Row returned by openIndoorTopoForm initial routes query */

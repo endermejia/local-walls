@@ -182,10 +182,7 @@ import { gradeToVerticalLife, matchesQuery, slugify } from '../../utils';
               >
                 <div class="flex flex-col gap-1 min-w-0">
                   <div class="flex items-center gap-2">
-                    <app-grade
-                      [grade]="item._grade"
-                      [kind]="cragKind()"
-                    />
+                    <app-grade [grade]="item._grade" [kind]="cragKind()" />
                     <span class="font-bold truncate">
                       {{ item.zlaggableName }}
                     </span>

@@ -167,7 +167,6 @@ import { RouteDto } from '../../models';
   host: { class: 'block w-full' },
 })
 export class RouteUnifyComponent {
-
   protected readonly global = inject(GlobalData);
   protected readonly context =
     injectContext<TuiDialogContext<boolean, { candidates?: RouteDto[] }>>();

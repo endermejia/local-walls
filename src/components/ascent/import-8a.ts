@@ -251,7 +251,8 @@ interface ExistingUserAscentKey {
                     <span>{{ 'selectAll' | translate }}</span>
                   </label>
                   <span class="text-xs font-semibold opacity-70"
-                    >{{ selectedIndices().size }} / {{ ascentsWithResolved().length }}
+                    >{{ selectedIndices().size }} /
+                    {{ ascentsWithResolved().length }}
                     {{ 'selected' | translate }}</span
                   >
                 </div>
@@ -403,7 +404,11 @@ export class Import8aComponent {
 
   protected readonly ascentsWithResolved = computed(() => {
     return this.ascents().map(
-      (a): EightAnuAscent & { _resolvedData: { slug: string; eightAnuSlugs: string[] } | undefined } => ({
+      (
+        a,
+      ): EightAnuAscent & {
+        _resolvedData: { slug: string; eightAnuSlugs: string[] } | undefined;
+      } => ({
         ...a,
         _resolvedData: this.resolvedSlugsMap.get(
           `${slugify(a.location_name)}|${slugify(a.sector_name)}|${slugify(a.name)}`,

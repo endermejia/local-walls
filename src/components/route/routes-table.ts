@@ -176,7 +176,7 @@ import { ROUTE_TABLE_SORTERS } from '../../utils';
                       : ''
                   "
                 >
-                @for (col of visibleColumns(); track col) {
+                  @for (col of visibleColumns(); track col) {
                     <td
                       *tuiCell="col"
                       tuiTd
@@ -277,12 +277,8 @@ import { ROUTE_TABLE_SORTERS } from '../../utils';
                                   tuiInputNumber
                                   class="text-center h-full! border-none! p-0! route-height-input"
                                   [ngModel]="item.height"
-                                  (blur.zoneless)="
-                                    onBlurHeight(item, $event)
-                                  "
-                                  (keydown.enter)="
-                                    onEnterHeight(item, $event)
-                                  "
+                                  (blur.zoneless)="onBlurHeight(item, $event)"
+                                  (keydown.enter)="onEnterHeight(item, $event)"
                                   autocomplete="off"
                                 />
                                 <span class="tui-textfield__suffix">m</span>
@@ -596,7 +592,10 @@ export class RoutesTableComponent {
     isAttached: boolean;
   }>();
   logAscent = output<RoutesTableRow>();
-  editAscent = output<{ row: RoutesTableRow; ascent: { id: number | string; type: AscentType | null } }>();
+  editAscent = output<{
+    row: RoutesTableRow;
+    ascent: { id: number | string; type: AscentType | null };
+  }>();
   toggleProject = output<RoutesTableRow>();
   editRoute = output<RoutesTableRow>();
   deleteRoute = output<RoutesTableRow>();

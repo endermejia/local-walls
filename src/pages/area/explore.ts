@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   ElementRef,
   inject,
   PLATFORM_ID,
@@ -509,6 +510,13 @@ export class ExploreComponent {
 
   constructor() {
     this.global.resetDataByPage('explore');
+
+    effect(() => {
+      if (!this.hasBottomSheet()) {
+        this._sheetScrollTop.set(0);
+        this._sheetClientHeight.set(0);
+      }
+    });
   }
 
   protected readonly stops = ['6.5rem'] as const;
@@ -518,6 +526,7 @@ export class ExploreComponent {
 
   private readonly _sheetClientHeight: WritableSignal<number> = signal(0);
   protected readonly _sheetScrollTop: WritableSignal<number> = signal(0);
+  private _sheetClosing = false;
 
   protected mapCragItems: Signal<MapCragItem[]> = computed(() => {
     if (!this.global.areaListShowOutdoor()) return [];
@@ -542,7 +551,9 @@ export class ExploreComponent {
 
     return items
       .filter((item): item is MapCragItem => {
-        const isCrag = (item as MapAreaItem).area_type !== 0;
+        const isCrag =
+          (item as MapAreaItem).area_type !== 0 &&
+          !(item as MapIndoorCenterItem).is_indoor;
         if (!isCrag) return false;
         const c = item as MapCragItem;
         return (
@@ -696,7 +707,7 @@ export class ExploreComponent {
   }
 
   protected onSheetScroll(event: Event): void {
-    if (!this.isBrowser()) return;
+    if (!this.isBrowser() || this._sheetClosing) return;
     const target =
       (event?.target as HTMLElement) || this.sheetRef()?.nativeElement;
     if (!target) return;
@@ -729,10 +740,14 @@ export class ExploreComponent {
         window.requestAnimationFrame(() => {
           const target =
             mode === 'close' ? 0 : this.computeBottomSheetTargetTop(node);
+          if (mode === 'close') this._sheetClosing = true;
           this.scrollBottomSheetTo(node, mode === 'open' ? target : target);
           if (mode === 'close') {
             this._sheetClientHeight.set(0);
             this._sheetScrollTop.set(0);
+            requestAnimationFrame(() => {
+              this._sheetClosing = false;
+            });
           }
         });
       });
@@ -755,11 +770,15 @@ export class ExploreComponent {
     }
 
     const doScroll = (node: HTMLElement) => {
+      if (mode === 'close') this._sheetClosing = true;
       this.scrollBottomSheetTo(node, targetTop);
       if (targetTop === 0) {
         // reset signals when closing
         this._sheetClientHeight.set(0);
         this._sheetScrollTop.set(0);
+        requestAnimationFrame(() => {
+          this._sheetClosing = false;
+        });
       }
     };
 

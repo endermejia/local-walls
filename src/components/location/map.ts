@@ -163,6 +163,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       const selectedCrag = this.selectedMapCragItem();
       const parkings = this.mapParkingItems();
       const selectedParking = this.selectedMapParkingItem();
+      const indoorItems = this.mapIndoorItems();
 
       if (this.mapInitialized()) {
         void this.mapBuilder.updateData(
@@ -171,7 +172,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
           parkings,
           selectedParking,
           areas,
-          this.mapIndoorItems(),
+          indoorItems,
           this.callbacks,
         );
       }

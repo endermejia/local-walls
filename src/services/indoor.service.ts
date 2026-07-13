@@ -239,10 +239,7 @@ export class IndoorService {
         if (grade !== undefined && grade !== null) {
           grades[grade] = (grades[grade] || 0) + 1;
         }
-        if (
-          userId &&
-          tr.route?.ascents?.some((a) => a.user_id === userId)
-        ) {
+        if (userId && tr.route?.ascents?.some((a) => a.user_id === userId)) {
           ownAscentsCount++;
         }
       }

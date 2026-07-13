@@ -665,7 +665,9 @@ export class HomeComponent implements OnDestroy {
       return ascents.map((a) => {
         const { route, ...ascentRest } = a as {
           route?: {
-            center?: { slug?: string; name?: string } | { slug?: string; name?: string }[];
+            center?:
+              | { slug?: string; name?: string }
+              | { slug?: string; name?: string }[];
           };
           user_id: string;
           [key: string]: unknown;

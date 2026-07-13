@@ -309,7 +309,9 @@ export class OutdoorTopoComponent extends TopoPageBase {
         .then(() =>
           this.router.navigate(['/area', this.areaSlug()!, this.cragSlug()!]),
         )
-        .catch(() => {});
+        .catch(() => {
+          // noop
+        });
     });
   }
 }

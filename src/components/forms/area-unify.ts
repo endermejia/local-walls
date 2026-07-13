@@ -177,11 +177,11 @@ export class AreaUnifyComponent {
   model = signal<{
     targetArea: AreaDto | null;
     sourceAreas: AreaDto[];
-      newName: string;
-    }>({
-      targetArea: null,
-      sourceAreas: [],
-      newName: '',
+    newName: string;
+  }>({
+    targetArea: null,
+    sourceAreas: [],
+    newName: '',
   });
 
   unifyForm = form(this.model, (schemaPath) => {
