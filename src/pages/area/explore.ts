@@ -351,7 +351,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
             <tui-bottom-sheet
               #sheet
               [stops]="stops"
-              class="z-50"
+              class="z-50 overflow-x-hidden! [&_.t-content]:left-0! [&_.t-stop]:left-0! [&_.t-bottom]:left-0!"
               role="dialog"
               aria-labelledby="areas-title crags-title"
               (scroll.zoneless)="onSheetScroll($event)"

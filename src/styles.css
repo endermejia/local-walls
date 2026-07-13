@@ -367,14 +367,3 @@ tui-textfield:has(tui-input-chip) label[tuilabel] {
     clip-path: circle(150% at var(--x) var(--y));
   }
 }
-
-/* Prevent forced horizontal scrolling and negative offsets in bottom sheets */
-tui-bottom-sheet {
-  overflow-x: hidden !important;
-}
-
-tui-bottom-sheet .t-content,
-tui-bottom-sheet .t-stop,
-tui-bottom-sheet .t-bottom {
-  left: 0 !important;
-}

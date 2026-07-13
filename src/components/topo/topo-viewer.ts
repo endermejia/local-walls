@@ -13,7 +13,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { TuiIcon } from '@taiga-ui/core';
+import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { GradeComponent } from '../ui/avatar-grade';
 import { GradeLabelPipe } from '../../pipes';
@@ -46,6 +46,7 @@ interface RenderedRoute extends TopoRouteWithRoute {
     GradeLabelPipe,
     IconSrcPipe,
     TranslatePipe,
+    TuiButton,
     TuiIcon,
   ],
   template: `
@@ -374,10 +375,10 @@ interface RenderedRoute extends TopoRouteWithRoute {
                 size="s"
                 iconStart="@tui.chevron-left"
                 class="rounded-full!"
+                [title]="'previous' | translate"
+                [attr.aria-label]="'previous' | translate"
                 (click)="selectPrevRoute(); $event.stopPropagation()"
-              >
-                {{ 'previous' | translate }}
-              </button>
+              ></button>
               <div class="flex flex-1 items-center gap-3 min-w-0">
                 <div class="flex-1 min-w-0">
                   <div
@@ -400,10 +401,10 @@ interface RenderedRoute extends TopoRouteWithRoute {
                 size="s"
                 iconStart="@tui.chevron-right"
                 class="rounded-full! mr-1"
+                [title]="'next' | translate"
+                [attr.aria-label]="'next' | translate"
                 (click)="selectNextRoute(); $event.stopPropagation()"
-              >
-                {{ 'next' | translate }}
-              </button>
+              ></button>
             </div>
           </div>
         }
