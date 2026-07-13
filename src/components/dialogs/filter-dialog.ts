@@ -29,6 +29,7 @@ import { map, merge, startWith } from 'rxjs';
 import { ORDERED_GRADE_VALUES } from '../../models';
 
 import { clamp } from '../../utils';
+import { GlobalData } from '../../services/global-data';
 
 export interface FilterDialog {
   categories: number[]; // 0=Sport, 1=Boulder, 2=Multipitch
@@ -65,7 +66,7 @@ export interface FilterDialog {
   ],
   template: `
     <form tuiForm [formGroup]="form">
-      @if (showIndoorOutdoor) {
+      @if (showIndoorOutdoor && global.indoorFeature()) {
         <section>
           <tui-filter
             formControlName="indoorOutdoor"
@@ -124,16 +125,18 @@ export interface FilterDialog {
         </section>
       }
 
-      <section class="flex flex-col gap-3">
-        <label class="flex items-center gap-2">
-          <input
-            tuiCheckbox
-            type="checkbox"
-            formControlName="showIndoorAscents"
-          />
-          <span>{{ 'indoor.showIndoorAscents' | translate }}</span>
-        </label>
-      </section>
+      @if (global.indoorFeature()) {
+        <section class="flex flex-col gap-3">
+          <label class="flex items-center gap-2">
+            <input
+              tuiCheckbox
+              type="checkbox"
+              formControlName="showIndoorAscents"
+            />
+            <span>{{ 'indoor.showIndoorAscents' | translate }}</span>
+          </label>
+        </section>
+      }
 
       <footer class="flex flex-wrap gap-2 justify-end items-center">
         <button
@@ -155,6 +158,7 @@ export interface FilterDialog {
 })
 export class FilterDialogComponent {
   private readonly translate = inject(TranslateService);
+  protected readonly global = inject(GlobalData);
   protected readonly context =
     injectContext<TuiDialogContext<FilterDialog, FilterDialog>>();
 
@@ -396,13 +400,15 @@ export class FilterDialogComponent {
           : rawGradeRange[1],
       ],
       selectedShade,
-      indoor,
+      indoor: this.global.indoorFeature() ? indoor : false,
       outdoor,
       showCategories: this.context.data?.showCategories,
       showShade: this.context.data?.showShade,
       showGradeRange: this.context.data?.showGradeRange,
       showIndoorOutdoor: this.context.data?.showIndoorOutdoor,
-      showIndoorAscents: this.form.value.showIndoorAscents,
+      showIndoorAscents: this.global.indoorFeature()
+        ? this.form.value.showIndoorAscents
+        : false,
     };
     this.context.completeWith(payload);
   }
@@ -418,7 +424,7 @@ export class FilterDialogComponent {
       categories: [],
       gradeRange: [this.minIndex, ORDERED_GRADE_VALUES.length - 1],
       selectedShade: [],
-      indoor: true,
+      indoor: this.global.indoorFeature(),
       outdoor: true,
       showCategories: this.context.data?.showCategories,
       showShade: this.context.data?.showShade,

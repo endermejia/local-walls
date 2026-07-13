@@ -235,7 +235,7 @@ export class GlobalData {
 
   readonly isAdmin = computed(() => !!this.userProfile()?.is_admin);
   readonly merchandisingFeature = computed(() => this.isAdmin());
-  readonly indoorFeature = signal(true);
+  readonly indoorFeature = computed(() => this.isAdmin());
   readonly canEditAsAdmin = computed(
     () => this.editingMode() && this.isAdmin(),
   );

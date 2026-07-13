@@ -199,7 +199,10 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
                 [tuiDropdown]="tourHint"
                 [tuiDropdownManual]="isExploreAreasTourStep"
               >
-                {{ 'outdoor.button' | translate }}
+                {{
+                  (global.indoorFeature() ? 'outdoor.button' : 'viewAllAreas')
+                    | translate
+                }}
               </button>
             }
           </div>
@@ -230,7 +233,10 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
               iconStart="@tui.mountain"
               routerLink="/area"
             >
-              {{ 'outdoor.button' | translate }}
+              {{
+                (global.indoorFeature() ? 'outdoor.button' : 'viewAllAreas')
+                  | translate
+              }}
             </button>
           </div>
         </div>
