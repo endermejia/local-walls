@@ -1,6 +1,7 @@
 import { provideServiceWorker } from '@angular/service-worker';
 import {
   ApplicationConfig,
+  ErrorHandler,
   isDevMode,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
@@ -38,6 +39,7 @@ import { provideTranslateService, TranslateLoader } from '@ngx-translate/core';
 import { CachedTranslateLoader } from '../services/cached-translate-loader';
 
 import { errorInterceptor } from '../services/error.interceptor';
+import { AppErrorHandler } from '../services/app-error-handler';
 import { GlobalData } from '../services/global-data';
 import { provideSupabaseConfig } from '../services/supabase.service';
 
@@ -55,6 +57,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
+    { provide: ErrorHandler, useClass: AppErrorHandler },
     provideRouter(
       routes,
       withComponentInputBinding(),

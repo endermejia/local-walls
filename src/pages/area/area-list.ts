@@ -13,7 +13,6 @@ import { TuiDropdown } from '@taiga-ui/core';
 import {
   TuiAppearance,
   TuiButton,
-  TuiLoader,
   TuiScrollbar,
   TuiInput,
 } from '@taiga-ui/core';
@@ -32,6 +31,7 @@ import { TourService } from '../../services/tour.service';
 import { TourStep } from '../../services/tour.service';
 
 import { AreaCardComponent } from '../../components/area/area-card';
+import { AreaCardSkeletonComponent } from '../../components/area/area-card-skeleton';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
 import { TourHintComponent } from '../../components/ui/tour-hint';
 
@@ -48,6 +48,7 @@ import { matchesQuery } from '../../utils';
   selector: 'app-area-list',
   imports: [
     AreaCardComponent,
+    AreaCardSkeletonComponent,
     EmptyStateComponent,
     IconSrcPipe,
     LowerCasePipe,
@@ -61,7 +62,6 @@ import { matchesQuery } from '../../utils';
     TuiButton,
     TuiDropdown,
     TuiInput,
-    TuiLoader,
     TuiScrollbar,
   ],
   template: `
@@ -169,8 +169,10 @@ import { matchesQuery } from '../../utils';
               }
             </div>
           } @else {
-            <div class="flex items-center justify-center py-8">
-              <tui-loader size="xxl" />
+            <div class="grid gap-2 grid-cols-1 md:grid-cols-2">
+              @for (i of [1, 2, 3, 4]; track i) {
+                <app-area-card-skeleton />
+              }
             </div>
           }
         </section>

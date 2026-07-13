@@ -44,6 +44,16 @@
       }
     },
     {
+      "name": "supabase-auth",
+      "urls": ["https://eswbehepsagigvlytfxv.supabase.co/auth/v1/**"],
+      "cacheConfig": {
+        "maxSize": 5,
+        "maxAge": "1h",
+        "timeout": "5s",
+        "strategy": "freshness"
+      }
+    },
+    {
       "name": "supabase-storage",
       "urls": [
         "https://eswbehepsagigvlytfxv.supabase.co/storage/v1/object/public/**",
@@ -52,6 +62,26 @@
       "cacheConfig": {
         "maxSize": 1000,
         "maxAge": "30d",
+        "strategy": "performance"
+      }
+    },
+    {
+      "name": "supabase-functions",
+      "urls": ["https://eswbehepsagigvlytfxv.supabase.co/functions/v1/**"],
+      "cacheConfig": {
+        "maxSize": 10,
+        "maxAge": "1d",
+        "timeout": "5s",
+        "strategy": "freshness"
+      }
+    },
+    {
+      "name": "open-meteo",
+      "urls": ["https://api.open-meteo.com/**"],
+      "cacheConfig": {
+        "maxSize": 5,
+        "maxAge": "6h",
+        "timeout": "5s",
         "strategy": "performance"
       }
     }

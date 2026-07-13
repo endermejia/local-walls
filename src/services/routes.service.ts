@@ -10,7 +10,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import { GlobalData } from '../services/global-data';
-import { LocalStorage } from '../services/local-storage';
+import { CacheService } from '../services/cache.service';
 import { SupabaseService } from '../services/supabase.service';
 import { ToastService } from '../services/toast.service';
 
@@ -46,7 +46,7 @@ export class RoutesService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
-  private readonly localStorage = inject(LocalStorage);
+  private readonly cache = inject(CacheService);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
@@ -131,51 +131,41 @@ export class RoutesService {
     if (!isPlatformBrowser(this.platformId)) return [];
 
     const cacheKey = `cached_routes_simple_area_${areaId}`;
-    const cached = this.localStorage.getItem(cacheKey);
+    return this.cache.fetchOrCache(
+      cacheKey,
+      async () => {
+        await this.supabase.whenReady();
 
-    if (cached) {
-      try {
-        return JSON.parse(cached);
-      } catch {
-        // Fallback to fetch on parse error
-      }
-    }
+        let allRoutes: RouteSimple[] = [];
+        let from = 0;
+        const step = 1000;
+        let hasMore = true;
 
-    try {
-      await this.supabase.whenReady();
+        while (hasMore) {
+          const { data, error } = await this.supabase.client
+            .from('routes')
+            .select('id, name, crag_id, crag:crags!inner(name, area_id)')
+            .eq('crag.area_id', areaId)
+            .range(from, from + step - 1);
 
-      let allRoutes: RouteSimple[] = [];
-      let from = 0;
-      const step = 1000;
-      let hasMore = true;
+          if (error) throw error;
 
-      while (hasMore) {
-        const { data, error } = await this.supabase.client
-          .from('routes')
-          .select('id, name, crag_id, crag:crags!inner(name, area_id)')
-          .eq('crag.area_id', areaId)
-          .range(from, from + step - 1);
-
-        if (error) throw error;
-
-        if (data && data.length > 0) {
-          allRoutes = [...allRoutes, ...(data as unknown as RouteSimple[])];
-          if (data.length < step) {
-            hasMore = false;
+          if (data && data.length > 0) {
+            allRoutes = [...allRoutes, ...(data as unknown as RouteSimple[])];
+            if (data.length < step) {
+              hasMore = false;
+            } else {
+              from += step;
+            }
           } else {
-            from += step;
+            hasMore = false;
           }
-        } else {
-          hasMore = false;
         }
-      }
 
-      this.localStorage.setItem(cacheKey, JSON.stringify(allRoutes));
-      return allRoutes;
-    } catch (e) {
-      console.warn('[RoutesService] getRoutesByAreaSimple error', e);
-      return [];
-    }
+        return allRoutes;
+      },
+      { fallbackValue: [], logTag: 'RoutesService' },
+    );
   }
 
   async getRoutesByAreaWithDetails(

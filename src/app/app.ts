@@ -26,12 +26,14 @@ import { SupabaseService } from '../services/supabase.service';
 
 import { CartOverlayComponent } from '../components/cart-overlay/cart-overlay';
 import { NavbarComponent } from '../components/ui/navbar';
+import { OfflineBannerComponent } from '../components/ui/offline-banner';
 
 import { Themes } from '../models';
 
 @Component({
   selector: 'app-root',
   imports: [
+    OfflineBannerComponent,
     CartOverlayComponent,
     NavbarComponent,
     RouterOutlet,
@@ -40,6 +42,7 @@ import { Themes } from '../models';
   ],
   template: `
     <tui-root [attr.tuiTheme]="global.selectedTheme()">
+      <app-offline-banner />
       <div
         class="fixed inset-0 w-full h-full overflow-hidden flex flex-col-reverse md:flex-row"
       >
@@ -138,7 +141,7 @@ export class AppComponent {
         });
       }, oneHour);
 
-      // Reload when update is ready
+      // Auto-apply update and reload
       this.swUpdate.versionUpdates
         .pipe(
           filter(
@@ -147,7 +150,11 @@ export class AppComponent {
           takeUntilDestroyed(this.destroyRef),
         )
         .subscribe(() => {
-          this.notifications.showUpdateAvailable();
+          void this.swUpdate.activateUpdate().then((activated) => {
+            if (activated) {
+              window.location.reload();
+            }
+          });
         });
     }
   }

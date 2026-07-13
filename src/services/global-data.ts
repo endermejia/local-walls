@@ -28,6 +28,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { map, merge, startWith } from 'rxjs';
 
 import { AppNotificationsService } from './app-notifications.service';
+import { CacheService } from './cache.service';
 import { FavoritesService } from './favorites.service';
 import { MessagingService } from './messaging.service';
 import { PushService } from './push.service';
@@ -85,6 +86,7 @@ import { mapCragToDetail, triggerThemeTransition } from '../utils';
   providedIn: 'root',
 })
 export class GlobalData {
+  private readonly cache = inject(CacheService);
   private readonly favorites = inject(FavoritesService);
   private readonly messagingService = inject(MessagingService);
   private readonly notificationsService = inject(AppNotificationsService);
@@ -259,21 +261,6 @@ export class GlobalData {
       return (data ?? []).map((r) => r.area_id);
     },
   });
-
-  /** Set of area IDs for which the current user already has a pending admin request */
-
-  private getCachedData<T>(key: string, defaultValue: T): T {
-    if (!isPlatformBrowser(this.platformId)) return defaultValue;
-    const cached = this.localStorage.getItem(key);
-    if (cached) {
-      try {
-        return JSON.parse(cached) as T;
-      } catch {
-        console.error('[GlobalData] Cache parse error for key:', key);
-      }
-    }
-    return defaultValue;
-  }
 
   readonly pendingAdminRequestAreaIds = computed(
     () => new Set(this.pendingAdminRequestsResource.value() ?? []),
@@ -757,26 +744,14 @@ export class GlobalData {
     loader: async ({ params: userId }) => {
       if (!userId || !isPlatformBrowser(this.platformId)) return [];
       const cacheKey = `cached_liked_areas_${userId}_v2`;
-      try {
-        await this.supabase.whenReady();
-        const list = await this.favorites.getLikedAreas(userId);
-        this.localStorage.setItem(cacheKey, JSON.stringify(list));
-        return list;
-      } catch (e) {
-        console.warn(
-          '[GlobalData] likedAreasResource error/offline, trying cache',
-          e,
-        );
-        const cached = this.localStorage.getItem(cacheKey);
-        if (cached) {
-          try {
-            return JSON.parse(cached) as AreaListItem[];
-          } catch {
-            console.error('[GlobalData] Cache parse error');
-          }
-        }
-        return [];
-      }
+      return this.cache.fetchOrCache(
+        cacheKey,
+        async () => {
+          await this.supabase.whenReady();
+          return this.favorites.getLikedAreas(userId);
+        },
+        { fallbackValue: [], logTag: 'GlobalData' },
+      );
     },
   });
 
@@ -785,26 +760,14 @@ export class GlobalData {
     loader: async ({ params: userId }) => {
       if (!userId || !isPlatformBrowser(this.platformId)) return [];
       const cacheKey = `cached_liked_crags_${userId}_v2`;
-      try {
-        await this.supabase.whenReady();
-        const list = await this.favorites.getLikedCrags(userId);
-        this.localStorage.setItem(cacheKey, JSON.stringify(list));
-        return list;
-      } catch (e) {
-        console.warn(
-          '[GlobalData] likedCragsResource error/offline, trying cache',
-          e,
-        );
-        const cached = this.localStorage.getItem(cacheKey);
-        if (cached) {
-          try {
-            return JSON.parse(cached) as CragListItem[];
-          } catch {
-            console.error('[GlobalData] Cache parse error');
-          }
-        }
-        return [];
-      }
+      return this.cache.fetchOrCache(
+        cacheKey,
+        async () => {
+          await this.supabase.whenReady();
+          return this.favorites.getLikedCrags(userId);
+        },
+        { fallbackValue: [], logTag: 'GlobalData' },
+      );
     },
   });
 
@@ -813,26 +776,14 @@ export class GlobalData {
     loader: async ({ params: userId }) => {
       if (!userId || !isPlatformBrowser(this.platformId)) return [];
       const cacheKey = `cached_liked_routes_${userId}_v2`;
-      try {
-        await this.supabase.whenReady();
-        const list = await this.favorites.getLikedRoutes(userId);
-        this.localStorage.setItem(cacheKey, JSON.stringify(list));
-        return list;
-      } catch (e) {
-        console.warn(
-          '[GlobalData] likedRoutesResource error/offline, trying cache',
-          e,
-        );
-        const cached = this.localStorage.getItem(cacheKey);
-        if (cached) {
-          try {
-            return JSON.parse(cached) as RouteWithExtras[];
-          } catch {
-            console.error('[GlobalData] Cache parse error');
-          }
-        }
-        return [];
-      }
+      return this.cache.fetchOrCache(
+        cacheKey,
+        async () => {
+          await this.supabase.whenReady();
+          return this.favorites.getLikedRoutes(userId);
+        },
+        { fallbackValue: [], logTag: 'GlobalData' },
+      );
     },
   });
 
@@ -841,7 +792,7 @@ export class GlobalData {
     if (val !== undefined) return val;
     const userId = this.supabase.authUserId();
     if (!userId) return [];
-    return this.getCachedData<AreaListItem[]>(
+    return this.cache.get<AreaListItem[]>(
       `cached_liked_areas_${userId}_v2`,
       [],
     );
@@ -851,7 +802,7 @@ export class GlobalData {
     if (val !== undefined) return val;
     const userId = this.supabase.authUserId();
     if (!userId) return [];
-    return this.getCachedData<CragListItem[]>(
+    return this.cache.get<CragListItem[]>(
       `cached_liked_crags_${userId}_v2`,
       [],
     );
@@ -861,7 +812,7 @@ export class GlobalData {
     if (val !== undefined) return val;
     const userId = this.supabase.authUserId();
     if (!userId) return [];
-    return this.getCachedData<RouteWithExtras[]>(
+    return this.cache.get<RouteWithExtras[]>(
       `cached_liked_routes_${userId}_v2`,
       [],
     );
@@ -1082,37 +1033,25 @@ export class GlobalData {
         return [] as AreaListItem[];
       }
       const cacheKey = 'cached_areas_list_v2';
-      try {
-        await this.supabase.whenReady();
-        const { data, error } =
-          await this.supabase.client.rpc('get_areas_list');
-        if (error) {
-          throw error;
-        }
-        const list = (data as AreaListItem[]) ?? [];
-        this.localStorage.setItem(cacheKey, JSON.stringify(list));
-        return list;
-      } catch (e) {
-        console.warn(
-          '[GlobalData] areaListResource error/offline, trying cache',
-          e,
-        );
-        const cached = this.localStorage.getItem(cacheKey);
-        if (cached) {
-          try {
-            return JSON.parse(cached) as AreaListItem[];
-          } catch {
-            console.error('[GlobalData] Cache parse error');
+      return this.cache.fetchOrCache(
+        cacheKey,
+        async () => {
+          await this.supabase.whenReady();
+          const { data, error } =
+            await this.supabase.client.rpc('get_areas_list');
+          if (error) {
+            throw error;
           }
-        }
-        return [];
-      }
+          return ((data as AreaListItem[]) ?? []) as AreaListItem[];
+        },
+        { fallbackValue: [], logTag: 'GlobalData' },
+      );
     },
   });
   readonly areasList: Signal<AreaListItem[]> = computed(() => {
     const val = this.areasListResource.value();
     if (val !== undefined) return val;
-    return this.getCachedData<AreaListItem[]>('cached_areas_list_v2', []);
+    return this.cache.get<AreaListItem[]>('cached_areas_list_v2', []);
   });
 
   // ---- Indoor Centers ----
@@ -1172,43 +1111,32 @@ export class GlobalData {
         return [] as CragListItem[];
       }
       const cacheKey = `cached_crags_list_${areaSlug}_v2`;
-      try {
-        await this.supabase.whenReady();
-        const { data, error } = await this.supabase.client
-          .rpc('get_crags_list')
-          .eq('area_slug', areaSlug);
+      return this.cache.fetchOrCache(
+        cacheKey,
+        async () => {
+          await this.supabase.whenReady();
+          const { data, error } = await this.supabase.client
+            .rpc('get_crags_list')
+            .eq('area_slug', areaSlug);
 
-        if (error) {
-          console.error('[GlobalData] cragsListResource error', error);
-          throw error;
-        }
-        const list =
-          (data?.map((c) => ({
-            ...c,
-            grades: c.grades as unknown as AmountByEveryGrade,
-            topos: c.topos as unknown as {
-              id: number;
-              name: string;
-              slug: string;
-            }[],
-          })) as CragListItem[]) ?? [];
-        this.localStorage.setItem(cacheKey, JSON.stringify(list));
-        return list;
-      } catch (e) {
-        console.warn(
-          '[GlobalData] cragsListResource error/offline, trying cache',
-          e,
-        );
-        const cached = this.localStorage.getItem(cacheKey);
-        if (cached) {
-          try {
-            return JSON.parse(cached) as CragListItem[];
-          } catch {
-            console.error('[GlobalData] Cache parse error');
+          if (error) {
+            console.error('[GlobalData] cragsListResource error', error);
+            throw error;
           }
-        }
-        return [];
-      }
+          return (
+            (data?.map((c) => ({
+              ...c,
+              grades: c.grades as unknown as AmountByEveryGrade,
+              topos: c.topos as unknown as {
+                id: number;
+                name: string;
+                slug: string;
+              }[],
+            })) as CragListItem[]) ?? []
+          );
+        },
+        { fallbackValue: [], logTag: 'GlobalData' },
+      );
     },
   });
   readonly cragsList: Signal<CragListItem[]> = computed(() => {
@@ -1216,7 +1144,7 @@ export class GlobalData {
     if (val !== undefined) return val;
     const areaSlug = this.selectedAreaSlug();
     if (!areaSlug) return [];
-    return this.getCachedData<CragListItem[]>(
+    return this.cache.get<CragListItem[]>(
       `cached_crags_list_${areaSlug}_v2`,
       [],
     );
@@ -1293,65 +1221,50 @@ export class GlobalData {
 
       if (!areaSlug) return [];
       const cacheKey = `cached_area_topos_${areaSlug}_v2`;
-      try {
-        await this.supabase.whenReady();
-        const { data, error } = await this.supabase.client
-          .from('topos')
-          .select(
-            '*, crags!inner(slug, areas!inner(slug)), topo_routes(route_id, route:routes(grade))',
-          )
-          .eq('crags.areas.slug', areaSlug);
+      return this.cache.fetchOrCache(
+        cacheKey,
+        async () => {
+          await this.supabase.whenReady();
+          const { data, error } = await this.supabase.client
+            .from('topos')
+            .select(
+              '*, crags!inner(slug, areas!inner(slug)), topo_routes(route_id, route:routes(grade))',
+            )
+            .eq('crags.areas.slug', areaSlug);
 
-        if (error) {
-          console.error('[GlobalData] areaToposResource error', error);
-          throw error;
-        }
-
-        const result = (data || []).map((t) => {
-          const grades: AmountByEveryGrade = {};
-          (t.topo_routes || []).forEach((tr) => {
-            const g = tr.route?.grade;
-            if (g != null && g >= 0) {
-              grades[g as VERTICAL_LIFE_GRADES] =
-                (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
-            }
-          });
-
-          return {
-            id: t.id,
-            name: t.name,
-            slug: t.slug,
-            crag_slug: t.crags?.slug || '',
-            grades,
-            photo: t.photo,
-            shade_morning: t.shade_morning,
-            shade_afternoon: t.shade_afternoon,
-            shade_change_hour: t.shade_change_hour,
-            route_ids: (t.topo_routes || []).map(
-              (tr: { route_id: number }) => tr.route_id,
-            ),
-          };
-        });
-
-        this.localStorage.setItem(cacheKey, JSON.stringify(result));
-        return result;
-      } catch (e) {
-        console.warn(
-          '[GlobalData] areaToposResource error/offline, trying cache',
-          e,
-        );
-        const cached = this.localStorage.getItem(cacheKey);
-        if (cached) {
-          try {
-            return JSON.parse(cached) as (TopoListItem & {
-              crag_slug: string;
-            })[];
-          } catch {
-            return [];
+          if (error) {
+            console.error('[GlobalData] areaToposResource error', error);
+            throw error;
           }
-        }
-        return [];
-      }
+
+          return (data || []).map((t) => {
+            const grades: AmountByEveryGrade = {};
+            (t.topo_routes || []).forEach((tr) => {
+              const g = tr.route?.grade;
+              if (g != null && g >= 0) {
+                grades[g as VERTICAL_LIFE_GRADES] =
+                  (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
+              }
+            });
+
+            return {
+              id: t.id,
+              name: t.name,
+              slug: t.slug,
+              crag_slug: t.crags?.slug || '',
+              grades,
+              photo: t.photo,
+              shade_morning: t.shade_morning,
+              shade_afternoon: t.shade_afternoon,
+              shade_change_hour: t.shade_change_hour,
+              route_ids: (t.topo_routes || []).map(
+                (tr: { route_id: number }) => tr.route_id,
+              ),
+            };
+          });
+        },
+        { fallbackValue: [], logTag: 'GlobalData' },
+      );
     },
   });
 
@@ -1361,82 +1274,187 @@ export class GlobalData {
       if (!id) return null;
       if (!isPlatformBrowser(this.platformId)) return null;
       const cacheKey = `cached_topo_detail_${id}_v1`;
-      try {
-        await this.supabase.whenReady();
-        const userId = this.supabase.authUser()?.id;
-        const isIndoor = isNaN(Number(id));
+      return this.cache.fetchOrCache(
+        cacheKey,
+        async () => {
+          await this.supabase.whenReady();
+          const userId = this.supabase.authUser()?.id;
+          const isIndoor = isNaN(Number(id));
 
-        if (isIndoor) {
-          // 1. Fetch indoor topo
-          const { data: topo, error: topoErr } = await this.supabase.client
-            .from('indoor_topos')
+          if (isIndoor) {
+            // 1. Fetch indoor topo
+            const { data: topo, error: topoErr } = await this.supabase.client
+              .from('indoor_topos')
+              .select(
+                `
+                *,
+                center: indoor_centers!inner (
+                  id, name, slug
+                )
+              `,
+              )
+              .eq('id', id)
+              .single();
+            if (topoErr) throw topoErr;
+
+            // 2. Fetch indoor_topo_routes mapped to their indoor_routes details and user ascents
+            const { data: trs, error: trsErr } = await this.supabase.client
+              .from('indoor_topo_routes')
+              .select(
+                `
+                *,
+                route: indoor_routes!inner (
+                  id, name, slug, grade, climbing_kind, color,
+                  own_ascent: indoor_ascents!left (*)
+                )
+              `,
+              )
+              .eq('topo_id', id)
+              .eq('route.own_ascent.user_id', userId ?? '')
+              .order('number', { ascending: true });
+
+            if (trsErr) throw trsErr;
+
+            const topo_routes: TopoRouteWithRoute[] = [];
+            const seenRouteIds = new Set<string>();
+
+            if (trs) {
+              for (const tr of trs) {
+                if (!seenRouteIds.has(tr.route_id)) {
+                  seenRouteIds.add(tr.route_id);
+
+                  // Sort ascents to prioritize real ascents over attempts
+                  const ascents = (tr.route.own_ascent ||
+                    []) as unknown as RouteAscentDto[];
+                  ascents.sort((a, b) => {
+                    const isAttemptA = a.type === 'attempt';
+                    const isAttemptB = b.type === 'attempt';
+                    if (isAttemptA && !isAttemptB) return 1;
+                    if (!isAttemptA && isAttemptB) return -1;
+                    return (
+                      new Date(b.date || 0).getTime() -
+                      new Date(a.date || 0).getTime()
+                    );
+                  });
+                  const bestAscent = ascents[0] || null;
+
+                  topo_routes.push({
+                    topo_id: tr.topo_id,
+                    route_id: tr.route_id,
+                    number: tr.number ?? 0,
+                    path: tr.path as TopoPath | null,
+                    route: {
+                      id: tr.route.id,
+                      name: tr.route.name,
+                      slug: tr.route.slug,
+                      grade: tr.route.grade ?? 0,
+                      climbing_kind: (tr.route.climbing_kind ??
+                        'sport') as ClimbingKind,
+                      own_ascent: bestAscent,
+                      project: false,
+                    },
+                  });
+                }
+              }
+            }
+
+            const result: TopoDetail = {
+              id: topo.id,
+              name: topo.name,
+              photo: topo.image_url,
+              crag_id: 0,
+              created_at: '',
+              slug: '',
+              shade_afternoon: false,
+              shade_change_hour: null,
+              shade_morning: false,
+              legacy: topo.legacy,
+              center_id: topo.center_id,
+              topo_routes,
+              crag: topo.center
+                ? {
+                    id: 0,
+                    name: topo.center.name,
+                    slug: topo.center.slug,
+                    area_id: 0,
+                    user_creator_id: null,
+                    area: {
+                      id: 0,
+                      name: '',
+                      slug: '',
+                      is_public: true,
+                      price: 0,
+                      purchased: true,
+                    },
+                  }
+                : undefined,
+            };
+            return result;
+          }
+
+          const { data, error } = await this.supabase.client
+            .from('topos')
             .select(
               `
               *,
-              center: indoor_centers!inner (
-                id, name, slug
+              crag: crags!inner (
+                id, name, slug, area_id, user_creator_id,
+                area: areas!inner (
+                  id, name, slug, is_public, price, purchased:area_purchases(id)
+                )
+              ),
+              topo_routes (
+                *,
+                route: routes (
+                  id, name, slug, grade, height, climbing_kind,
+                  own_ascent: route_ascents!left (*),
+                  project: route_projects!left (id)
+                )
               )
             `,
             )
-            .eq('id', id)
+            .eq('id', Number(id))
+            .eq('topo_routes.route.own_ascent.user_id', userId ?? '')
+            .eq('topo_routes.route.project.user_id', userId ?? '')
+            .order('number', {
+              referencedTable: 'topo_routes',
+              ascending: true,
+            })
             .single();
-          if (topoErr) throw topoErr;
 
-          // 2. Fetch indoor_topo_routes mapped to their indoor_routes details and user ascents
-          const { data: trs, error: trsErr } = await this.supabase.client
-            .from('indoor_topo_routes')
-            .select(
-              `
-              *,
-              route: indoor_routes!inner (
-                id, name, slug, grade, climbing_kind, color,
-                own_ascent: indoor_ascents!left (*)
-              )
-            `,
-            )
-            .eq('topo_id', id)
-            .eq('route.own_ascent.user_id', userId ?? '')
-            .order('number', { ascending: true });
-
-          if (trsErr) throw trsErr;
+          if (error) {
+            console.error('[GlobalData] topoDetailResource error', error);
+            throw error;
+          }
 
           const topo_routes: TopoRouteWithRoute[] = [];
-          const seenRouteIds = new Set<string>();
+          const seenRouteIds = new Set<number>();
 
-          if (trs) {
-            for (const tr of trs) {
+          if (data.topo_routes) {
+            for (const tr of data.topo_routes) {
               if (!seenRouteIds.has(tr.route_id)) {
                 seenRouteIds.add(tr.route_id);
 
                 // Sort ascents to prioritize real ascents over attempts
-                const ascents = (tr.route.own_ascent ||
-                  []) as unknown as RouteAscentDto[];
-                ascents.sort((a, b) => {
-                  const isAttemptA = a.type === 'attempt';
-                  const isAttemptB = b.type === 'attempt';
-                  if (isAttemptA && !isAttemptB) return 1;
-                  if (!isAttemptA && isAttemptB) return -1;
-                  return (
-                    new Date(b.date || 0).getTime() -
-                    new Date(a.date || 0).getTime()
-                  );
-                });
-                const bestAscent = ascents[0] || null;
+                const ascents = tr.route.own_ascent || [];
+                const bestAscent =
+                  ascents.sort((a, b) => {
+                    const isAttemptA = a.type === AscentTypes.ATTEMPT;
+                    const isAttemptB = b.type === AscentTypes.ATTEMPT;
+                    if (isAttemptA && !isAttemptB) return 1;
+                    if (!isAttemptA && isAttemptB) return -1;
+                    return 0; // Maintain order otherwise (or sort by type/date preference)
+                  })[0] || null;
 
                 topo_routes.push({
                   topo_id: tr.topo_id,
                   route_id: tr.route_id,
-                  number: tr.number ?? 0,
-                  path: tr.path as TopoPath | null,
+                  number: tr.number,
+                  path: tr.path as TopoPath,
                   route: {
-                    id: tr.route.id,
-                    name: tr.route.name,
-                    slug: tr.route.slug,
-                    grade: tr.route.grade ?? 0,
-                    climbing_kind: (tr.route.climbing_kind ??
-                      'sport') as ClimbingKind,
+                    ...tr.route,
                     own_ascent: bestAscent,
-                    project: false,
+                    project: !!tr.route.project?.[0],
                   },
                 });
               }
@@ -1444,136 +1462,22 @@ export class GlobalData {
           }
 
           const result: TopoDetail = {
-            id: topo.id,
-            name: topo.name,
-            photo: topo.image_url,
-            crag_id: 0,
-            created_at: '',
-            slug: '',
-            shade_afternoon: false,
-            shade_change_hour: null,
-            shade_morning: false,
-            legacy: topo.legacy,
-            center_id: topo.center_id,
+            ...data,
             topo_routes,
-            crag: topo.center
+            crag: data.crag
               ? {
-                  id: 0,
-                  name: topo.center.name,
-                  slug: topo.center.slug,
-                  area_id: 0,
-                  user_creator_id: null,
+                  ...data.crag,
                   area: {
-                    id: 0,
-                    name: '',
-                    slug: '',
-                    is_public: true,
-                    price: 0,
-                    purchased: true,
+                    ...data.crag.area,
+                    purchased: (data.crag.area.purchased?.length ?? 0) > 0,
                   },
                 }
               : undefined,
-          };
-          this.localStorage.setItem(cacheKey, JSON.stringify(result));
+          } as unknown as TopoDetail;
           return result;
-        }
-
-        const { data, error } = await this.supabase.client
-          .from('topos')
-          .select(
-            `
-            *,
-            crag: crags!inner (
-              id, name, slug, area_id, user_creator_id,
-              area: areas!inner (
-                id, name, slug, is_public, price, purchased:area_purchases(id)
-              )
-            ),
-            topo_routes (
-              *,
-              route: routes (
-                id, name, slug, grade, height, climbing_kind,
-                own_ascent: route_ascents!left (*),
-                project: route_projects!left (id)
-              )
-            )
-          `,
-          )
-          .eq('id', Number(id))
-          .eq('topo_routes.route.own_ascent.user_id', userId ?? '')
-          .eq('topo_routes.route.project.user_id', userId ?? '')
-          .order('number', { referencedTable: 'topo_routes', ascending: true })
-          .single();
-
-        if (error) {
-          console.error('[GlobalData] topoDetailResource error', error);
-          throw error;
-        }
-
-        const topo_routes: TopoRouteWithRoute[] = [];
-        const seenRouteIds = new Set<number>();
-
-        if (data.topo_routes) {
-          for (const tr of data.topo_routes) {
-            if (!seenRouteIds.has(tr.route_id)) {
-              seenRouteIds.add(tr.route_id);
-
-              // Sort ascents to prioritize real ascents over attempts
-              const ascents = tr.route.own_ascent || [];
-              const bestAscent =
-                ascents.sort((a, b) => {
-                  const isAttemptA = a.type === AscentTypes.ATTEMPT;
-                  const isAttemptB = b.type === AscentTypes.ATTEMPT;
-                  if (isAttemptA && !isAttemptB) return 1;
-                  if (!isAttemptA && isAttemptB) return -1;
-                  return 0; // Maintain order otherwise (or sort by type/date preference)
-                })[0] || null;
-
-              topo_routes.push({
-                topo_id: tr.topo_id,
-                route_id: tr.route_id,
-                number: tr.number,
-                path: tr.path as TopoPath,
-                route: {
-                  ...tr.route,
-                  own_ascent: bestAscent,
-                  project: !!tr.route.project?.[0],
-                },
-              });
-            }
-          }
-        }
-
-        const result: TopoDetail = {
-          ...data,
-          topo_routes,
-          crag: data.crag
-            ? {
-                ...data.crag,
-                area: {
-                  ...data.crag.area,
-                  purchased: (data.crag.area.purchased?.length ?? 0) > 0,
-                },
-              }
-            : undefined,
-        } as unknown as TopoDetail;
-        this.localStorage.setItem(cacheKey, JSON.stringify(result));
-        return result;
-      } catch (e) {
-        console.warn(
-          '[GlobalData] topoDetailResource error/offline, trying cache',
-          e,
-        );
-        const cached = this.localStorage.getItem(cacheKey);
-        if (cached) {
-          try {
-            return JSON.parse(cached) as TopoDetail;
-          } catch {
-            return null;
-          }
-        }
-        return null;
-      }
+        },
+        { fallbackValue: null, logTag: 'GlobalData' },
+      );
     },
   });
 
@@ -1588,67 +1492,55 @@ export class GlobalData {
       if (!cragSlug || !areaSlug) return null;
       if (!isPlatformBrowser(this.platformId)) return null;
       const cacheKey = `cached_crag_detail_${areaSlug}_${cragSlug}_v2`;
-      try {
-        await this.supabase.whenReady();
-        const userId = this.supabase.authUser()?.id;
-        let query = this.supabase.client
-          .from('crags')
-          .select(
-            `
-            *,
-            eight_anu_sector_slugs,
-            liked:crag_likes(id),
-            area: areas!inner (
-              id, name, slug, eight_anu_crag_slugs,
-              is_public, price, stripe_account_id,
-              purchased:area_purchases(id)
-            ),
-            crag_parkings (
-              parking: parkings (*)
-            ),
-             topos (
-               *,
-               topo_routes (
-                 route_id,
-                 route: routes (
-                   grade
+      return this.cache.fetchOrCache(
+        cacheKey,
+        async () => {
+          await this.supabase.whenReady();
+          const userId = this.supabase.authUser()?.id;
+          let query = this.supabase.client
+            .from('crags')
+            .select(
+              `
+              *,
+              eight_anu_sector_slugs,
+              liked:crag_likes(id),
+              area: areas!inner (
+                id, name, slug, eight_anu_crag_slugs,
+                is_public, price, stripe_account_id,
+                purchased:area_purchases(id)
+              ),
+              crag_parkings (
+                parking: parkings (*)
+              ),
+               topos (
+                 *,
+                 topo_routes (
+                   route_id,
+                   route: routes (
+                     grade
+                   )
                  )
                )
-             )
-          `,
-          )
-          .eq('slug', cragSlug)
-          .eq('area.slug', areaSlug);
+            `,
+            )
+            .eq('slug', cragSlug)
+            .eq('area.slug', areaSlug);
 
-        if (userId) {
-          query = query.eq('liked.user_id', userId);
-        }
-
-        const { data, error } = await query.single();
-
-        if (error) {
-          console.error('[GlobalData] cragDetailResource error', error);
-          throw error;
-        }
-
-        const result = mapCragToDetail(data as CragWithJoins);
-        this.localStorage.setItem(cacheKey, JSON.stringify(result));
-        return result;
-      } catch (e) {
-        console.warn(
-          '[GlobalData] cragDetailResource error/offline, trying cache',
-          e,
-        );
-        const cached = this.localStorage.getItem(cacheKey);
-        if (cached) {
-          try {
-            return JSON.parse(cached) as CragDetail;
-          } catch {
-            console.error('[GlobalData] Cache parse error');
+          if (userId) {
+            query = query.eq('liked.user_id', userId);
           }
-        }
-        return null;
-      }
+
+          const { data, error } = await query.single();
+
+          if (error) {
+            console.error('[GlobalData] cragDetailResource error', error);
+            throw error;
+          }
+
+          return mapCragToDetail(data as CragWithJoins);
+        },
+        { fallbackValue: null, logTag: 'GlobalData' },
+      );
     },
   });
 
@@ -1673,105 +1565,107 @@ export class GlobalData {
       };
     },
     loader: async ({
-      params: { cragId, filterTopos },
+      params: { cragId, cragSlug, filterTopos },
     }): Promise<RouteWithExtras[]> => {
       if (!cragId) return [];
       if (!isPlatformBrowser(this.platformId)) return [];
-      try {
-        await this.supabase.whenReady();
-        const userId = this.supabase.authUser()?.id;
-        let query = this.supabase.client
-          .from('routes')
-          .select(
-            `
-            *,
-            liked:route_likes(id),
-            project:route_projects(id),
-            ascents:route_ascents(rate, type),
-            own_ascent:route_ascents(*),
-            topo_routes(topo:topos(id, name, slug)),
-            route_equippers(equipper:equippers(*)),
-            crag:crags(
-              slug,
-              name,
-              area_id,
-              area:areas(slug, name)
+      const cacheKey = `cached_crag_routes_${cragSlug}_v2`;
+      return this.cache.fetchOrCache(
+        cacheKey,
+        async () => {
+          await this.supabase.whenReady();
+          const userId = this.supabase.authUser()?.id;
+          let query = this.supabase.client
+            .from('routes')
+            .select(
+              `
+              *,
+              liked:route_likes(id),
+              project:route_projects(id),
+              ascents:route_ascents(rate, type),
+              own_ascent:route_ascents(*),
+              topo_routes(topo:topos(id, name, slug)),
+              route_equippers(equipper:equippers(*)),
+              crag:crags(
+                slug,
+                name,
+                area_id,
+                area:areas(slug, name)
+              )
+            `,
             )
-          `,
-          )
-          .eq('crag_id', cragId);
+            .eq('crag_id', cragId);
 
-        if (userId) {
-          query = query
-            .eq('own_ascent.user_id', userId)
-            .eq('project.user_id', userId)
-            .eq('liked.user_id', userId);
-        }
+          if (userId) {
+            query = query
+              .eq('own_ascent.user_id', userId)
+              .eq('project.user_id', userId)
+              .eq('liked.user_id', userId);
+          }
 
-        const { data, error } = await query;
+          const { data, error } = await query;
 
-        if (error) {
-          console.error('[GlobalData] cragRoutesResource error', error);
-          throw error;
-        }
+          if (error) {
+            console.error('[GlobalData] cragRoutesResource error', error);
+            throw error;
+          }
 
-        return (
-          data.map((r) =>
-            (() => {
-              const rates =
-                (r as unknown as { ascents: { rate: number }[] }).ascents
-                  ?.map((a) => a.rate)
-                  .filter((rate): rate is number => rate != null) ?? [];
-              const rating =
-                rates.length > 0
-                  ? rates.reduce(
-                      (a: number, b: number) => (a ?? 0) + (b ?? 0),
-                      0,
-                    ) / rates.length
-                  : null;
+          return (
+            data.map((r) =>
+              (() => {
+                const rates =
+                  (r as unknown as { ascents: { rate: number }[] }).ascents
+                    ?.map((a) => a.rate)
+                    .filter((rate): rate is number => rate != null) ?? [];
+                const rating =
+                  rates.length > 0
+                    ? rates.reduce(
+                        (a: number, b: number) => (a ?? 0) + (b ?? 0),
+                        0,
+                      ) / rates.length
+                    : null;
 
-              return {
-                ...r,
-                liked: (r.liked?.length ?? 0) > 0,
-                project: (r.project?.length ?? 0) > 0,
-                area_id: r.crag?.area_id,
-                crag_slug: r.crag?.slug,
-                crag_name: r.crag?.name,
-                area_slug: r.crag?.area?.slug,
-                area_name: r.crag?.area?.name,
-                rating,
-                ascent_count:
-                  r.ascents?.filter(
-                    (a: Partial<RouteAscentDto>) =>
-                      a.type !== AscentTypes.ATTEMPT,
-                  ).length ?? 0,
-                climbed:
-                  (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT)
-                    .length ?? 0) > 0,
-                own_ascent: r.own_ascent?.sort((a, b) => {
-                  const isAttemptA = a.type === AscentTypes.ATTEMPT;
-                  const isAttemptB = b.type === AscentTypes.ATTEMPT;
-                  if (isAttemptA && !isAttemptB) return 1;
-                  if (!isAttemptA && isAttemptB) return -1;
-                  return 0;
-                })[0],
-                topos: filterTopos
-                  ? []
-                  : r.topo_routes
-                      ?.map((tr: { topo: unknown }) => tr.topo)
-                      .filter((t: unknown) => !!t) || [],
-                equippers:
-                  r.route_equippers
-                    ?.map((re: { equipper: unknown }) => re.equipper)
-                    .filter(Boolean) || [],
-              } as RouteWithExtras;
-            })(),
-          ) ?? []
-        );
-      } catch (e) {
-        console.error('[GlobalData] cragRoutesResource exception', e);
-        return [];
-      }
+                return {
+                  ...r,
+                  liked: (r.liked?.length ?? 0) > 0,
+                  project: (r.project?.length ?? 0) > 0,
+                  area_id: r.crag?.area_id,
+                  crag_slug: r.crag?.slug,
+                  crag_name: r.crag?.name,
+                  area_slug: r.crag?.area?.slug,
+                  area_name: r.crag?.area?.name,
+                  rating,
+                  ascent_count:
+                    r.ascents?.filter(
+                      (a: Partial<RouteAscentDto>) =>
+                        a.type !== AscentTypes.ATTEMPT,
+                    ).length ?? 0,
+                  climbed:
+                    (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT)
+                      .length ?? 0) > 0,
+                  own_ascent: r.own_ascent?.sort((a, b) => {
+                    const isAttemptA = a.type === AscentTypes.ATTEMPT;
+                    const isAttemptB = b.type === AscentTypes.ATTEMPT;
+                    if (isAttemptA && !isAttemptB) return 1;
+                    if (!isAttemptA && isAttemptB) return -1;
+                    return 0;
+                  })[0],
+                  topos: filterTopos
+                    ? []
+                    : r.topo_routes
+                        ?.map((tr: { topo: unknown }) => tr.topo)
+                        .filter((t: unknown) => !!t) || [],
+                  equippers:
+                    r.route_equippers
+                      ?.map((re: { equipper: unknown }) => re.equipper)
+                      .filter(Boolean) || [],
+                } as RouteWithExtras;
+              })(),
+            ) ?? []
+          );
+        },
+        { fallbackValue: [], logTag: 'GlobalData' },
+      );
     },
   });
 
@@ -2149,88 +2043,90 @@ export class GlobalData {
     }): Promise<RouteWithExtras | null> => {
       if (!cragId || !routeSlug) return null;
       if (!isPlatformBrowser(this.platformId)) return null;
-      try {
-        await this.supabase.whenReady();
-        const userId = this.supabase.authUser()?.id;
-        let query = this.supabase.client
-          .from('routes')
-          .select(
-            `
-            *,
-            liked:route_likes(id),
-            project:route_projects(id),
-            crag:crags(
-              id,
-              name,
-              slug,
-              area:areas(id, name, slug)
-            ),
-            ascents:route_ascents(rate, type),
-            own_ascent:route_ascents(*),
-            topo_routes(topo:topos(id, name, slug))
-          `,
-          )
-          .eq('crag_id', cragId)
-          .eq('slug', routeSlug);
+      const cacheKey = `cached_route_detail_${routeSlug}_v2`;
+      return this.cache.fetchOrCache(
+        cacheKey,
+        async () => {
+          await this.supabase.whenReady();
+          const userId = this.supabase.authUser()?.id;
+          let query = this.supabase.client
+            .from('routes')
+            .select(
+              `
+              *,
+              liked:route_likes(id),
+              project:route_projects(id),
+              crag:crags(
+                id,
+                name,
+                slug,
+                area:areas(id, name, slug)
+              ),
+              ascents:route_ascents(rate, type),
+              own_ascent:route_ascents(*),
+              topo_routes(topo:topos(id, name, slug))
+            `,
+            )
+            .eq('crag_id', cragId)
+            .eq('slug', routeSlug);
 
-        if (userId) {
-          query = query
-            .eq('own_ascent.user_id', userId)
-            .eq('project.user_id', userId)
-            .eq('liked.user_id', userId);
-        }
+          if (userId) {
+            query = query
+              .eq('own_ascent.user_id', userId)
+              .eq('project.user_id', userId)
+              .eq('liked.user_id', userId);
+          }
 
-        const { data, error } = await query.single();
+          const { data, error } = await query.single();
 
-        if (error) {
-          console.error('[GlobalData] routeDetailResource error', error);
-          throw error;
-        }
+          if (error) {
+            console.error('[GlobalData] routeDetailResource error', error);
+            throw error;
+          }
 
-        const r = data;
-        const rates =
-          r.ascents
-            ?.map((a) => a.rate)
-            .filter((rate): rate is number => rate != null) ?? [];
-        const rating =
-          rates.length > 0
-            ? rates.reduce((a, b) => a + b, 0) / rates.length
-            : 0;
+          const r = data;
+          const rates =
+            r.ascents
+              ?.map((a) => a.rate)
+              .filter((rate): rate is number => rate != null) ?? [];
+          const rating =
+            rates.length > 0
+              ? rates.reduce((a, b) => a + b, 0) / rates.length
+              : 0;
 
-        return {
-          ...r,
-          liked: (r.liked?.length ?? 0) > 0,
-          project: (r.project?.length ?? 0) > 0,
-          crag_name: r.crag?.name,
-          crag_slug: r.crag?.slug,
-          area_id: r.crag?.area?.id,
-          area_name: r.crag?.area?.name,
-          area_slug: r.crag?.area?.slug,
-          rating,
-          ascent_count:
-            r.ascents?.filter(
-              (a: Partial<RouteAscentDto>) => a.type !== AscentTypes.ATTEMPT,
-            ).length ?? 0,
-          climbed:
-            (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT)
-              .length ?? 0) > 0,
-          own_ascent: r.own_ascent?.sort((a, b) => {
-            const isAttemptA = a.type === AscentTypes.ATTEMPT;
-            const isAttemptB = b.type === AscentTypes.ATTEMPT;
-            if (isAttemptA && !isAttemptB) return 1;
-            if (!isAttemptA && isAttemptB) return -1;
-            return 0;
-          })[0],
-          topos:
-            r.topo_routes
-              ?.map((tr: { topo: unknown }) => tr.topo)
-              .filter((t: unknown) => !!t) || [],
-          key: `${cragId}:${routeSlug}`,
-        } as RouteWithExtras & { area_id?: number; key: string };
-      } catch (e) {
-        console.error('[GlobalData] routeDetailResource exception', e);
-        return null;
-      }
+          return {
+            ...r,
+            liked: (r.liked?.length ?? 0) > 0,
+            project: (r.project?.length ?? 0) > 0,
+            crag_name: r.crag?.name,
+            crag_slug: r.crag?.slug,
+            area_id: r.crag?.area?.id,
+            area_name: r.crag?.area?.name,
+            area_slug: r.crag?.area?.slug,
+            rating,
+            ascent_count:
+              r.ascents?.filter(
+                (a: Partial<RouteAscentDto>) => a.type !== AscentTypes.ATTEMPT,
+              ).length ?? 0,
+            climbed:
+              (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT)
+                .length ?? 0) > 0,
+            own_ascent: r.own_ascent?.sort((a, b) => {
+              const isAttemptA = a.type === AscentTypes.ATTEMPT;
+              const isAttemptB = b.type === AscentTypes.ATTEMPT;
+              if (isAttemptA && !isAttemptB) return 1;
+              if (!isAttemptA && isAttemptB) return -1;
+              return 0;
+            })[0],
+            topos:
+              r.topo_routes
+                ?.map((tr: { topo: unknown }) => tr.topo)
+                .filter((t: unknown) => !!t) || [],
+            key: `${cragId}:${routeSlug}`,
+          } as RouteWithExtras & { area_id?: number; key: string };
+        },
+        { fallbackValue: null, logTag: 'GlobalData' },
+      );
     },
   });
 
@@ -2338,7 +2234,7 @@ export class GlobalData {
     const val = this.areaToposResource.value();
     if (val !== undefined)
       return val as (TopoListItem & { crag_slug: string })[];
-    return this.getCachedData<(TopoListItem & { crag_slug: string })[]>(
+    return this.cache.get<(TopoListItem & { crag_slug: string })[]>(
       `cached_area_topos_${this.selectedAreaSlug()}_v2`,
       [],
     );
@@ -2347,7 +2243,7 @@ export class GlobalData {
   readonly topoDetail = computed(() => {
     const val = this.topoDetailResource.value();
     if (val !== undefined) return val as TopoDetail | null;
-    return this.getCachedData<TopoDetail | null>(
+    return this.cache.get<TopoDetail | null>(
       `cached_topo_detail_${this.selectedTopoId()}_v1`,
       null,
     );
@@ -2356,7 +2252,7 @@ export class GlobalData {
   readonly cragDetail = computed(() => {
     const val = this.cragDetailResource.value();
     if (val !== undefined) return val as CragDetail | null;
-    return this.getCachedData<CragDetail | null>(
+    return this.cache.get<CragDetail | null>(
       `cached_crag_detail_${this.selectedAreaSlug()}_${this.selectedCragSlug()}_v2`,
       null,
     );
@@ -2365,7 +2261,7 @@ export class GlobalData {
   readonly cragRoutes = computed(() => {
     const val = this.cragRoutesResource.value();
     if (val !== undefined) return val as RouteWithExtras[];
-    return this.getCachedData<RouteWithExtras[]>(
+    return this.cache.get<RouteWithExtras[]>(
       `cached_crag_routes_${this.selectedCragSlug()}_v2`,
       [],
     );
@@ -2374,7 +2270,7 @@ export class GlobalData {
   readonly userProjects = computed(() => {
     const val = this.userProjectsResource.value();
     if (val !== undefined) return val as RouteWithExtras[];
-    return this.getCachedData<RouteWithExtras[]>(
+    return this.cache.get<RouteWithExtras[]>(
       `cached_user_projects_${this.supabase.authUserId()}_v2`,
       [],
     );
@@ -2383,7 +2279,7 @@ export class GlobalData {
   readonly routeDetail = computed(() => {
     const val = this.routeDetailResource.value();
     if (val !== undefined) return val as RouteWithExtras | null;
-    return this.getCachedData<RouteWithExtras | null>(
+    return this.cache.get<RouteWithExtras | null>(
       `cached_route_detail_${this.selectedRouteSlug()}_v2`,
       null,
     );

@@ -19,6 +19,7 @@ import { Database } from '../models/supabase-generated';
 import { SupabaseNotInitializedError } from '../models';
 
 import { ENV_SUPABASE_URL } from '../environments/environment';
+import { CacheService } from './cache.service';
 import { LocalStorage } from './local-storage';
 
 export interface SupabaseConfig {
@@ -45,6 +46,7 @@ export class SupabaseService {
   private readonly anonKey = inject(SUPABASE_ANON_KEY, { optional: true });
   private readonly router = inject(Router);
   private readonly localStorage = inject(LocalStorage);
+  private readonly cache = inject(CacheService);
 
   private _client: SupabaseClient<Database> | null = null;
   private _readyResolve: (() => void) | null = null;
@@ -65,40 +67,28 @@ export class SupabaseService {
     loader: async ({ params: userId }) => {
       if (!userId || !isPlatformBrowser(this.platformId)) return null;
       const cacheKey = `cached_user_profile_${userId}_v1`;
-      try {
-        const { data, error } = await this.client
-          .from('user_profiles')
-          .select('*')
-          .eq('id', userId)
-          .maybeSingle();
+      return this.cache.fetchOrCache(
+        cacheKey,
+        async () => {
+          const { data, error } = await this.client
+            .from('user_profiles')
+            .select('*')
+            .eq('id', userId)
+            .maybeSingle();
 
-        if (error) {
-          throw error;
-        }
-
-        if (data) {
-          this.localStorage.setItem(cacheKey, JSON.stringify(data));
-        } else {
-          await this.logout();
-          return null;
-        }
-
-        return data;
-      } catch (e) {
-        console.warn(
-          '[SupabaseService] userProfileResource error/offline, trying cache',
-          e,
-        );
-        const cached = this.localStorage.getItem(cacheKey);
-        if (cached) {
-          try {
-            return JSON.parse(cached) as UserProfileDto;
-          } catch (e: unknown) {
-            console.error('[SupabaseService] Cache parse error', e);
+          if (error) {
+            throw error;
           }
-        }
-        return null;
-      }
+
+          if (data) {
+            return data;
+          } else {
+            await this.logout();
+            return null;
+          }
+        },
+        { fallbackValue: null, logTag: 'SupabaseService' },
+      );
     },
   });
   readonly userProfile = computed(() => {
@@ -106,7 +96,7 @@ export class SupabaseService {
     if (val !== undefined) return val;
     const userId = this.authUserId();
     if (!userId) return null;
-    return this.getCachedData<UserProfileDto | null>(
+    return this.cache.get<UserProfileDto | null>(
       `cached_user_profile_${userId}_v1`,
       null,
     );
@@ -348,19 +338,6 @@ export class SupabaseService {
     }
 
     return data.signedUrl;
-  }
-
-  private getCachedData<T>(key: string, defaultValue: T): T {
-    if (!isPlatformBrowser(this.platformId)) return defaultValue;
-    const cached = this.localStorage.getItem(key);
-    if (cached) {
-      try {
-        return JSON.parse(cached) as T;
-      } catch (e: unknown) {
-        console.error('[SupabaseService] Cache parse error for key:', key, e);
-      }
-    }
-    return defaultValue;
   }
 
   constructor() {

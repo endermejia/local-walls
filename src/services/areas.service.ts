@@ -35,8 +35,8 @@ import type {
   RouteInsertDto,
 } from '../models';
 
+import { CacheService } from './cache.service';
 import { GlobalData } from './global-data';
-import { LocalStorage } from './local-storage';
 import { slugify } from '../utils';
 
 @Injectable({ providedIn: 'root' })
@@ -44,7 +44,7 @@ export class AreasService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly supabase = inject(SupabaseService);
   private readonly global = inject(GlobalData);
-  private readonly localStorage = inject(LocalStorage);
+  private readonly cache = inject(CacheService);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
@@ -202,52 +202,40 @@ export class AreasService {
     if (!isPlatformBrowser(this.platformId)) return [];
 
     const cacheKey = 'cached_areas_simple_v1';
+    return this.cache.fetchOrCache(
+      cacheKey,
+      async () => {
+        await this.supabase.whenReady();
 
-    try {
-      await this.supabase.whenReady();
+        let allAreas: { id: number; name: string; slug: string }[] = [];
+        let from = 0;
+        const step = 1000;
+        let hasMore = true;
 
-      let allAreas: { id: number; name: string; slug: string }[] = [];
-      let from = 0;
-      const step = 1000;
-      let hasMore = true;
+        while (hasMore) {
+          const { data, error } = await this.supabase.client
+            .from('areas')
+            .select('id, name, slug')
+            .range(from, from + step - 1);
 
-      while (hasMore) {
-        const { data, error } = await this.supabase.client
-          .from('areas')
-          .select('id, name, slug')
-          .range(from, from + step - 1);
+          if (error) throw error;
 
-        if (error) throw error;
-
-        if (data && data.length > 0) {
-          allAreas = [...allAreas, ...data];
-          if (data.length < step) {
-            hasMore = false;
+          if (data && data.length > 0) {
+            allAreas = [...allAreas, ...data];
+            if (data.length < step) {
+              hasMore = false;
+            } else {
+              from += step;
+            }
           } else {
-            from += step;
+            hasMore = false;
           }
-        } else {
-          hasMore = false;
         }
-      }
 
-      this.localStorage.setItem(cacheKey, JSON.stringify(allAreas));
-      return allAreas;
-    } catch (e) {
-      console.warn(
-        '[AreasService] getAllAreasSimple error/offline, trying cache',
-        e,
-      );
-      const cached = this.localStorage.getItem(cacheKey);
-      if (cached) {
-        try {
-          return JSON.parse(cached);
-        } catch {
-          // ignore
-        }
-      }
-      return [];
-    }
+        return allAreas;
+      },
+      { fallbackValue: [], logTag: 'AreasService' },
+    );
   }
 
   async unify(
