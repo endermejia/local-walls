@@ -146,7 +146,7 @@ export class SearchService {
           }));
         }
 
-        // Only show create/import options when there are no results at all
+        // Areas & Crags: only show create/import when no results at all
         const hasAnyResults =
           areas.length > 0 ||
           crags.length > 0 ||
@@ -154,7 +154,7 @@ export class SearchService {
           users.length > 0 ||
           indoors.length > 0;
 
-        if (!hasAnyResults) {
+        if (!hasAnyResults || areas.length === 0) {
           const anuArea = eightAnuItems?.find(
             (i): i is SearchAreaItem => i.type === 0,
           );
@@ -178,7 +178,9 @@ export class SearchService {
               type: 'create-area',
             },
           ];
+        }
 
+        if (!hasAnyResults || crags.length === 0) {
           const anuCrag = eightAnuItems?.find(
             (i): i is SearchCragItem => i.type === 1,
           );
@@ -202,11 +204,19 @@ export class SearchService {
               type: 'create-crag',
             },
           ];
+        }
 
+        // Routes: show create/import when < 3 results or no exact match
+        const lowerQuery = trimmedQuery.toLowerCase();
+        const hasExactRoute =
+          routes.length > 0 &&
+          routes.some((r) => r.title.toLowerCase() === lowerQuery);
+        if (routes.length < 3 || !hasExactRoute) {
           const anuRoute = eightAnuItems?.find(
             (i): i is SearchRouteItem => i.type === 3,
           );
           results['routes'] = [
+            ...(results['routes'] || []),
             ...(anuRoute
               ? [
                   {
