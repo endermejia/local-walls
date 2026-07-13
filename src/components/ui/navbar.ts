@@ -226,13 +226,15 @@ import {
           <!-- Explore -->
           <a
             #explore="routerLinkActive"
-            routerLink="/explore"
+            [routerLink]="global.isOffline() ? null : '/explore'"
             routerLinkActive
             [tuiAppearance]="
               explore.isActive ? 'flat-destructive' : 'flat-grayscale'
             "
             [tuiSkeleton]="loading()"
             class="flex items-center gap-4 p-3 md:p-3 no-underline text-inherit rounded-xl transition-colors w-fit md:w-full relative"
+            [class.pointer-events-none]="global.isOffline()"
+            [class.opacity-50]="global.isOffline()"
             [attr.aria-label]="'nav.explore' | translate"
           >
             <div

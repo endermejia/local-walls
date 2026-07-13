@@ -474,7 +474,7 @@ export class IndoorRouteComponent implements OnDestroy {
       if (!confirmed) return;
       try {
         await this.indoor.deleteRouteAscent(ascentId);
-        this.toast.success('ascent.deleteSuccess');
+        this.toast.success('messages.toasts.ascentDeleted');
         this.ascentsResource.reload();
       } catch (e) {
         console.error(e);
@@ -521,7 +521,7 @@ export class IndoorRouteComponent implements OnDestroy {
       if (!confirmed) return;
       try {
         await this.indoor.deleteRoute(r.id);
-        this.toast.success('routes.deleteSuccess');
+        this.toast.success('messages.toasts.routeDeleted');
         void this.router.navigate(['/indoor', r.center_slug]);
       } catch (e) {
         console.error(e);

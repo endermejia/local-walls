@@ -21,12 +21,28 @@ export class AppErrorHandler implements ErrorHandler {
 
     let messageKey = 'errors.unexpected';
 
-    if (error instanceof Error) {
-      const msg = error.message || '';
+    if (error) {
+      const errorObj = error as Record<string, unknown>;
+      const innerError = errorObj['error'] as
+        | Record<string, unknown>
+        | undefined;
+      const msg = String(
+        errorObj['message'] ||
+          innerError?.['message'] ||
+          errorObj['messageKey'] ||
+          error ||
+          '',
+      );
+      const status = errorObj['status'] ?? errorObj['statusCode'];
+      const name = errorObj['name'];
+
       if (
         msg.includes('Failed to fetch') ||
         msg.includes('NetworkError') ||
-        msg.includes('network')
+        msg.includes('network') ||
+        msg.includes('offline') ||
+        status === 0 ||
+        name === 'TimeoutError'
       ) {
         messageKey = 'errors.network';
       } else if (msg.includes('timeout') || msg.includes('Timeout')) {
@@ -43,9 +59,13 @@ export class AppErrorHandler implements ErrorHandler {
     this.isOpen = true;
 
     void firstValueFrom(this.translate.get(messageKey)).then((message) => {
+      const titleKey =
+        messageKey === 'errors.network'
+          ? 'errors.networkTitle'
+          : 'errors.unexpected';
       void firstValueFrom(
         this.dialogs.open(new PolymorpheusComponent(ErrorDialogComponent), {
-          label: this.translate.instant('errors.unexpected'),
+          label: this.translate.instant(titleKey),
           data: {
             message,
           },

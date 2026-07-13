@@ -106,6 +106,9 @@ export class GlobalData {
   readonly error: WritableSignal<string | null> = signal(null);
   readonly isNavLoading: WritableSignal<boolean> = signal(false);
   readonly showCart: WritableSignal<boolean> = signal(false);
+  readonly isOffline = signal(
+    typeof navigator !== 'undefined' ? !navigator.onLine : false,
+  );
 
   // ---- Topo photo version for cache busting ----
   readonly topoPhotoVersion: WritableSignal<number> = signal(0);
@@ -2305,6 +2308,14 @@ export class GlobalData {
   constructor() {
     // Initialize supported languages for ngx-translate
     this.translate.addLangs(Object.values(Languages));
+
+    if (isPlatformBrowser(this.platformId)) {
+      const onlineHandler = () => this.isOffline.set(false);
+      const offlineHandler = () => this.isOffline.set(true);
+
+      window.addEventListener('online', onlineHandler);
+      window.addEventListener('offline', offlineHandler);
+    }
 
     effect(() => {
       if (this.langUpdateTrigger()) {
