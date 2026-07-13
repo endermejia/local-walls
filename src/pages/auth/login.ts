@@ -84,7 +84,8 @@ import { SupabaseService } from '../../services/supabase.service';
                 id="emailInput"
                 #emailInput
                 tuiInput
-                type="email"
+                type="text"
+                inputmode="email"
                 [value]="email()"
                 (input.zoneless)="onInputEmail(emailInput.value)"
                 [attr.aria-invalid]="

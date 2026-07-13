@@ -103,7 +103,8 @@ import { SupabaseService } from '../../services/supabase.service';
                     id="emailInput"
                     tuiInput
                     placeholder="john@example.com"
-                    type="email"
+                    type="text"
+                    inputmode="email"
                     formControlName="email"
                   />
                 </tui-textfield>

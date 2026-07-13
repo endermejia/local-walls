@@ -280,7 +280,8 @@ interface Country {
             <label tuiLabel for="emailInput">{{ 'email' | translate }}</label>
             <input
               tuiInput
-              type="email"
+              type="text"
+              inputmode="email"
               autocomplete="off"
               [ngModel]="userEmail()"
               disabled
