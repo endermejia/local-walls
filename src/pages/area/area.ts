@@ -843,7 +843,7 @@ export class AreaComponent {
       content: message,
       yes: this.translate.instant('delete'),
       no: this.translate.instant('cancel'),
-      appearance: 'accent',
+      appearance: 'negative',
     };
 
     const confirmed = await firstValueFrom(

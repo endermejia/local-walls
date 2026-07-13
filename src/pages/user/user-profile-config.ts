@@ -1580,6 +1580,7 @@ export class UserProfileConfigComponent {
           content: this.translate.instant('profile.avatar.delete.confirm'),
           yes: this.translate.instant('delete'),
           no: this.translate.instant('cancel'),
+          appearance: 'negative',
         } as TuiConfirmData,
       }),
       { defaultValue: false },

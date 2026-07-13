@@ -338,9 +338,8 @@ export class IndoorRouteComponent implements OnDestroy {
     const own = this.ownAscent();
     if (!own) return null;
     const type = own.type || 'default';
-    const info = this.ascentsService.ascentInfo()[
-      type as AscentType | 'default'
-    ];
+    const info =
+      this.ascentsService.ascentInfo()[type as AscentType | 'default'];
     return info || null;
   });
 
@@ -467,6 +466,7 @@ export class IndoorRouteComponent implements OnDestroy {
           content: this.translate.instant('ascent.deleteConfirm'),
           yes: this.translate.instant('delete'),
           no: this.translate.instant('cancel'),
+          appearance: 'negative',
         } as TuiConfirmData,
       }),
       { defaultValue: false },
@@ -487,9 +487,7 @@ export class IndoorRouteComponent implements OnDestroy {
     const color = this.route()?.color;
     if (!color) return '';
     const colorName = INDOOR_ROUTE_COLORS[color];
-    return colorName
-      ? this.translate.instant('colors.' + colorName)
-      : color;
+    return colorName ? this.translate.instant('colors.' + colorName) : color;
   });
 
   async openEditRoute(): Promise<void> {
@@ -515,6 +513,7 @@ export class IndoorRouteComponent implements OnDestroy {
           }),
           yes: this.translate.instant('delete'),
           no: this.translate.instant('cancel'),
+          appearance: 'negative',
         } as TuiConfirmData,
       }),
       { defaultValue: false },

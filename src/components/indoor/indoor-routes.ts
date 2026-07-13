@@ -215,10 +215,7 @@ import { RouteRowExpandedComponent } from '../route/route-row-expanded';
             @let sortedData = displayRoutes() | tuiTableSort;
             <tbody tuiTbody>
               @for (item of sortedData; track item.id) {
-                <tr
-                  tuiTr
-                  [style.background]="item._ascentBackground || ''"
-                >
+                <tr tuiTr [style.background]="item._ascentBackground || ''">
                   @for (col of columns(); track col) {
                     <td
                       *tuiCell="col"
@@ -579,6 +576,7 @@ export class IndoorRoutesComponent {
           }),
           yes: this.translate.instant('delete'),
           no: this.translate.instant('cancel'),
+          appearance: 'negative',
         } as TuiConfirmData,
       }),
       { defaultValue: false },
@@ -643,7 +641,9 @@ export class IndoorRoutesComponent {
       ...r,
       _colorName: r.color ? (colorNames.get(r.color) ?? r.color) : '',
       _ascentBackground: r.own_ascent
-        ? (ascentInfo[(r.own_ascent.type || 'default') as AscentType | 'default']?.backgroundSubtle ?? '')
+        ? (ascentInfo[
+            (r.own_ascent.type || 'default') as AscentType | 'default'
+          ]?.backgroundSubtle ?? '')
         : '',
     }));
   });

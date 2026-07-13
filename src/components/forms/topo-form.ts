@@ -636,8 +636,10 @@ export class TopoFormComponent {
   protected readonly stringifyRoute = (route: SelectedRoute): string =>
     `${route.name} (${this.gradeStringify(route.grade ?? 0)})`;
 
-  protected readonly routeIdentityMatcher: TuiIdentityMatcher<SelectedRoute> = (a, b) =>
-    a.id === b.id;
+  protected readonly routeIdentityMatcher: TuiIdentityMatcher<SelectedRoute> = (
+    a,
+    b,
+  ) => a.id === b.id;
 
   protected gradeStringify(grade: number): string {
     return (
@@ -836,7 +838,9 @@ export class TopoFormComponent {
                 this.pendingPaths().find((p) => p.routeId === r.id)?.path ||
                 null;
               const existingPath =
-                'path' in r ? (r as { path?: TopoPath | null }).path || null : null;
+                'path' in r
+                  ? (r as { path?: TopoPath | null }).path || null
+                  : null;
               return this.supabase.client.from('indoor_topo_routes').upsert({
                 topo_id: String(topoId),
                 route_id: String(r.id),
@@ -970,7 +974,10 @@ export class TopoFormComponent {
 
     await this.topos.bulkUpdateRoutePaths(
       topo.id,
-      paths.map((p) => ({ routeId: Number(p.routeId), path: p.path as TopoPath })),
+      paths.map((p) => ({
+        routeId: Number(p.routeId),
+        path: p.path as TopoPath,
+      })),
     );
     this.pendingPaths.set([]);
   }
@@ -1059,6 +1066,7 @@ export class TopoFormComponent {
             content: this.translate.instant('topos.deletePhotoConfirm'),
             yes: this.translate.instant('delete'),
             no: this.translate.instant('cancel'),
+            appearance: 'negative',
           },
         }),
         { defaultValue: false },
@@ -1086,6 +1094,7 @@ export class TopoFormComponent {
           content: this.translate.instant('topos.deletePhotoConfirm'),
           yes: this.translate.instant('delete'),
           no: this.translate.instant('cancel'),
+          appearance: 'negative',
         },
       }),
       { defaultValue: false },
@@ -1129,9 +1138,7 @@ export class TopoFormComponent {
     >;
     if (this.isIndoor()) {
       const initial = this._dialogCtx?.data?.initialRoutes || [];
-      existingMap = new Map(
-        initial.map((e) => [e.id, { path: e.path }]),
-      );
+      existingMap = new Map(initial.map((e) => [e.id, { path: e.path }]));
     } else {
       const existing = this.effectiveTopoData()?.topo_routes || [];
       existingMap = new Map(existing.map((e) => [e.route_id, e]));
@@ -1144,9 +1151,7 @@ export class TopoFormComponent {
       const e = existingMap.get(r.id);
       const points = p?.path?.points || e?.path?.points || [];
       const minX =
-        points.length > 0
-          ? Math.min(...points.map((pt) => pt.x))
-          : 999;
+        points.length > 0 ? Math.min(...points.map((pt) => pt.x)) : 999;
       return { r, minX };
     });
 

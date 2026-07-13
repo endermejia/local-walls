@@ -253,6 +253,7 @@ export class IndoorTopoComponent extends TopoPageBase {
           }),
           yes: this.translate.instant('delete'),
           no: this.translate.instant('cancel'),
+          appearance: 'negative',
         } as TuiConfirmData,
       }),
       { defaultValue: false },

@@ -467,8 +467,10 @@ import { IndoorVouchersComponent } from '../../components/indoor/indoor-vouchers
   host: { class: 'flex grow min-h-0' },
 })
 export class IndoorCenterComponent implements OnDestroy {
-  protected readonly mappedAscents = computed(() =>
-    (this.centerAscentsResource.value() ?? []) as unknown as RouteAscentWithExtras[],
+  protected readonly mappedAscents = computed(
+    () =>
+      (this.centerAscentsResource.value() ??
+        []) as unknown as RouteAscentWithExtras[],
   );
 
   slug = input.required<string>();
@@ -748,7 +750,7 @@ export class IndoorCenterComponent implements OnDestroy {
       content: message,
       yes: this.translate.instant('delete'),
       no: this.translate.instant('cancel'),
-      appearance: 'accent',
+      appearance: 'negative',
     };
     const confirmed = await firstValueFrom(
       this.dialogs.open<boolean>(TUI_CONFIRM, {

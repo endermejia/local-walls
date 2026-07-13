@@ -474,9 +474,7 @@ import { handleErrorToast } from '../../utils';
                         tuiButton
                         type="button"
                         size="s"
-                        [appearance]="
-                          modelDict()[key] ? 'primary' : 'neutral'
-                        "
+                        [appearance]="modelDict()[key] ? 'primary' : 'neutral'"
                         (click)="toggleBool(key)"
                       >
                         {{ 'ascent.boulder.' + key | translate }}
@@ -517,7 +515,7 @@ import { handleErrorToast } from '../../utils';
                       tuiButton
                       type="button"
                       size="s"
-                      [appearance]="                  modelDict()[key] ? 'primary' : 'neutral'"
+                      [appearance]="modelDict()[key] ? 'primary' : 'neutral'"
                       (click)="toggleBool(key)"
                     >
                       {{ 'ascent.steepness.' + key | translate }}
@@ -538,9 +536,7 @@ import { handleErrorToast } from '../../utils';
                         tuiButton
                         type="button"
                         size="s"
-                        [appearance]="
-                          modelDict()[key] ? 'primary' : 'neutral'
-                        "
+                        [appearance]="modelDict()[key] ? 'primary' : 'neutral'"
                         (click)="toggleBool(key)"
                       >
                         {{ 'ascent.safety.' + key | translate }}
@@ -747,7 +743,9 @@ export default class AscentFormComponent {
     highball: false,
   });
 
-  protected readonly modelDict = computed(() => this.model() as unknown as Record<string, boolean | null>);
+  protected readonly modelDict = computed(
+    () => this.model() as unknown as Record<string, boolean | null>,
+  );
 
   ascentForm = form(this.model, (path) => {
     required(path.type);
@@ -1253,6 +1251,7 @@ export default class AscentFormComponent {
           content: this.translate.instant('ascent.deletePhotoConfirm'),
           yes: this.translate.instant('delete'),
           no: this.translate.instant('cancel'),
+          appearance: 'negative',
         },
       }),
       { defaultValue: false },
@@ -1289,6 +1288,7 @@ export default class AscentFormComponent {
           }),
           yes: this.translate.instant('delete'),
           no: this.translate.instant('cancel'),
+          appearance: 'negative',
         },
       }),
       { defaultValue: false },
