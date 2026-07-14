@@ -546,6 +546,7 @@
   "notificationSound": "So de notificacions",
   "number": "Número",
   "offline.banner": "Sense connexió — mostrant dades en memòria cau",
+  "offline.lastUpdated": "Última actualització:",
   "openGoogleMaps": "Google Maps",
   "options": "Opcions",
   "options.language.de": "Deutsch",

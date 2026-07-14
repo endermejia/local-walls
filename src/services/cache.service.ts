@@ -26,6 +26,18 @@ export class CacheService {
   }
 
   /**
+   * Get the timestamp (epoch ms) when a cache entry was last written.
+   * Returns null if no timestamp is found or on server.
+   */
+  getLastUpdated(key: string): number | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    const raw = this.localStorage.getItem(`${key}:_ts`);
+    if (!raw) return null;
+    const ts = Number(raw);
+    return Number.isFinite(ts) ? ts : null;
+  }
+
+  /**
    * Attempt `fetcher()`. On success the result is written to cache and returned.
    * On failure the previously cached value (if any) is returned; otherwise
    * `fallbackValue` is returned. Log output is tagged with `logTag`.
@@ -52,10 +64,12 @@ export class CacheService {
 
   /**
    * Write a value to the cache. The value is JSON-serialised automatically.
+   * Also stores a timestamp for "last updated" tracking.
    */
   set(key: string, value: unknown): void {
     try {
       this.localStorage.setItem(key, JSON.stringify(value));
+      this.localStorage.setItem(`${key}_ts`, String(Date.now()));
     } catch {
       // storage full or unavailable — silently ignore
     }
@@ -66,6 +80,7 @@ export class CacheService {
    */
   remove(key: string): void {
     this.localStorage.removeItem(key);
+    this.localStorage.removeItem(`${key}_ts`);
   }
 
   /**

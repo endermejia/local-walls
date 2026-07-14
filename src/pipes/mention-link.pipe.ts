@@ -1,3 +1,4 @@
+import { SecurityContext } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Pipe, PipeTransform, inject } from '@angular/core';
 
@@ -13,21 +14,18 @@ export class MentionLinkPipe implements PipeTransform {
   transform(value: string | null | undefined): SafeHtml {
     if (!value) return '';
 
-    // 1. Escape HTML characters to prevent XSS (since we are using innerHTML)
     const escaped = this.escapeHtml(value);
 
-    // 2. Replace mentions with anchor tags
-    // Reset lastIndex since MENTION_PATTERN is a global regex
     MENTION_PATTERN.lastIndex = 0;
 
     const linked = escaped.replace(MENTION_PATTERN, (_match, name, id) => {
-      // We use a specific class 'mention-link' to target click events if needed
-      // and data-id attribute.
-      // We also use href for standard behavior/SEO, but the app should intercept it.
-      return `<a class="mention-link font-bold hover:underline cursor-pointer text-(--tui-text-action)" href="/profile/${id}" data-id="${id}">@${name}</a>`;
+      const sanitizedId = this.escapeHtml(id);
+      const sanitizedName = this.escapeHtml(name);
+      return `<a class="mention-link font-bold hover:underline cursor-pointer text-(--tui-text-action)" href="/profile/${sanitizedId}" data-id="${sanitizedId}">@${sanitizedName}</a>`;
     });
 
-    return this.sanitizer.bypassSecurityTrustHtml(linked);
+    const sanitized = this.sanitizer.sanitize(SecurityContext.HTML, linked);
+    return sanitized ?? '';
   }
 
   private escapeHtml(text: string): string {

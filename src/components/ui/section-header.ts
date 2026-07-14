@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import {
   ChangeDetectionStrategy,
@@ -22,6 +23,7 @@ import { DropdownButtonComponent } from './dropdown-button';
 @Component({
   selector: 'app-section-header',
   imports: [
+    DatePipe,
     DropdownButtonComponent,
     RouterLink,
     TranslatePipe,
@@ -57,6 +59,16 @@ import { DropdownButtonComponent } from './dropdown-button';
         }
         <!-- Actions container -->
         <div class="flex flex-wrap items-center gap-2 shrink-0 ms-auto">
+          <!-- Offline last updated indicator -->
+          @if (global.isOffline() && lastUpdated()) {
+            <span
+              class="text-xs opacity-50 whitespace-nowrap"
+              [title]="lastUpdated()! | date: 'medium'"
+            >
+              {{ 'offline.lastUpdated' | translate }}
+              {{ lastUpdated()! | date: 'shortTime' }}
+            </span>
+          }
           <!-- Like button -->
           @if (showLike()) {
             <button
@@ -106,6 +118,7 @@ export class SectionHeaderComponent {
   titleDropdown = input<TemplateRef<Record<string, unknown>> | null>(null);
   liked = input(false);
   showLike = input(true);
+  lastUpdated = input<Date | null>(null);
 
   dropdownOpen = signal(false);
 

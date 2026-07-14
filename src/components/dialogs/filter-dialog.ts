@@ -125,7 +125,7 @@ export interface FilterDialog {
         </section>
       }
 
-      @if (global.indoorFeature()) {
+      @if (showIndoorAscents && global.indoorFeature()) {
         <section class="flex flex-col gap-3">
           <label class="flex items-center gap-2">
             <input
@@ -179,6 +179,10 @@ export class FilterDialogComponent {
 
   protected get showIndoorOutdoor(): boolean {
     return this.context.data?.showIndoorOutdoor ?? false;
+  }
+
+  protected get showIndoorAscents(): boolean {
+    return this.context.data?.showIndoorAscents ?? false;
   }
 
   // Items for TuiFilter (types) as signals

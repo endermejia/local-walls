@@ -546,6 +546,7 @@
   "notificationSound": "Sonido de notificaciones",
   "number": "Número",
   "offline.banner": "Sin conexión — mostrando datos en caché",
+  "offline.lastUpdated": "Última actualización:",
   "openGoogleMaps": "Google Maps",
   "options": "Opciones",
   "options.language.de": "Deutsch",

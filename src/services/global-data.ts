@@ -6,7 +6,6 @@ import {
   inject,
   Injectable,
   PLATFORM_ID,
-  resource,
   signal,
   Signal,
   untracked,
@@ -33,55 +32,53 @@ import { FavoritesService } from './favorites.service';
 import { MessagingService } from './messaging.service';
 import { PushService } from './push.service';
 import { SupabaseService } from './supabase.service';
+import { FilterStateService } from './filter-state.service';
+import { MapDataService } from './map-data.service';
+import { TopoDataService } from './topo-data.service';
+import { ProfileDataService } from './profile-data.service';
 
 import {
-  AmountByEveryGrade,
-  AreaDto,
   AreaListItem,
   AscentType,
   AscentTypes,
   BreadcrumbItem,
-  ClimbingKind,
-  ClimbingKinds,
   CragDetail,
   CragDto,
   CragListItem,
-  CragWithJoins,
   EquipperDto,
-  LABEL_TO_VERTICAL_LIFE,
   Language,
   Languages,
-  MapAreaItem,
-  MapBounds,
-  MapCragItem,
   MapIndoorCenterItem,
   MapIndoorCenterRaw,
   MapIndoorRouteRaw,
-  MapIndoorTopoRaw,
-  MapItem,
-  MapResponse,
-  ORDERED_GRADE_VALUES,
-  PaginatedAscents,
   ParkingDto,
-  RouteAscentDto,
-  RouteAscentWithExtras,
-  RouteDto,
-  RouteWithExtras,
   Theme,
   Themes,
-  TopoDetail,
-  TopoListItem,
-  TopoPath,
-  TopoRouteWithRoute,
   UserProfileDto,
-  VERTICAL_LIFE_GRADES,
   IndoorCenterDto,
   IndoorRouteWithExtras,
+  AmountByEveryGrade,
+  VERTICAL_LIFE_GRADES,
+  RouteAscentDto,
+  RouteDto,
+  RouteWithExtras,
 } from '../models';
 
 import { LocalStorage } from './local-storage';
-import { mapCragToDetail, triggerThemeTransition } from '../utils';
+import { triggerThemeTransition } from '../utils';
+import { resource } from '@angular/core';
 
+/**
+ * GlobalData is now a facade that delegates to domain services.
+ * It maintains full backward compatibility while the domain services
+ * are being adopted by consumers.
+ *
+ * New code should inject the domain services directly:
+ * - FilterStateService for filter state
+ * - MapDataService for map data
+ * - TopoDataService for topo/crag/route data
+ * - ProfileDataService for profile and ascents data
+ */
 @Injectable({
   providedIn: 'root',
 })
@@ -97,6 +94,12 @@ export class GlobalData {
   private localStorage = inject(LocalStorage);
   private translate = inject(TranslateService);
 
+  // Domain services
+  readonly filterState = inject(FilterStateService);
+  readonly mapData = inject(MapDataService);
+  readonly topoData = inject(TopoDataService);
+  readonly profileData = inject(ProfileDataService);
+
   readonly isMobile = toSignal(
     this.breakpointService.pipe(map((b) => b === 'mobile')),
     { initialValue: false },
@@ -110,7 +113,6 @@ export class GlobalData {
     typeof navigator !== 'undefined' ? !navigator.onLine : false,
   );
 
-  // ---- Topo photo version for cache busting ----
   readonly topoPhotoVersion: WritableSignal<number> = signal(0);
 
   // ---- Language ----
@@ -119,9 +121,6 @@ export class GlobalData {
     () => this.userProfile()?.language || Languages.ES,
   );
 
-  /**
-   * Represents the language that is AFTER being successfully loaded and applied.
-   */
   readonly currentLang = toSignal(
     this.translate.onLangChange.pipe(map((e) => e.lang as Language)),
     { initialValue: this.translate.currentLang as Language },
@@ -139,7 +138,6 @@ export class GlobalData {
       case Languages.IT:
         return TUI_ITALIAN_LANGUAGE;
       default:
-        // Use English for EN, VA, EU if they don't have a native Taiga language package
         return TUI_ENGLISH_LANGUAGE;
     }
   });
@@ -247,7 +245,6 @@ export class GlobalData {
     this.supabase.adminIndoorCenters(),
   );
 
-  /** Resource that fetches the area IDs for which the current user has a pending admin request */
   readonly pendingAdminRequestsResource = resource({
     params: () => this.supabase.authUserId(),
     loader: async ({ params: userId }) => {
@@ -258,7 +255,6 @@ export class GlobalData {
         .select('area_id')
         .eq('user_id', userId);
       if (error) {
-        console.error('[GlobalData] pendingAdminRequestsResource error', error);
         return [] as number[];
       }
       return (data ?? []).map((r) => r.area_id);
@@ -299,9 +295,16 @@ export class GlobalData {
     return isAdmin ? new Proxy(res, { get: () => true }) : res;
   });
 
-  /** Helper to check if any area can be edited by current user */
   readonly checkAreaEditPermission = (
-    area: AreaListItem | AreaDto | null | undefined,
+    area:
+      | AreaListItem
+      | {
+          id: number;
+          user_creator_id?: string | null;
+          created_at?: string | null;
+        }
+      | null
+      | undefined,
   ) => {
     if (this.canEditAsAdmin() || this.areaAdminPermissions()[area?.id ?? -1])
       return true;
@@ -311,12 +314,10 @@ export class GlobalData {
     return isCreator && this.isWithinOneWeek(area.created_at);
   };
 
-  /** Computed for the currently selected area */
   readonly canEditArea = computed(() =>
     this.checkAreaEditPermission(this.selectedArea()),
   );
 
-  /** Helper to check if any crag can be edited by current user */
   readonly checkCragEditPermission = (
     crag: CragListItem | CragDetail | null | undefined,
   ) => {
@@ -331,12 +332,10 @@ export class GlobalData {
     return isCreator && this.isWithinOneWeek(crag.created_at);
   };
 
-  /** Computed for the currently selected crag */
   readonly canEditCrag = computed(() =>
     this.checkCragEditPermission(this.cragDetail()),
   );
 
-  /** Helper to check if any route can be edited by current user */
   readonly checkRouteEditPermission = (
     route: RouteWithExtras | null | undefined,
   ) => {
@@ -351,7 +350,6 @@ export class GlobalData {
     return isCreator && this.isWithinOneWeek(route.created_at);
   };
 
-  /** Computed for the currently selected route */
   readonly canEditRoute = computed(() =>
     this.checkRouteEditPermission(this.routeDetail()),
   );
@@ -366,7 +364,7 @@ export class GlobalData {
   });
 
   private isWithinOneWeek(createdAt: string | null | undefined): boolean {
-    if (!createdAt) return true; // If no date, allow for now (legacy or unsaved)
+    if (!createdAt) return true;
     const date = new Date(createdAt);
     const now = new Date();
     const oneWeekInMs = 7 * 24 * 60 * 60 * 1000;
@@ -381,365 +379,32 @@ export class GlobalData {
   readonly messageSoundEnabled: WritableSignal<boolean> = signal(true);
   readonly notificationSoundEnabled: WritableSignal<boolean> = signal(false);
 
-  // ---- Map ----
-  readonly mapActive: WritableSignal<boolean> = signal(false);
-  mapBounds: WritableSignal<MapBounds | null> = signal(null);
-  private readonly mapBoundsStorageKey = 'map_bounds_v1';
+  // ---- Delegated to MapDataService ----
+  readonly mapActive = this.mapData.mapActive;
+  mapBounds = this.mapData.mapBounds;
+  readonly mapResource = this.mapData.mapResource;
+  mapItemsOnViewport = this.mapData.mapItemsOnViewport;
+  selectedMapCragItem = this.mapData.selectedMapCragItem;
+  selectedMapParkingItem = this.mapData.selectedMapParkingItem;
+  readonly parkingsMapResource = this.mapData.parkingsMapResource;
+  readonly areasMapResource = this.mapData.areasMapResource;
 
-  /**
-   * Resource for fetching map items based on bounds.
-   */
-  readonly mapResource = resource({
-    params: () => ({ bounds: this.mapBounds(), active: this.mapActive() }),
-    loader: async ({ params: { bounds, active } }) => {
-      if (
-        !bounds ||
-        !active ||
-        !isPlatformBrowser(this.platformId) ||
-        typeof window === 'undefined' ||
-        !bounds
-      ) {
-        return {
-          items: [],
-          counts: { locations: 0, map_collections: 0 },
-        } as MapResponse;
-      }
+  // ---- Delegated to FilterStateService ----
+  areaListGradeRange = this.filterState.areaListGradeRange;
+  areaListCategories = this.filterState.areaListCategories;
+  areaListShade = this.filterState.areaListShade;
+  areaListShowIndoor = this.filterState.areaListShowIndoor;
+  areaListShowOutdoor = this.filterState.areaListShowOutdoor;
 
-      await this.supabase.whenReady();
-      const userId = this.supabase.authUser()?.id;
-      let query = this.supabase.client.from('crags').select(
-        `
-          id, name, slug, latitude, longitude,
-          area:areas (name, slug),
-          routes (grade, climbing_kind),
-          topos (id, name, slug, shade_morning, shade_afternoon),
-          liked:crag_likes(id)
-        `,
-      );
+  feedGradeRange = this.filterState.feedGradeRange;
+  feedCategories = this.filterState.feedCategories;
+  feedShowIndoorAscents = this.filterState.feedShowIndoorAscents;
 
-      if (userId) {
-        query = query.eq('liked.user_id', userId);
-      }
-
-      const { data: sbCrags, error: sbError } = await query
-        .gte('latitude', bounds.south_west_latitude)
-        .lte('latitude', bounds.north_east_latitude)
-        .gte('longitude', bounds.south_west_longitude)
-        .lte('longitude', bounds.north_east_longitude);
-
-      if (sbError) {
-        console.error('[GlobalData] mapResource error', sbError);
-        throw sbError;
-      }
-
-      const supabaseCragItems: MapCragItem[] = (sbCrags || []).map((c) => {
-        const grades: Record<number, number> = {};
-        let totalRoutes = 0;
-        const climbingKinds = new Set<string>();
-
-        (c.routes || []).forEach((r) => {
-          totalRoutes++;
-          grades[r.grade] = (grades[r.grade] || 0) + 1;
-          if (r.climbing_kind) climbingKinds.add(r.climbing_kind);
-        });
-
-        let category = 0;
-        if (climbingKinds.has(ClimbingKinds.BOULDER)) category = 1;
-        else if (climbingKinds.has(ClimbingKinds.MULTIPITCH)) category = 2;
-
-        const shadeMorning = (c.topos || []).some((t) => t.shade_morning);
-        const shadeAfternoon = (c.topos || []).some((t) => t.shade_afternoon);
-
-        const isLiked = (c.liked || []).length > 0;
-
-        return {
-          id: c.id,
-          name: c.name,
-          slug: c.slug,
-          latitude: Number(c.latitude) || 0,
-          longitude: Number(c.longitude) || 0,
-          area_name: c.area?.name || '',
-          area_slug: c.area?.slug || '',
-          grades,
-          category,
-          routes_count: totalRoutes,
-          topos_count: (c.topos || []).length,
-          topos: (c.topos || []).map((t) => ({
-            id: t.id,
-            name: t.name,
-            slug: t.slug,
-          })),
-          shade_morning: shadeMorning,
-          shade_afternoon: shadeAfternoon,
-          shade_all_day: shadeMorning && shadeAfternoon,
-          sun_all_day: !shadeMorning && !shadeAfternoon,
-          avg_rating: 0,
-          liked: isLiked,
-        } as MapCragItem;
-      });
-
-      let indoorItems: MapIndoorCenterItem[] = [];
-      if (this.indoorFeature()) {
-        const { data: sbIndoor, error: indoorError } =
-          await this.supabase.client
-            .from('indoor_centers')
-            .select(
-              `
-              id, name, slug, latitude, longitude, city, country, avatar_url,
-              routes:indoor_routes(grade, climbing_kind, legacy),
-              topos:indoor_topos(id, name)
-            `,
-            )
-            .gte('latitude', bounds.south_west_latitude)
-            .lte('latitude', bounds.north_east_latitude)
-            .gte('longitude', bounds.south_west_longitude)
-            .lte('longitude', bounds.north_east_longitude);
-
-        if (!indoorError && sbIndoor) {
-          indoorItems = sbIndoor.map((c: MapIndoorCenterRaw) => {
-            const grades: Record<number, number> = {};
-            let activeRoutesCount = 0;
-            (c.routes || []).forEach((r: MapIndoorRouteRaw) => {
-              if (!r.legacy) {
-                activeRoutesCount++;
-                if (r.grade != null) {
-                  grades[r.grade] = (grades[r.grade] || 0) + 1;
-                }
-              }
-            });
-
-            return {
-              id: c.id,
-              name: c.name,
-              slug: c.slug,
-              latitude: Number(c.latitude) || 0,
-              longitude: Number(c.longitude) || 0,
-              city: c.city || '',
-              country: c.country || '',
-              avatar_url: c.avatar_url || '',
-              is_indoor: true,
-              grades,
-              routes_count: activeRoutesCount,
-              topos: (c.topos || []).map((t: MapIndoorTopoRaw) => ({
-                id: t.id,
-                name: t.name,
-                slug: t.id,
-              })),
-            } as MapIndoorCenterItem;
-          });
-        }
-      }
-
-      const combinedItems: MapItem[] = [...supabaseCragItems, ...indoorItems];
-
-      return {
-        items: combinedItems,
-        counts: {
-          locations: combinedItems.length,
-          map_collections: 0,
-        },
-      } as MapResponse;
-    },
-  });
-
-  /**
-   * Items currently visible in the viewport defined by mapBounds.
-   * - Crags: included when their [lat,lng] is inside bounds.
-   * - Areas: included when their bbox intersects bounds.
-   */
-  mapItemsOnViewport: Signal<MapItem[]> = computed(() => {
-    const bounds = this.mapBounds();
-    const items = this.mapResource.value()?.items || [];
-    if (!bounds) return items;
-
-    const south = bounds.south_west_latitude;
-    const west = bounds.south_west_longitude;
-    const north = bounds.north_east_latitude;
-    const east = bounds.north_east_longitude;
-
-    const pointIn = (lat: number, lng: number): boolean => {
-      if (Number.isNaN(lat) || Number.isNaN(lng)) return false;
-      const inLat = lat >= south && lat <= north;
-      const inLng =
-        east >= west ? lng >= west && lng <= east : lng >= west || lng <= east;
-      return inLat && inLng;
-    };
-
-    return [
-      ...items.filter((it) => {
-        if ('latitude' in it && 'longitude' in it) {
-          const lat = it.latitude;
-          const lng = it.longitude;
-          return (
-            typeof lat === 'number' &&
-            typeof lng === 'number' &&
-            pointIn(lat, lng)
-          );
-        }
-        return false;
-      }),
-      ...(this.areasMapResource.value() || []),
-    ];
-  });
-  selectedMapCragItem: WritableSignal<MapCragItem | null> = signal(null);
-  selectedMapParkingItem: WritableSignal<ParkingDto | null> = signal(null);
-
-  /**
-   * Resource for fetching parkings in the map based on bounds.
-   */
-  readonly parkingsMapResource = resource({
-    params: () => ({ bounds: this.mapBounds(), active: this.mapActive() }),
-    loader: async ({ params: { bounds, active } }) => {
-      if (!bounds || !active) return [];
-
-      await this.supabase.whenReady();
-      const { data, error } = await this.supabase.client
-        .from('parkings')
-        .select('*')
-        .gte('latitude', bounds.south_west_latitude)
-        .lte('latitude', bounds.north_east_latitude)
-        .gte('longitude', bounds.south_west_longitude)
-        .lte('longitude', bounds.north_east_longitude);
-
-      if (error) {
-        console.error('[GlobalData] parkingsMapResource error', error);
-        return [];
-      }
-
-      return data as ParkingDto[];
-    },
-  });
-
-  /**
-   * Resource for fetching areas in the map based on bounds.
-   * Since areas don't have direct coordinates in the database,
-   * we derive them from the crags found in the current viewport
-   * and fetch their detailed info.
-   */
-  readonly areasMapResource = resource({
-    params: () => {
-      const crags = this.mapResource.value()?.items || [];
-      return [
-        ...new Set(
-          crags
-            .map((c) => (c as MapCragItem).area_slug)
-            .filter((slug): slug is string => !!slug),
-        ),
-      ];
-    },
-    loader: async ({ params: slugs }) => {
-      if (!slugs.length || !isPlatformBrowser(this.platformId)) return [];
-
-      try {
-        await this.supabase.whenReady();
-        const userId = this.supabase.authUser()?.id;
-        let query = this.supabase.client
-          .from('areas')
-          .select(
-            `
-            id, name, slug,
-            liked:area_likes(id),
-            crags (
-              routes (grade, climbing_kind),
-              topos (shade_morning, shade_afternoon)
-            )
-          `,
-          )
-          .in('slug', slugs);
-
-        if (userId) {
-          query = query.eq('liked.user_id', userId);
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
-          console.error('[GlobalData] areasMapResource error', error);
-          return [];
-        }
-
-        return (data || []).map((a) => {
-          const grades: AmountByEveryGrade = {};
-          let cragsCount = 0;
-          const climbingKinds = new Set<string>();
-          let shadeMorning = false;
-          let shadeAfternoon = false;
-
-          (a.crags || []).forEach((c) => {
-            cragsCount++;
-            (c.routes || []).forEach((r) => {
-              const g = r.grade as VERTICAL_LIFE_GRADES;
-              grades[g] = (grades[g] || 0) + 1;
-              if (r.climbing_kind) {
-                climbingKinds.add(r.climbing_kind);
-              }
-            });
-            if ((c.topos || []).some((t) => t.shade_morning)) {
-              shadeMorning = true;
-            }
-            if ((c.topos || []).some((t) => t.shade_afternoon)) {
-              shadeAfternoon = true;
-            }
-          });
-
-          const isLiked = (a.liked || []).length > 0;
-
-          return {
-            id: a.id,
-            name: a.name,
-            slug: a.slug,
-            liked: isLiked,
-            grades,
-            crags_count: cragsCount,
-            climbing_kind: Array.from(climbingKinds),
-            shade_morning: shadeMorning,
-            shade_afternoon: shadeAfternoon,
-            shade_all_day: shadeMorning && shadeAfternoon,
-            sun_all_day: !shadeMorning && !shadeAfternoon,
-            area_type: 0,
-          } as MapAreaItem;
-        });
-      } catch (e) {
-        console.error('[GlobalData] areasMapResource exception', e);
-        return [];
-      }
-    },
-  });
-
-  // ---- Area List Filters (Persisted) ----
-  private readonly areaListGradeRangeKey = 'area_list_grade_range_v1';
-  private readonly areaListCategoriesKey = 'area_list_categories_v1';
-  private readonly areaListShadeKey = 'area_list_shade_v1';
-  private readonly areaListShowIndoorKey = 'area_list_show_indoor_v1';
-  private readonly areaListShowOutdoorKey = 'area_list_show_outdoor_v1';
-
-  areaListGradeRange: WritableSignal<[number, number]> = signal([
-    0,
-    ORDERED_GRADE_VALUES.length - 1,
-  ]);
-  areaListCategories: WritableSignal<number[]> = signal([]);
-  areaListShade: WritableSignal<
-    ('shade_morning' | 'shade_afternoon' | 'shade_all_day' | 'sun_all_day')[]
-  > = signal([]);
-  areaListShowIndoor: WritableSignal<boolean> = signal(false);
-  areaListShowOutdoor: WritableSignal<boolean> = signal(true);
+  // ---- Indoor Centers ----
   selectedIndoorCenter: WritableSignal<IndoorCenterDto | null> = signal(null);
   selectedIndoorRoute: WritableSignal<IndoorRouteWithExtras | null> =
     signal(null);
-  /** Increment to trigger indoor routes reload in the parent component */
   indoorRoutesReloadTick: WritableSignal<number> = signal(0);
-
-  // ---- Feed List Filters (Persisted per session) ----
-  private readonly feedGradeRangeKey = 'feed_grade_range_v1';
-  private readonly feedCategoriesKey = 'feed_categories_v1';
-  private readonly feedShowIndoorAscentsKey = 'feed_show_indoor_ascents_v1';
-
-  feedGradeRange: WritableSignal<[number, number]> = signal([
-    0,
-    ORDERED_GRADE_VALUES.length - 1,
-  ]);
-  feedCategories: WritableSignal<number[]> = signal([]);
-  feedShowIndoorAscents: WritableSignal<boolean> = signal(false);
 
   // ---- Liked / Favorites (Shared) ----
   readonly likedAreasResource = resource({
@@ -840,7 +505,6 @@ export class GlobalData {
       if (!id || !isPlatformBrowser(this.platformId)) return null;
       await this.supabase.whenReady();
 
-      // Fetch equipper with user profile if available
       const { data, error } = await this.supabase.client
         .from('equippers')
         .select('*, user_profile:user_profiles(*)')
@@ -848,7 +512,6 @@ export class GlobalData {
         .single();
 
       if (error) {
-        console.error('[GlobalData] equipperDetailResource error', error);
         return null;
       }
 
@@ -893,7 +556,6 @@ export class GlobalData {
       const { data, error } = await query.eq('equipper_id', id);
 
       if (error) {
-        console.error('[GlobalData] equipperRoutesResource error', error);
         return [];
       }
 
@@ -1012,23 +674,18 @@ export class GlobalData {
             } as IndoorRouteWithExtras;
           })
           .filter((r): r is IndoorRouteWithExtras => r !== null);
-      } catch (e) {
-        console.error('[GlobalData] equipperIndoorRoutesResource error', e);
+      } catch {
         return [];
       }
     },
   });
 
-  // ---- Areas ----
-  selectedAreaSlug: WritableSignal<string | null> = signal(null);
+  // ---- Delegated to TopoDataService ----
+  selectedAreaSlug = this.topoData.selectedAreaSlug;
   selectedArea: Signal<AreaListItem | null> = computed(() => {
     const slug = this.selectedAreaSlug();
     return slug ? this.areasList().find((a) => a.slug === slug) || null : null;
   });
-  /**
-   * List of areas (RPC get_areas_list)
-   * SSR-safe: on server returns [] and does not access browser APIs.
-   */
   readonly areasListResource = resource({
     params: () => ({ user: this.userProfile() }),
     loader: async () => {
@@ -1057,7 +714,6 @@ export class GlobalData {
     return this.cache.get<AreaListItem[]>('cached_areas_list_v2', []);
   });
 
-  // ---- Indoor Centers ----
   readonly indoorCentersResource = resource({
     params: () => ({ user: this.userProfile() }),
     loader: async () => {
@@ -1090,8 +746,7 @@ export class GlobalData {
             grades,
           } as MapIndoorCenterItem;
         });
-      } catch (e) {
-        console.error('[GlobalData] indoorCentersResource error', e);
+      } catch {
         return [];
       }
     },
@@ -1101,451 +756,27 @@ export class GlobalData {
     () => this.indoorCentersResource.value() ?? [],
   );
 
-  // ---- Crags list by selected area ----
-  /**
-   * List of sectors/crags for the selected area using RPC get_crags_list_by_area_slug.
-   * SSR-safe: on server returns [].
-   */
-  readonly cragsListResource = resource({
-    params: () => this.selectedAreaSlug(),
-    loader: async ({ params: areaSlug }) => {
-      if (!areaSlug) return [];
-      if (!isPlatformBrowser(this.platformId)) {
-        return [] as CragListItem[];
-      }
-      const cacheKey = `cached_crags_list_${areaSlug}_v2`;
-      return this.cache.fetchOrCache(
-        cacheKey,
-        async () => {
-          await this.supabase.whenReady();
-          const { data, error } = await this.supabase.client
-            .rpc('get_crags_list')
-            .eq('area_slug', areaSlug);
-
-          if (error) {
-            console.error('[GlobalData] cragsListResource error', error);
-            throw error;
-          }
-          return (
-            (data?.map((c) => ({
-              ...c,
-              grades: c.grades as unknown as AmountByEveryGrade,
-              topos: c.topos as unknown as {
-                id: number;
-                name: string;
-                slug: string;
-              }[],
-            })) as CragListItem[]) ?? []
-          );
-        },
-        { fallbackValue: [], logTag: 'GlobalData' },
-      );
-    },
-  });
-  readonly cragsList: Signal<CragListItem[]> = computed(() => {
-    const val = this.cragsListResource.value();
-    if (val !== undefined) return val;
-    const areaSlug = this.selectedAreaSlug();
-    if (!areaSlug) return [];
-    return this.cache.get<CragListItem[]>(
-      `cached_crags_list_${areaSlug}_v2`,
-      [],
-    );
-  });
-
-  /**
-   * Selection of crag (by slug) dependent on the selected area.
-   */
-  selectedCragSlug: WritableSignal<string | null> = signal(null);
+  selectedCragSlug = this.topoData.selectedCragSlug;
   selectedCrag: Signal<CragListItem | null> = computed(() => {
     const slug = this.selectedCragSlug();
     if (!slug) return null;
     const list = this.cragsList();
     return list.find((c) => c.slug === slug) ?? null;
   });
+  readonly cragsListResource = this.topoData.cragsListResource;
+  readonly cragsList = this.topoData.cragsList;
 
-  selectedTopoId: WritableSignal<string | null> = signal(null);
-  selectedCenterSlug: WritableSignal<string | null> = signal(null);
+  selectedTopoId = this.topoData.selectedTopoId;
+  selectedCenterSlug = this.topoData.selectedCenterSlug;
 
-  readonly areaToposResource = resource({
-    params: () => ({
-      areaSlug: this.selectedAreaSlug(),
-      centerSlug: this.selectedCenterSlug(),
-    }),
-    loader: async ({
-      params,
-    }): Promise<(TopoListItem & { crag_slug: string })[]> => {
-      const { areaSlug, centerSlug } = params;
-      if (!isPlatformBrowser(this.platformId)) return [];
+  readonly areaToposResource = this.topoData.areaToposResource;
+  readonly areaTopos = this.topoData.areaTopos;
 
-      if (centerSlug) {
-        try {
-          await this.supabase.whenReady();
-          const { data: center } = await this.supabase.client
-            .from('indoor_centers')
-            .select('id')
-            .eq('slug', centerSlug)
-            .single();
-          if (!center) return [];
+  readonly topoDetailResource = this.topoData.topoDetailResource;
+  readonly topoDetail = this.topoData.topoDetail;
 
-          const { data, error } = await this.supabase.client
-            .from('indoor_topos')
-            .select('*, indoor_topo_routes ( route:indoor_routes ( grade ) )')
-            .eq('center_id', center.id);
-
-          if (error) throw error;
-
-          return (data || []).map((t) => {
-            const grades: Record<number, number> = {};
-            const topoRoutes = t.indoor_topo_routes || [];
-            for (const tr of topoRoutes) {
-              const grade = tr.route?.grade;
-              if (grade !== undefined && grade !== null) {
-                grades[grade] = (grades[grade] || 0) + 1;
-              }
-            }
-            return {
-              id: t.id as unknown as number,
-              name: t.name,
-              slug: t.id,
-              crag_slug: '',
-              photo: t.image_url,
-              grades,
-              shade_afternoon: false,
-              shade_change_hour: null,
-              shade_morning: false,
-            };
-          }) as (TopoListItem & { crag_slug: string })[];
-        } catch (e) {
-          console.error('[GlobalData] areaToposResource indoor error', e);
-          return [];
-        }
-      }
-
-      if (!areaSlug) return [];
-      const cacheKey = `cached_area_topos_${areaSlug}_v2`;
-      return this.cache.fetchOrCache(
-        cacheKey,
-        async () => {
-          await this.supabase.whenReady();
-          const { data, error } = await this.supabase.client
-            .from('topos')
-            .select(
-              '*, crags!inner(slug, areas!inner(slug)), topo_routes(route_id, route:routes(grade))',
-            )
-            .eq('crags.areas.slug', areaSlug);
-
-          if (error) {
-            console.error('[GlobalData] areaToposResource error', error);
-            throw error;
-          }
-
-          return (data || []).map((t) => {
-            const grades: AmountByEveryGrade = {};
-            (t.topo_routes || []).forEach((tr) => {
-              const g = tr.route?.grade;
-              if (g != null && g >= 0) {
-                grades[g as VERTICAL_LIFE_GRADES] =
-                  (grades[g as VERTICAL_LIFE_GRADES] ?? 0) + 1;
-              }
-            });
-
-            return {
-              id: t.id,
-              name: t.name,
-              slug: t.slug,
-              crag_slug: t.crags?.slug || '',
-              grades,
-              photo: t.photo,
-              shade_morning: t.shade_morning,
-              shade_afternoon: t.shade_afternoon,
-              shade_change_hour: t.shade_change_hour,
-              route_ids: (t.topo_routes || []).map(
-                (tr: { route_id: number }) => tr.route_id,
-              ),
-            };
-          });
-        },
-        { fallbackValue: [], logTag: 'GlobalData' },
-      );
-    },
-  });
-
-  readonly topoDetailResource = resource({
-    params: () => this.selectedTopoId(),
-    loader: async ({ params: id }): Promise<TopoDetail | null> => {
-      if (!id) return null;
-      if (!isPlatformBrowser(this.platformId)) return null;
-      const cacheKey = `cached_topo_detail_${id}_v1`;
-      return this.cache.fetchOrCache(
-        cacheKey,
-        async () => {
-          await this.supabase.whenReady();
-          const userId = this.supabase.authUser()?.id;
-          const isIndoor = isNaN(Number(id));
-
-          if (isIndoor) {
-            // 1. Fetch indoor topo
-            const { data: topo, error: topoErr } = await this.supabase.client
-              .from('indoor_topos')
-              .select(
-                `
-                *,
-                center: indoor_centers!inner (
-                  id, name, slug
-                )
-              `,
-              )
-              .eq('id', id)
-              .single();
-            if (topoErr) throw topoErr;
-
-            // 2. Fetch indoor_topo_routes mapped to their indoor_routes details and user ascents
-            const { data: trs, error: trsErr } = await this.supabase.client
-              .from('indoor_topo_routes')
-              .select(
-                `
-                *,
-                route: indoor_routes!inner (
-                  id, name, slug, grade, climbing_kind, color,
-                  own_ascent: indoor_ascents!left (*)
-                )
-              `,
-              )
-              .eq('topo_id', id)
-              .eq('route.own_ascent.user_id', userId ?? '')
-              .order('number', { ascending: true });
-
-            if (trsErr) throw trsErr;
-
-            const topo_routes: TopoRouteWithRoute[] = [];
-            const seenRouteIds = new Set<string>();
-
-            if (trs) {
-              for (const tr of trs) {
-                if (!seenRouteIds.has(tr.route_id)) {
-                  seenRouteIds.add(tr.route_id);
-
-                  // Sort ascents to prioritize real ascents over attempts
-                  const ascents = (tr.route.own_ascent ||
-                    []) as unknown as RouteAscentDto[];
-                  ascents.sort((a, b) => {
-                    const isAttemptA = a.type === 'attempt';
-                    const isAttemptB = b.type === 'attempt';
-                    if (isAttemptA && !isAttemptB) return 1;
-                    if (!isAttemptA && isAttemptB) return -1;
-                    return (
-                      new Date(b.date || 0).getTime() -
-                      new Date(a.date || 0).getTime()
-                    );
-                  });
-                  const bestAscent = ascents[0] || null;
-
-                  topo_routes.push({
-                    topo_id: tr.topo_id,
-                    route_id: tr.route_id,
-                    number: tr.number ?? 0,
-                    path: tr.path as TopoPath | null,
-                    route: {
-                      id: tr.route.id,
-                      name: tr.route.name,
-                      slug: tr.route.slug,
-                      grade: tr.route.grade ?? 0,
-                      climbing_kind: (tr.route.climbing_kind ??
-                        'sport') as ClimbingKind,
-                      own_ascent: bestAscent,
-                      project: false,
-                    },
-                  });
-                }
-              }
-            }
-
-            const result: TopoDetail = {
-              id: topo.id,
-              name: topo.name,
-              photo: topo.image_url,
-              crag_id: 0,
-              created_at: '',
-              slug: '',
-              shade_afternoon: false,
-              shade_change_hour: null,
-              shade_morning: false,
-              legacy: topo.legacy,
-              center_id: topo.center_id,
-              topo_routes,
-              crag: topo.center
-                ? {
-                    id: 0,
-                    name: topo.center.name,
-                    slug: topo.center.slug,
-                    area_id: 0,
-                    user_creator_id: null,
-                    area: {
-                      id: 0,
-                      name: '',
-                      slug: '',
-                      is_public: true,
-                      price: 0,
-                      purchased: true,
-                    },
-                  }
-                : undefined,
-            };
-            return result;
-          }
-
-          const { data, error } = await this.supabase.client
-            .from('topos')
-            .select(
-              `
-              *,
-              crag: crags!inner (
-                id, name, slug, area_id, user_creator_id,
-                area: areas!inner (
-                  id, name, slug, is_public, price, purchased:area_purchases(id)
-                )
-              ),
-              topo_routes (
-                *,
-                route: routes (
-                  id, name, slug, grade, height, climbing_kind,
-                  own_ascent: route_ascents!left (*),
-                  project: route_projects!left (id)
-                )
-              )
-            `,
-            )
-            .eq('id', Number(id))
-            .eq('topo_routes.route.own_ascent.user_id', userId ?? '')
-            .eq('topo_routes.route.project.user_id', userId ?? '')
-            .order('number', {
-              referencedTable: 'topo_routes',
-              ascending: true,
-            })
-            .single();
-
-          if (error) {
-            console.error('[GlobalData] topoDetailResource error', error);
-            throw error;
-          }
-
-          const topo_routes: TopoRouteWithRoute[] = [];
-          const seenRouteIds = new Set<number>();
-
-          if (data.topo_routes) {
-            for (const tr of data.topo_routes) {
-              if (!seenRouteIds.has(tr.route_id)) {
-                seenRouteIds.add(tr.route_id);
-
-                // Sort ascents to prioritize real ascents over attempts
-                const ascents = tr.route.own_ascent || [];
-                const bestAscent =
-                  ascents.sort((a, b) => {
-                    const isAttemptA = a.type === AscentTypes.ATTEMPT;
-                    const isAttemptB = b.type === AscentTypes.ATTEMPT;
-                    if (isAttemptA && !isAttemptB) return 1;
-                    if (!isAttemptA && isAttemptB) return -1;
-                    return 0; // Maintain order otherwise (or sort by type/date preference)
-                  })[0] || null;
-
-                topo_routes.push({
-                  topo_id: tr.topo_id,
-                  route_id: tr.route_id,
-                  number: tr.number,
-                  path: tr.path as TopoPath,
-                  route: {
-                    ...tr.route,
-                    own_ascent: bestAscent,
-                    project: !!tr.route.project?.[0],
-                  },
-                });
-              }
-            }
-          }
-
-          const result: TopoDetail = {
-            ...data,
-            topo_routes,
-            crag: data.crag
-              ? {
-                  ...data.crag,
-                  area: {
-                    ...data.crag.area,
-                    purchased: (data.crag.area.purchased?.length ?? 0) > 0,
-                  },
-                }
-              : undefined,
-          } as unknown as TopoDetail;
-          return result;
-        },
-        { fallbackValue: null, logTag: 'GlobalData' },
-      );
-    },
-  });
-
-  readonly cragDetailResource = resource({
-    params: () => ({
-      cragSlug: this.selectedCragSlug(),
-      areaSlug: this.selectedAreaSlug(),
-    }),
-    loader: async ({
-      params: { cragSlug, areaSlug },
-    }): Promise<CragDetail | null> => {
-      if (!cragSlug || !areaSlug) return null;
-      if (!isPlatformBrowser(this.platformId)) return null;
-      const cacheKey = `cached_crag_detail_${areaSlug}_${cragSlug}_v2`;
-      return this.cache.fetchOrCache(
-        cacheKey,
-        async () => {
-          await this.supabase.whenReady();
-          const userId = this.supabase.authUser()?.id;
-          let query = this.supabase.client
-            .from('crags')
-            .select(
-              `
-              *,
-              eight_anu_sector_slugs,
-              liked:crag_likes(id),
-              area: areas!inner (
-                id, name, slug, eight_anu_crag_slugs,
-                is_public, price, stripe_account_id,
-                purchased:area_purchases(id)
-              ),
-              crag_parkings (
-                parking: parkings (*)
-              ),
-               topos (
-                 *,
-                 topo_routes (
-                   route_id,
-                   route: routes (
-                     grade
-                   )
-                 )
-               )
-            `,
-            )
-            .eq('slug', cragSlug)
-            .eq('area.slug', areaSlug);
-
-          if (userId) {
-            query = query.eq('liked.user_id', userId);
-          }
-
-          const { data, error } = await query.single();
-
-          if (error) {
-            console.error('[GlobalData] cragDetailResource error', error);
-            throw error;
-          }
-
-          return mapCragToDetail(data as CragWithJoins);
-        },
-        { fallbackValue: null, logTag: 'GlobalData' },
-      );
-    },
-  });
+  readonly cragDetailResource = this.topoData.cragDetailResource;
+  readonly cragDetail = this.topoData.cragDetail;
 
   readonly cragRoutesResource = resource({
     params: () => {
@@ -1609,7 +840,6 @@ export class GlobalData {
           const { data, error } = await query;
 
           if (error) {
-            console.error('[GlobalData] cragRoutesResource error', error);
             throw error;
           }
 
@@ -1672,544 +902,41 @@ export class GlobalData {
     },
   });
 
-  // ---- Route Detail ----
-  selectedRouteSlug: WritableSignal<string | null> = signal(null);
-  profileUserId: WritableSignal<string | null> = signal(null);
-  profileActiveTab: WritableSignal<number> = signal(0);
-
-  readonly userProjectsResource = resource({
-    params: () => this.profileUserId(),
-    loader: async ({ params: userId }): Promise<RouteWithExtras[]> => {
-      if (!userId || !isPlatformBrowser(this.platformId)) return [];
-      try {
-        await this.supabase.whenReady();
-        const currentUserId = this.supabase.authUser()?.id;
-
-        // Fetch routes that are projects for this specific user
-        let query = this.supabase.client.from('route_projects').select(
-          `
-            route:routes (
-              *,
-              liked:route_likes(id),
-              project:route_projects(id),
-              own_ascent:route_ascents(*),
-              crag:crags(
-                slug,
-                name,
-                area_id,
-                area:areas(slug, name)
-              ),
-              ascents:route_ascents(rate, type)
-            )
-          `,
-        );
-
-        if (currentUserId) {
-          query = query
-            .eq('route.own_ascent.user_id', currentUserId)
-            .eq('route.project.user_id', currentUserId)
-            .eq('route.liked.user_id', currentUserId);
-        }
-
-        const { data, error } = await query.eq('user_id', userId);
-
-        if (error) {
-          console.error('[GlobalData] userProjectsResource error', error);
-          throw error;
-        }
-
-        return data
-          .map((item) => {
-            const r = item.route as
-              | (RouteDto & {
-                  liked: { id: number }[];
-                  project: { id: number }[];
-                  ascents: { rate: number | null; type: AscentType }[];
-                  own_ascent: RouteAscentDto[];
-                  crag:
-                    | (CragDto & {
-                        area: { slug: string; name: string } | null;
-                      })
-                    | null;
-                })
-              | null;
-            if (!r) return null;
-            const rates =
-              r.ascents
-                ?.map((a) => a.rate)
-                .filter((rate): rate is number => rate != null) ?? [];
-            const rating =
-              rates.length > 0
-                ? rates.reduce((a: number, b: number) => a + b, 0) /
-                  rates.length
-                : 0;
-
-            const { crag, ascents, liked, project, own_ascent, ...rest } = r;
-            return {
-              ...rest,
-              liked: (liked?.length ?? 0) > 0,
-              project: (project?.length ?? 0) > 0,
-              area_id: crag?.area_id,
-              crag_slug: crag?.slug,
-              crag_name: crag?.name,
-              area_slug: crag?.area?.slug,
-              area_name: crag?.area?.name,
-              rating,
-              ascent_count:
-                ascents?.filter(
-                  (a: Partial<RouteAscentDto>) =>
-                    a.type !== AscentTypes.ATTEMPT,
-                ).length ?? 0,
-              climbed:
-                (own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT)
-                  .length ?? 0) > 0,
-              own_ascent: own_ascent?.sort((a, b) => {
-                const isAttemptA = a.type === AscentTypes.ATTEMPT;
-                const isAttemptB = b.type === AscentTypes.ATTEMPT;
-                if (isAttemptA && !isAttemptB) return 1;
-                if (!isAttemptA && isAttemptB) return -1;
-                return 0;
-              })[0],
-            } as RouteWithExtras;
-          })
-          .filter((r): r is RouteWithExtras => !!r);
-      } catch (e) {
-        console.error('[GlobalData] userProjectsResource exception', e);
-        return [];
-      }
-    },
+  readonly cragRoutes = computed(() => {
+    const val = this.cragRoutesResource.value();
+    if (val !== undefined) return val as RouteWithExtras[];
+    return this.cache.get<RouteWithExtras[]>(
+      `cached_crag_routes_${this.selectedCragSlug()}_v2`,
+      [],
+    );
   });
 
-  readonly firstAscentYearResource = resource({
-    params: () => this.profileUserId(),
-    loader: async ({ params: userId }) => {
-      if (!userId || !isPlatformBrowser(this.platformId)) return null;
-      try {
-        await this.supabase.whenReady();
-        const { data, error } = await this.supabase.client
-          .from('route_ascents')
-          .select('date')
-          .eq('user_id', userId)
-          .order('date', { ascending: true })
-          .limit(1)
-          .maybeSingle();
+  // ---- Delegated to ProfileDataService ----
+  selectedRouteSlug = this.topoData.selectedRouteSlug;
+  profileUserId = this.profileData.profileUserId;
+  profileActiveTab = this.profileData.profileActiveTab;
 
-        if (error) throw error;
-        if (!data?.date) return null;
+  readonly userProjectsResource = this.profileData.userProjectsResource;
+  readonly userProjects = this.profileData.userProjects;
 
-        return new Date(data.date).getFullYear();
-      } catch (e) {
-        console.error('[GlobalData] firstAscentYearResource error', e);
-        return null;
-      }
-    },
-  });
+  readonly firstAscentYearResource = this.profileData.firstAscentYearResource;
+  readonly effectiveStartingClimbingYear =
+    this.profileData.effectiveStartingClimbingYear;
 
-  readonly effectiveStartingClimbingYear = computed(() => {
-    const firstAscentYear = this.firstAscentYearResource.value();
-    const profileYear =
-      this.supabase.userProfileResource.value()?.starting_climbing_year;
+  readonly ascentsPage = this.profileData.ascentsPage;
+  readonly ascentsSize = this.profileData.ascentsSize;
+  readonly ascentsDateFilter = this.profileData.ascentsDateFilter;
+  readonly ascentsQuery = this.profileData.ascentsQuery;
+  readonly ascentsSort = this.profileData.ascentsSort;
 
-    if (firstAscentYear && profileYear) {
-      return Math.min(firstAscentYear, profileYear);
-    }
+  readonly userAscentsResource = this.profileData.userAscentsResource;
+  readonly userTotalAscentsCountResource =
+    this.profileData.userTotalAscentsCountResource;
 
-    return firstAscentYear || profileYear || new Date().getFullYear();
-  });
+  readonly routeDetailResource = this.topoData.routeDetailResource;
+  readonly routeDetail = this.topoData.routeDetail;
 
-  // ---- Pagination for Ascents Table ----
-  readonly ascentsPage = signal(0);
-  readonly ascentsSize = signal(10);
-  readonly ascentsDateFilter = signal<string | null>(null);
-  readonly ascentsQuery = signal<string | null>(null);
-  readonly ascentsSort = signal<'date' | 'grade'>('date');
-
-  readonly userAscentsResource = resource({
-    params: () => ({
-      userId: this.profileUserId(),
-      page: this.ascentsPage(),
-      size: this.ascentsSize(),
-      dateFilter: this.ascentsDateFilter(),
-      query: this.ascentsQuery(),
-      grades: this.areaListGradeRange(),
-      categories: this.areaListCategories(),
-      sort: this.ascentsSort(),
-    }),
-    loader: async ({ params }): Promise<PaginatedAscents> => {
-      const {
-        userId,
-        page,
-        size,
-        dateFilter,
-        query: queryText,
-        grades,
-        categories,
-        sort,
-      } = params;
-      if (!userId || !isPlatformBrowser(this.platformId))
-        return { items: [], total: 0 };
-      try {
-        await this.supabase.whenReady();
-        const from = page * size;
-        const to = from + size - 1;
-
-        let query = this.supabase.client
-          .from('route_ascents')
-          .select(
-            `
-            *,
-            routes!inner (
-              id, name, slug, grade, climbing_kind,
-              crag_id, created_at, eight_anu_route_slugs, height, user_creator_id,
-              liked:route_likes(id),
-              project:route_projects(id),
-              ascents:route_ascents(rate, type),
-              crags!inner (
-                slug,
-                name,
-                area_id,
-                areas!inner (slug, name)
-              )
-            )
-          `,
-            { count: 'exact' },
-          )
-          .eq('user_id', userId);
-
-        if (queryText) {
-          query = query.ilike('routes.search_text', `%${queryText}%`);
-        }
-
-        if (dateFilter) {
-          if (dateFilter === 'last12') {
-            const twelveMonthsAgo = new Date();
-            twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
-            query = query.gte('date', twelveMonthsAgo.toISOString());
-          } else if (dateFilter !== 'all') {
-            // dateFilter is a year string
-            query = query
-              .gte('date', `${dateFilter}-01-01`)
-              .lte('date', `${dateFilter}-12-31`);
-          }
-        }
-
-        // Grade range filter
-        const [minIdx, maxIdx] = grades;
-        if (minIdx > 0 || maxIdx < ORDERED_GRADE_VALUES.length - 1) {
-          const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
-          const allowedDbGrades = allowedLabels
-            .map((label) => LABEL_TO_VERTICAL_LIFE[label])
-            .filter((g): g is number => g !== undefined);
-          if (!allowedDbGrades.includes(0)) {
-            allowedDbGrades.push(0);
-          }
-          query = query.in('grade', allowedDbGrades);
-        }
-
-        // Categories filter
-        if (categories.length > 0) {
-          const idxToKind: Record<number, string> = {
-            0: ClimbingKinds.SPORT,
-            1: ClimbingKinds.BOULDER,
-            2: ClimbingKinds.MULTIPITCH,
-          };
-          const allowedKinds = categories
-            .map((i: number) => idxToKind[i])
-            .filter(Boolean);
-          query = query.in(
-            'routes.climbing_kind',
-            allowedKinds as ClimbingKind[],
-          );
-        }
-
-        const currentUserId = this.supabase.authUser()?.id;
-        if (currentUserId) {
-          query = query
-            .eq('routes.liked.user_id', currentUserId)
-            .eq('routes.project.user_id', currentUserId);
-        }
-
-        let finalQuery = query;
-        if (sort === 'grade') {
-          finalQuery = finalQuery
-            .order('grade', { ascending: false })
-            .order('date', { ascending: false })
-            .order('id', { ascending: false });
-        } else {
-          finalQuery = finalQuery
-            .order('date', { ascending: false })
-            .order('id', { ascending: false });
-        }
-
-        const { data, error, count } = await finalQuery.range(from, to);
-
-        if (error) {
-          console.error('[GlobalData] userAscentsResource error', error);
-          throw error;
-        }
-
-        const items = data.map((a) => {
-          const { routes: route, ...ascentRest } = a;
-          let mappedRoute: RouteWithExtras | undefined = undefined;
-
-          if (route) {
-            const { crags: crag, liked, project, ...routeRest } = route;
-            const rates =
-              (
-                route as RouteDto & {
-                  ascents: { rate: number | null }[];
-                }
-              ).ascents
-                ?.map((a) => a.rate)
-                .filter((rate): rate is number => rate != null) ?? [];
-            const rating =
-              rates.length > 0
-                ? rates.reduce((a: number, b: number) => a + b, 0) /
-                  rates.length
-                : 0;
-
-            mappedRoute = {
-              ...routeRest,
-              liked: (liked?.length ?? 0) > 0,
-              project: (project?.length ?? 0) > 0,
-              crag_id: route.crag_id,
-              created_at: route.created_at,
-              eight_anu_route_slugs: route.eight_anu_route_slugs,
-              height: route.height,
-              user_creator_id: route.user_creator_id,
-              area_id: crag?.area_id,
-              crag_slug: crag?.slug,
-              crag_name: crag?.name,
-              area_slug: crag?.areas?.slug,
-              area_name: crag?.areas?.name,
-              rating,
-              ascent_count:
-                (
-                  route as RouteDto & {
-                    ascents: { type: AscentType }[];
-                  }
-                ).ascents?.filter((a) => a.type !== AscentTypes.ATTEMPT)
-                  .length ?? 0,
-            } as RouteWithExtras;
-          }
-
-          return {
-            ...ascentRest,
-            route: mappedRoute,
-          } as RouteAscentWithExtras;
-        });
-
-        return { items, total: count ?? 0 };
-      } catch (e) {
-        console.error('[GlobalData] userAscentsResource exception', e);
-        return { items: [], total: 0 };
-      }
-    },
-  });
-
-  readonly userTotalAscentsCountResource = resource({
-    params: () => this.profileUserId(),
-    loader: async ({ params: userId }): Promise<number | undefined> => {
-      if (!userId || !isPlatformBrowser(this.platformId)) return undefined;
-      try {
-        await this.supabase.whenReady();
-        const { count, error } = await this.supabase.client
-          .from('route_ascents')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', userId);
-
-        if (error) {
-          console.error(
-            '[GlobalData] userTotalAscentsCountResource error',
-            error,
-          );
-          return undefined;
-        }
-        return count ?? undefined;
-      } catch (e) {
-        console.error(
-          '[GlobalData] userTotalAscentsCountResource exception',
-          e,
-        );
-        return undefined;
-      }
-    },
-  });
-
-  readonly routeDetailResource = resource({
-    params: () => ({
-      cragId: this.cragDetail()?.id,
-      routeSlug: this.selectedRouteSlug(),
-    }),
-    loader: async ({
-      params: { cragId, routeSlug },
-    }): Promise<RouteWithExtras | null> => {
-      if (!cragId || !routeSlug) return null;
-      if (!isPlatformBrowser(this.platformId)) return null;
-      const cacheKey = `cached_route_detail_${routeSlug}_v2`;
-      return this.cache.fetchOrCache(
-        cacheKey,
-        async () => {
-          await this.supabase.whenReady();
-          const userId = this.supabase.authUser()?.id;
-          let query = this.supabase.client
-            .from('routes')
-            .select(
-              `
-              *,
-              liked:route_likes(id),
-              project:route_projects(id),
-              crag:crags(
-                id,
-                name,
-                slug,
-                area:areas(id, name, slug)
-              ),
-              ascents:route_ascents(rate, type),
-              own_ascent:route_ascents(*),
-              topo_routes(topo:topos(id, name, slug))
-            `,
-            )
-            .eq('crag_id', cragId)
-            .eq('slug', routeSlug);
-
-          if (userId) {
-            query = query
-              .eq('own_ascent.user_id', userId)
-              .eq('project.user_id', userId)
-              .eq('liked.user_id', userId);
-          }
-
-          const { data, error } = await query.single();
-
-          if (error) {
-            console.error('[GlobalData] routeDetailResource error', error);
-            throw error;
-          }
-
-          const r = data;
-          const rates =
-            r.ascents
-              ?.map((a) => a.rate)
-              .filter((rate): rate is number => rate != null) ?? [];
-          const rating =
-            rates.length > 0
-              ? rates.reduce((a, b) => a + b, 0) / rates.length
-              : 0;
-
-          return {
-            ...r,
-            liked: (r.liked?.length ?? 0) > 0,
-            project: (r.project?.length ?? 0) > 0,
-            crag_name: r.crag?.name,
-            crag_slug: r.crag?.slug,
-            area_id: r.crag?.area?.id,
-            area_name: r.crag?.area?.name,
-            area_slug: r.crag?.area?.slug,
-            rating,
-            ascent_count:
-              r.ascents?.filter(
-                (a: Partial<RouteAscentDto>) => a.type !== AscentTypes.ATTEMPT,
-              ).length ?? 0,
-            climbed:
-              (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT)
-                .length ?? 0) > 0,
-            own_ascent: r.own_ascent?.sort((a, b) => {
-              const isAttemptA = a.type === AscentTypes.ATTEMPT;
-              const isAttemptB = b.type === AscentTypes.ATTEMPT;
-              if (isAttemptA && !isAttemptB) return 1;
-              if (!isAttemptA && isAttemptB) return -1;
-              return 0;
-            })[0],
-            topos:
-              r.topo_routes
-                ?.map((tr: { topo: unknown }) => tr.topo)
-                .filter((t: unknown) => !!t) || [],
-            key: `${cragId}:${routeSlug}`,
-          } as RouteWithExtras & { area_id?: number; key: string };
-        },
-        { fallbackValue: null, logTag: 'GlobalData' },
-      );
-    },
-  });
-
-  readonly routeAscentsResource = resource({
-    params: () => ({
-      routeId: this.routeDetail()?.id,
-      page: this.ascentsPage(),
-      size: this.ascentsSize(),
-    }),
-    loader: async ({ params }): Promise<PaginatedAscents> => {
-      const { routeId, page, size } = params;
-      if (!routeId) return { items: [], total: 0 };
-      if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
-      try {
-        await this.supabase.whenReady();
-        const from = page * size;
-        const to = from + size - 1;
-
-        const {
-          data: ascents,
-          error: ascentsError,
-          count,
-        } = await this.supabase.client
-          .from('route_ascents')
-          .select('*', { count: 'exact' })
-          .eq('route_id', routeId)
-          .neq('type', AscentTypes.ATTEMPT)
-          .order('date', { ascending: false })
-          .order('id', { ascending: false })
-          .range(from, to);
-
-        if (ascentsError) {
-          console.error(
-            '[GlobalData] routeAscentsResource error',
-            ascentsError,
-          );
-          return { items: [], total: 0 };
-        }
-
-        if (!ascents || ascents.length === 0) return { items: [], total: 0 };
-
-        // 2. Fetch unique user profiles for these ascents
-        const userIds = [...new Set(ascents.map((a) => a.user_id))];
-        const { data: profiles, error: profilesError } =
-          await this.supabase.client
-            .from('user_profiles')
-            .select('id, name, avatar')
-            .in('id', userIds);
-
-        if (profilesError) {
-          console.error(
-            '[GlobalData] routeAscentsResource profiles error',
-            profilesError,
-          );
-          // Return ascents without user info if profiles fail
-          return {
-            items: ascents as RouteAscentWithExtras[],
-            total: count ?? 0,
-          };
-        }
-
-        // 3. Map profiles back to ascents
-        const profileMap = new Map(profiles?.map((p) => [p.id, p]));
-        const currentRoute = this.routeDetail();
-        const items = ascents.map(
-          (a) =>
-            ({
-              ...a,
-              user: profileMap.get(a.user_id),
-              route: currentRoute ?? undefined,
-            }) as RouteAscentWithExtras,
-        );
-
-        return { items, total: count ?? 0 };
-      } catch (e) {
-        console.error('[GlobalData] routeAscentsResource exception', e);
-        return { items: [], total: 0 };
-      }
-    },
-  });
+  readonly routeAscentsResource = this.topoData.routeAscentsResource;
 
   readonly adminParkingsResource = resource({
     loader: async () => {
@@ -2221,71 +948,13 @@ export class GlobalData {
           .select('*')
           .order('name');
         if (error) {
-          console.error('[GlobalData] adminParkingsResource error', error);
           return [];
         }
         return (data as ParkingDto[]) ?? [];
-      } catch (e) {
-        console.error('[GlobalData] adminParkingsResource exception', e);
+      } catch {
         return [];
       }
     },
-  });
-  // ---- Computed wrappers for SWR caching ----
-
-  readonly areaTopos = computed(() => {
-    const val = this.areaToposResource.value();
-    if (val !== undefined)
-      return val as (TopoListItem & { crag_slug: string })[];
-    return this.cache.get<(TopoListItem & { crag_slug: string })[]>(
-      `cached_area_topos_${this.selectedAreaSlug()}_v2`,
-      [],
-    );
-  });
-
-  readonly topoDetail = computed(() => {
-    const val = this.topoDetailResource.value();
-    if (val !== undefined) return val as TopoDetail | null;
-    return this.cache.get<TopoDetail | null>(
-      `cached_topo_detail_${this.selectedTopoId()}_v1`,
-      null,
-    );
-  });
-
-  readonly cragDetail = computed(() => {
-    const val = this.cragDetailResource.value();
-    if (val !== undefined) return val as CragDetail | null;
-    return this.cache.get<CragDetail | null>(
-      `cached_crag_detail_${this.selectedAreaSlug()}_${this.selectedCragSlug()}_v2`,
-      null,
-    );
-  });
-
-  readonly cragRoutes = computed(() => {
-    const val = this.cragRoutesResource.value();
-    if (val !== undefined) return val as RouteWithExtras[];
-    return this.cache.get<RouteWithExtras[]>(
-      `cached_crag_routes_${this.selectedCragSlug()}_v2`,
-      [],
-    );
-  });
-
-  readonly userProjects = computed(() => {
-    const val = this.userProjectsResource.value();
-    if (val !== undefined) return val as RouteWithExtras[];
-    return this.cache.get<RouteWithExtras[]>(
-      `cached_user_projects_${this.supabase.authUserId()}_v2`,
-      [],
-    );
-  });
-
-  readonly routeDetail = computed(() => {
-    const val = this.routeDetailResource.value();
-    if (val !== undefined) return val as RouteWithExtras | null;
-    return this.cache.get<RouteWithExtras | null>(
-      `cached_route_detail_${this.selectedRouteSlug()}_v2`,
-      null,
-    );
   });
 
   // ---- Error state for interceptor ----
@@ -2306,7 +975,6 @@ export class GlobalData {
   );
 
   constructor() {
-    // Initialize supported languages for ngx-translate
     this.translate.addLangs(Object.values(Languages));
 
     if (isPlatformBrowser(this.platformId)) {
@@ -2332,70 +1000,7 @@ export class GlobalData {
         this.editingMode.set(rawEditingMode === 'true');
       }
 
-      const rawBounds = this.localStorage.getItem(this.mapBoundsStorageKey);
-      if (rawBounds) {
-        this.mapBounds.set(JSON.parse(rawBounds));
-      }
-
-      const rawGradeRange = this.localStorage.getItem(
-        this.areaListGradeRangeKey,
-      );
-      if (rawGradeRange) {
-        const parsed = JSON.parse(rawGradeRange);
-        if (Array.isArray(parsed) && parsed.length === 2) {
-          this.areaListGradeRange.set(parsed as [number, number]);
-        }
-      }
-
-      const rawCategories = this.localStorage.getItem(
-        this.areaListCategoriesKey,
-      );
-      if (rawCategories) {
-        this.areaListCategories.set(JSON.parse(rawCategories));
-      }
-
-      const rawShade = this.localStorage.getItem(this.areaListShadeKey);
-      if (rawShade) {
-        this.areaListShade.set(JSON.parse(rawShade));
-      }
-
-      const rawShowIndoor = this.localStorage.getItem(
-        this.areaListShowIndoorKey,
-      );
-      if (rawShowIndoor !== null) {
-        this.areaListShowIndoor.set(rawShowIndoor === 'true');
-      }
-
-      const rawShowOutdoor = this.localStorage.getItem(
-        this.areaListShowOutdoorKey,
-      );
-      if (rawShowOutdoor !== null) {
-        this.areaListShowOutdoor.set(rawShowOutdoor === 'true');
-      }
-
-      const rawFeedGradeRange = this.localStorage.getItem(
-        this.feedGradeRangeKey,
-      );
-      if (rawFeedGradeRange) {
-        const parsed = JSON.parse(rawFeedGradeRange);
-        if (Array.isArray(parsed) && parsed.length === 2) {
-          this.feedGradeRange.set(parsed as [number, number]);
-        }
-      }
-
-      const rawFeedCategories = this.localStorage.getItem(
-        this.feedCategoriesKey,
-      );
-      if (rawFeedCategories) {
-        this.feedCategories.set(JSON.parse(rawFeedCategories));
-      }
-
-      const rawIndoor = this.localStorage.getItem(
-        this.feedShowIndoorAscentsKey,
-      );
-      if (rawIndoor !== null) {
-        this.feedShowIndoorAscents.set(rawIndoor === 'true');
-      }
+      this.mapData.hydrateMapBounds();
 
       const msgSound = this.localStorage.getItem('message_sound_enabled_v1');
       if (msgSound !== null) {
@@ -2408,8 +1013,8 @@ export class GlobalData {
       if (notifSound !== null) {
         this.notificationSoundEnabled.set(notifSound === 'true');
       }
-    } catch (e) {
-      console.warn('[GlobalData] Hydrate error', e);
+    } catch {
+      // Silent fail on hydration
     }
 
     // Persist state to localStorage via effects
@@ -2421,69 +1026,7 @@ export class GlobalData {
     });
 
     effect(() => {
-      const bounds = this.mapBounds();
-      if (bounds) {
-        this.localStorage.setItem(
-          this.mapBoundsStorageKey,
-          JSON.stringify(bounds),
-        );
-      }
-    });
-
-    effect(() => {
-      this.localStorage.setItem(
-        this.areaListGradeRangeKey,
-        JSON.stringify(this.areaListGradeRange()),
-      );
-    });
-
-    effect(() => {
-      this.localStorage.setItem(
-        this.areaListCategoriesKey,
-        JSON.stringify(this.areaListCategories()),
-      );
-    });
-
-    effect(() => {
-      this.localStorage.setItem(
-        this.areaListShadeKey,
-        JSON.stringify(this.areaListShade()),
-      );
-    });
-
-    effect(() => {
-      this.localStorage.setItem(
-        this.areaListShowIndoorKey,
-        String(this.areaListShowIndoor()),
-      );
-    });
-
-    effect(() => {
-      this.localStorage.setItem(
-        this.areaListShowOutdoorKey,
-        String(this.areaListShowOutdoor()),
-      );
-    });
-
-    effect(() => {
-      this.localStorage.setItem(
-        this.feedGradeRangeKey,
-        JSON.stringify(this.feedGradeRange()),
-      );
-    });
-
-    effect(() => {
-      this.localStorage.setItem(
-        this.feedCategoriesKey,
-        JSON.stringify(this.feedCategories()),
-      );
-    });
-
-    effect(() => {
-      this.localStorage.setItem(
-        this.feedShowIndoorAscentsKey,
-        String(this.feedShowIndoorAscents()),
-      );
+      this.mapData.persistMapBounds();
     });
 
     effect(() => {
@@ -2505,11 +1048,9 @@ export class GlobalData {
       const selectedLanguage = this.selectedLanguage();
       if (selectedLanguage) {
         this.translate.use(selectedLanguage).subscribe({
-          error: (err) =>
-            console.error(
-              `[GlobalData] Error switching to ${selectedLanguage}:`,
-              err,
-            ),
+          error: () => {
+            // Silent fail on language change
+          },
         });
       }
     });
@@ -2574,6 +1115,11 @@ export class GlobalData {
         });
       }
     });
+
+    // Sync indoor feature flag with MapDataService so indoor centers are fetched
+    effect(() => {
+      this.mapData.setIndoorFeature(this.indoorFeature());
+    });
   }
 
   resetDataByPage(
@@ -2588,10 +1134,7 @@ export class GlobalData {
       | 'profile'
       | 'equipper',
   ): void {
-    this.ascentsPage.set(0);
-    this.ascentsSize.set(10);
-    this.ascentsDateFilter.set(null);
-    this.ascentsQuery.set(null);
+    this.profileData.resetPagination();
     switch (page) {
       case 'explore': {
         this.selectedAreaSlug.set(null);

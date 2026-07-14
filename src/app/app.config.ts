@@ -14,7 +14,6 @@ import {
   withInterceptors,
 } from '@angular/common/http';
 import {
-  PreloadAllModules,
   provideRouter,
   withComponentInputBinding,
   withPreloading,
@@ -42,6 +41,7 @@ import { errorInterceptor } from '../services/error.interceptor';
 import { AppErrorHandler } from '../services/app-error-handler';
 import { GlobalData } from '../services/global-data';
 import { provideSupabaseConfig } from '../services/supabase.service';
+import { SelectivePreloadingStrategy } from './selective-preloading.strategy';
 
 import { routes } from './app.routes';
 import {
@@ -61,7 +61,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(
       routes,
       withComponentInputBinding(),
-      withPreloading(PreloadAllModules),
+      withPreloading(SelectivePreloadingStrategy),
     ),
     provideHttpClient(withFetch(), withInterceptors([errorInterceptor])),
     provideClientHydration(

@@ -546,6 +546,7 @@
   "notificationSound": "Notifikazioen soinua",
   "number": "Zenbakia",
   "offline.banner": "Internetworko gabe — cache-datuak erakusten",
+  "offline.lastUpdated": "Azken eguneraketa:",
   "openGoogleMaps": "Google Maps",
   "options": "Aukerak",
   "options.language.de": "Deutsch",

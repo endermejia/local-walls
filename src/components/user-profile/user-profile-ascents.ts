@@ -14,13 +14,13 @@ import {
 } from '@angular/core';
 
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
-import { TuiDialogService } from '@taiga-ui/core';
 import {
   TuiAppearance,
   TuiButton,
   TuiDataList,
-  TuiLabel,
+  TuiDialogService,
   TuiInput,
+  TuiLabel,
 } from '@taiga-ui/core';
 import {
   TuiBadgedContent,
@@ -134,7 +134,7 @@ import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
                 autocomplete="off"
               />
               <tui-data-list *tuiDropdown>
-                <tui-data-list-wrapper new [items]="dateFilterOptions()" />
+                <tui-data-list-wrapper [items]="dateFilterOptions()" />
               </tui-data-list>
             </tui-textfield>
 
@@ -154,7 +154,7 @@ import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
                 autocomplete="off"
               />
               <tui-data-list *tuiDropdown>
-                <tui-data-list-wrapper new [items]="['grade', 'date']" />
+                <tui-data-list-wrapper [items]="['grade', 'date']" />
               </tui-data-list>
             </tui-textfield>
 
@@ -321,11 +321,7 @@ export class UserProfileAscentsComponent {
         } else {
           this.accumulatedAscents.update((prev) => {
             const prevAscents = prev as RouteAscentWithExtras[];
-            const processed = processAscentsToFeed([
-              ...prevAscents,
-              ...res.items,
-            ]);
-            return processed;
+            return processAscentsToFeed([...prevAscents, ...res.items]);
           });
         }
         this.isLoading.set(false);
