@@ -497,6 +497,7 @@
   "messages.toasts.projectRemoved": "Proiektua kendua",
   "messages.toasts.routeCreated": "Bidea sortua",
   "messages.toasts.routeDeleted": "Bidea ezabatua",
+  "messages.toasts.routeRemoved": "Bidea topo-tik kendua",
   "messages.toasts.routesUnified": "Bideak ondo bateratu dira",
   "messages.toasts.routeUpdated": "Bidea eguneratua",
   "messages.toasts.topoCreated": "Krokisa sortua",

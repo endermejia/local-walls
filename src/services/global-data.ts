@@ -40,7 +40,6 @@ import { ProfileDataService } from './profile-data.service';
 import {
   AreaListItem,
   AscentType,
-  AscentTypes,
   BreadcrumbItem,
   CragDetail,
   CragDto,
@@ -65,7 +64,11 @@ import {
 } from '../models';
 
 import { LocalStorage } from './local-storage';
-import { triggerThemeTransition } from '../utils';
+import {
+  triggerThemeTransition,
+  mapRouteToExtras,
+  RawRouteData,
+} from '../utils';
 import { resource } from '@angular/core';
 
 /**
@@ -580,52 +583,11 @@ export class GlobalData {
             | null;
           if (!r) return null;
 
-          const rates =
-            r.ascents
-              ?.map((a) => a.rate)
-              .filter((rate): rate is number => rate != null) ?? [];
-          const rating =
-            rates.length > 0
-              ? rates.reduce((a: number, b: number) => a + b, 0) / rates.length
-              : 0;
-
-          return {
-            ...r,
-            liked: (r.liked?.length ?? 0) > 0,
-            project: (r.project?.length ?? 0) > 0,
-            crag_name: r.crag?.name,
-            crag_slug: r.crag?.slug,
-            area_id: r.crag?.area?.id,
-            area_name: r.crag?.area?.name,
-            area_slug: r.crag?.area?.slug,
-            rating,
-            ascent_count:
-              r.ascents?.filter((a) => a.type !== AscentTypes.ATTEMPT).length ??
-              0,
-            climbed:
-              (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT)
-                .length ?? 0) > 0,
-            own_ascent: r.own_ascent?.sort((a, b) => {
-              const isAttemptA = a.type === AscentTypes.ATTEMPT;
-              const isAttemptB = b.type === AscentTypes.ATTEMPT;
-              if (isAttemptA && !isAttemptB) return 1;
-              if (!isAttemptA && isAttemptB) return -1;
-              return 0;
-            })[0],
-            equippers:
-              r.route_equippers
-                ?.map((re: { equipper: EquipperDto }) => re.equipper)
-                .filter((e): e is EquipperDto => !!e) || [],
-            topos:
-              r.topo_routes
-                ?.map(
-                  (tr: { topo: { id: number; name: string; slug: string } }) =>
-                    tr.topo,
-                )
-                .filter(
-                  (t): t is { id: number; name: string; slug: string } => !!t,
-                ) || [],
-          } as RouteWithExtras;
+          return mapRouteToExtras(r as unknown as RawRouteData, {
+            areaIdSource: 'crag.area.id',
+            includeEquippers: true,
+            includeTopos: true,
+          }) as RouteWithExtras;
         })
         .filter((r): r is RouteWithExtras => !!r);
     },
@@ -845,55 +807,13 @@ export class GlobalData {
 
           return (
             data.map((r) =>
-              (() => {
-                const rates =
-                  (r as unknown as { ascents: { rate: number }[] }).ascents
-                    ?.map((a) => a.rate)
-                    .filter((rate): rate is number => rate != null) ?? [];
-                const rating =
-                  rates.length > 0
-                    ? rates.reduce(
-                        (a: number, b: number) => (a ?? 0) + (b ?? 0),
-                        0,
-                      ) / rates.length
-                    : null;
-
-                return {
-                  ...r,
-                  liked: (r.liked?.length ?? 0) > 0,
-                  project: (r.project?.length ?? 0) > 0,
-                  area_id: r.crag?.area_id,
-                  crag_slug: r.crag?.slug,
-                  crag_name: r.crag?.name,
-                  area_slug: r.crag?.area?.slug,
-                  area_name: r.crag?.area?.name,
-                  rating,
-                  ascent_count:
-                    r.ascents?.filter(
-                      (a: Partial<RouteAscentDto>) =>
-                        a.type !== AscentTypes.ATTEMPT,
-                    ).length ?? 0,
-                  climbed:
-                    (r.own_ascent?.filter((a) => a.type !== AscentTypes.ATTEMPT)
-                      .length ?? 0) > 0,
-                  own_ascent: r.own_ascent?.sort((a, b) => {
-                    const isAttemptA = a.type === AscentTypes.ATTEMPT;
-                    const isAttemptB = b.type === AscentTypes.ATTEMPT;
-                    if (isAttemptA && !isAttemptB) return 1;
-                    if (!isAttemptA && isAttemptB) return -1;
-                    return 0;
-                  })[0],
-                  topos: filterTopos
-                    ? []
-                    : r.topo_routes
-                        ?.map((tr: { topo: unknown }) => tr.topo)
-                        .filter((t: unknown) => !!t) || [],
-                  equippers:
-                    r.route_equippers
-                      ?.map((re: { equipper: unknown }) => re.equipper)
-                      .filter(Boolean) || [],
-                } as RouteWithExtras;
-              })(),
+              mapRouteToExtras(r as unknown as RawRouteData, {
+                areaIdSource: 'crag.area_id',
+                ratingFallback: filterTopos ? null : 0,
+                includeEquippers: true,
+                includeTopos: true,
+                filterTopos,
+              }),
             ) ?? []
           );
         },

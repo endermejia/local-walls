@@ -116,6 +116,7 @@ export interface ImageEditorConfig {
                 (click)="rotateLeft()"
                 class="rounded-lg!"
                 [title]="'rotate' | translate"
+                [attr.aria-label]="'rotate' | translate"
               >
                 <tui-icon icon="@tui.rotate-ccw" />
               </button>
@@ -126,6 +127,7 @@ export interface ImageEditorConfig {
                 (click)="rotateRight()"
                 class="rounded-lg!"
                 [title]="'rotate' | translate"
+                [attr.aria-label]="'rotate' | translate"
               >
                 <tui-icon icon="@tui.rotate-cw" />
               </button>
@@ -142,6 +144,7 @@ export interface ImageEditorConfig {
                 (click)="flipHorizontal()"
                 class="rounded-lg!"
                 [title]="'flipX' | translate"
+                [attr.aria-label]="'flipX' | translate"
               >
                 <tui-icon icon="@tui.flip-horizontal" />
               </button>
@@ -152,6 +155,7 @@ export interface ImageEditorConfig {
                 (click)="flipVertical()"
                 class="rounded-lg!"
                 [title]="'flipY' | translate"
+                [attr.aria-label]="'flipY' | translate"
               >
                 <tui-icon icon="@tui.flip-vertical" />
               </button>
@@ -168,6 +172,7 @@ export interface ImageEditorConfig {
                 (click)="zoomOut()"
                 class="rounded-lg!"
                 [title]="'zoomOut' | translate"
+                [attr.aria-label]="'zoomOut' | translate"
               >
                 <tui-icon icon="@tui.minus" />
               </button>
@@ -178,6 +183,7 @@ export interface ImageEditorConfig {
                 (click)="zoomIn()"
                 class="rounded-lg!"
                 [title]="'zoomIn' | translate"
+                [attr.aria-label]="'zoomIn' | translate"
               >
                 <tui-icon icon="@tui.plus" />
               </button>

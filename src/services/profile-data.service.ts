@@ -22,6 +22,11 @@ import { SupabaseService } from './supabase.service';
 import { CacheService } from './cache.service';
 import { ORDERED_GRADE_VALUES } from '../models';
 import { FilterStateService } from './filter-state.service';
+import {
+  mapRouteToExtras,
+  mapAscentRouteToExtras,
+  RawRouteData,
+} from '../utils/route-mapper';
 
 @Injectable({ providedIn: 'root' })
 export class ProfileDataService {
@@ -95,42 +100,11 @@ export class ProfileDataService {
                 })
               | null;
             if (!r) return null;
-            const rates =
-              r.ascents
-                ?.map((a) => a.rate)
-                .filter((rate): rate is number => rate != null) ?? [];
-            const rating =
-              rates.length > 0
-                ? rates.reduce((a: number, b: number) => a + b, 0) /
-                  rates.length
-                : 0;
 
-            const { crag, ascents, liked, project, own_ascent, ...rest } = r;
-            return {
-              ...rest,
-              liked: (liked?.length ?? 0) > 0,
-              project: (project?.length ?? 0) > 0,
-              area_id: crag?.area_id,
-              crag_slug: crag?.slug,
-              crag_name: crag?.name,
-              area_slug: crag?.area?.slug,
-              area_name: crag?.area?.name,
-              rating,
-              ascent_count:
-                ascents?.filter(
-                  (a: Partial<RouteAscentDto>) => a.type !== 'attempt',
-                ).length ?? 0,
-              climbed:
-                (own_ascent?.filter((a) => a.type !== 'attempt').length ?? 0) >
-                0,
-              own_ascent: own_ascent?.sort((a, b) => {
-                const isAttemptA = a.type === 'attempt';
-                const isAttemptB = b.type === 'attempt';
-                if (isAttemptA && !isAttemptB) return 1;
-                if (!isAttemptA && isAttemptB) return -1;
-                return 0;
-              })[0],
-            } as RouteWithExtras;
+            return mapRouteToExtras(r as unknown as RawRouteData, {
+              areaIdSource: 'crag.area.id',
+              includeTopos: false,
+            }) as RouteWithExtras;
           })
           .filter((r): r is RouteWithExtras => !!r);
       } catch {
@@ -309,43 +283,9 @@ export class ProfileDataService {
           let mappedRoute: RouteWithExtras | undefined = undefined;
 
           if (route) {
-            const { crags: crag, liked, project, ...routeRest } = route;
-            const rates =
-              (
-                route as RouteDto & {
-                  ascents: { rate: number | null }[];
-                }
-              ).ascents
-                ?.map((a) => a.rate)
-                .filter((rate): rate is number => rate != null) ?? [];
-            const rating =
-              rates.length > 0
-                ? rates.reduce((a: number, b: number) => a + b, 0) /
-                  rates.length
-                : 0;
-
-            mappedRoute = {
-              ...routeRest,
-              liked: (liked?.length ?? 0) > 0,
-              project: (project?.length ?? 0) > 0,
-              crag_id: route.crag_id,
-              created_at: route.created_at,
-              eight_anu_route_slugs: route.eight_anu_route_slugs,
-              height: route.height,
-              user_creator_id: route.user_creator_id,
-              area_id: crag?.area_id,
-              crag_slug: crag?.slug,
-              crag_name: crag?.name,
-              area_slug: crag?.areas?.slug,
-              area_name: crag?.areas?.name,
-              rating,
-              ascent_count:
-                (
-                  route as RouteDto & {
-                    ascents: { type: AscentType }[];
-                  }
-                ).ascents?.filter((a) => a.type !== 'attempt').length ?? 0,
-            } as RouteWithExtras;
+            mappedRoute = mapAscentRouteToExtras(
+              route as unknown as Record<string, unknown>,
+            );
           }
 
           return {

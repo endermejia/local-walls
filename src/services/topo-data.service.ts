@@ -25,7 +25,7 @@ import {
 } from '../models';
 import { SupabaseService } from './supabase.service';
 import { CacheService } from './cache.service';
-import { mapCragToDetail } from '../utils';
+import { mapCragToDetail, mapRouteToExtras, RawRouteData } from '../utils';
 
 @Injectable({ providedIn: 'root' })
 export class TopoDataService {
@@ -354,43 +354,12 @@ export class TopoDataService {
           }
 
           const r = data;
-          const rates =
-            r.ascents
-              ?.map((a) => a.rate)
-              .filter((rate): rate is number => rate != null) ?? [];
-          const rating =
-            rates.length > 0
-              ? rates.reduce((a, b) => a + b, 0) / rates.length
-              : 0;
 
           return {
-            ...r,
-            liked: (r.liked?.length ?? 0) > 0,
-            project: (r.project?.length ?? 0) > 0,
-            crag_name: r.crag?.name,
-            crag_slug: r.crag?.slug,
-            area_id: r.crag?.area?.id,
-            area_name: r.crag?.area?.name,
-            area_slug: r.crag?.area?.slug,
-            rating,
-            ascent_count:
-              r.ascents?.filter(
-                (a: Partial<RouteAscentDto>) => a.type !== 'attempt',
-              ).length ?? 0,
-            climbed:
-              (r.own_ascent?.filter((a) => a.type !== 'attempt').length ?? 0) >
-              0,
-            own_ascent: r.own_ascent?.sort((a, b) => {
-              const isAttemptA = a.type === 'attempt';
-              const isAttemptB = b.type === 'attempt';
-              if (isAttemptA && !isAttemptB) return 1;
-              if (!isAttemptA && isAttemptB) return -1;
-              return 0;
-            })[0],
-            topos:
-              r.topo_routes
-                ?.map((tr: { topo: unknown }) => tr.topo)
-                .filter((t: unknown) => !!t) || [],
+            ...mapRouteToExtras(r as unknown as RawRouteData, {
+              areaIdSource: 'crag.area.id',
+              includeTopos: true,
+            }),
             key: `${cragId}:${routeSlug}`,
           } as RouteWithExtras & { area_id?: number; key: string };
         },

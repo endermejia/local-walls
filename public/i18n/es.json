@@ -497,6 +497,7 @@
   "messages.toasts.projectRemoved": "Proyecto eliminado",
   "messages.toasts.routeCreated": "Vía creada",
   "messages.toasts.routeDeleted": "Vía eliminada",
+  "messages.toasts.routeRemoved": "Vía eliminada del topo",
   "messages.toasts.routesUnified": "Vías unificadas correctamente",
   "messages.toasts.routeUpdated": "Vía actualizada",
   "messages.toasts.topoCreated": "Croquis creado",

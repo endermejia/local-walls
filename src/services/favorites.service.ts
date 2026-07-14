@@ -5,23 +5,23 @@ import { SupabaseService } from './supabase.service';
 
 import {
   AreaListItem,
-  AscentTypes,
   AmountByEveryGrade,
   CragListItem,
   RouteWithExtras,
-  RouteAscentDto,
   RouteDto,
 } from '../models';
+import { mapRouteToExtras, RawRouteData } from '../utils/route-mapper';
 
 interface RouteWithJoins extends RouteDto {
   liked: { id: number }[];
   project: { id: number }[];
   ascents: { rate: number | null; type: string }[];
-  own_ascent: RouteAscentDto[];
+  own_ascent: { id: number; rate: number | null; type: string }[];
   crag: {
     slug: string;
     name: string;
     area: {
+      id: number;
       slug: string;
       name: string;
     } | null;
@@ -144,30 +144,12 @@ export class FavoritesService {
 
     const routes = data as unknown as RouteWithJoins[];
 
-    return routes.map((r) => {
-      const rates =
-        r.ascents
-          ?.map((a) => a.rate)
-          .filter((rate: number | null): rate is number => rate != null) ?? [];
-      const rating =
-        rates.length > 0
-          ? rates.reduce((a: number, b: number) => a + b, 0) / rates.length
-          : 0;
-
-      return {
-        ...r,
-        liked: (r.liked?.length ?? 0) > 0,
-        project: (r.project?.length ?? 0) > 0,
-        crag_slug: r.crag?.slug,
-        crag_name: r.crag?.name,
-        area_slug: r.crag?.area?.slug,
-        area_name: r.crag?.area?.name,
-        rating,
-        ascent_count:
-          r.ascents?.filter((a) => a.type !== AscentTypes.ATTEMPT).length ?? 0,
-        climbed: (r.own_ascent?.length ?? 0) > 0,
-        own_ascent: r.own_ascent?.[0],
-      } as RouteWithExtras;
-    });
+    return routes.map((r) =>
+      mapRouteToExtras(r as unknown as RawRouteData, {
+        areaIdSource: 'crag.area.id',
+        includeEquippers: false,
+        includeTopos: false,
+      }),
+    );
   }
 }

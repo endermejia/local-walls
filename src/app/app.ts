@@ -9,6 +9,7 @@ import {
   DestroyRef,
   effect,
   inject,
+  OnDestroy,
   PLATFORM_ID,
 } from '@angular/core';
 
@@ -67,9 +68,10 @@ import { Themes } from '../models';
     </tui-root>
   `,
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy {
   protected readonly global = inject(GlobalData);
   protected readonly router = inject(Router);
+  private swCheckInterval: ReturnType<typeof setInterval> | null = null;
 
   protected onCheckout(): void {
     this.global.showCart.set(false);
@@ -128,17 +130,13 @@ export class AppComponent {
           takeUntilDestroyed(this.destroyRef),
         )
         .subscribe(() => {
-          this.swUpdate.checkForUpdate().catch((err) => {
-            console.error('Error checking for updates', err);
-          });
+          this.swUpdate.checkForUpdate().catch(() => {});
         });
 
       // Check for updates every hour
       const oneHour = 60 * 60 * 1000;
-      setInterval(() => {
-        this.swUpdate.checkForUpdate().catch((err) => {
-          console.error('Error checking for updates', err);
-        });
+      this.swCheckInterval = setInterval(() => {
+        this.swUpdate.checkForUpdate().catch(() => {});
       }, oneHour);
 
       // Auto-apply update and reload
@@ -156,6 +154,13 @@ export class AppComponent {
             }
           });
         });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.swCheckInterval !== null) {
+      clearInterval(this.swCheckInterval);
+      this.swCheckInterval = null;
     }
   }
 

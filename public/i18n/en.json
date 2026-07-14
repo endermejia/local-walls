@@ -497,6 +497,7 @@
   "messages.toasts.projectRemoved": "Project removed",
   "messages.toasts.routeCreated": "Route created",
   "messages.toasts.routeDeleted": "Route deleted",
+  "messages.toasts.routeRemoved": "Route removed from topo",
   "messages.toasts.routesUnified": "Routes unified successfully",
   "messages.toasts.routeUpdated": "Route updated",
   "messages.toasts.topoCreated": "Topo created",

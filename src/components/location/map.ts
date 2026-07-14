@@ -56,6 +56,7 @@ import type {
           class="pointer-events-auto"
           (click.zoneless)="onZoomInClick()"
           [iconStart]="'@tui.plus'"
+          [attr.aria-label]="'zoomIn' | translate"
         >
           {{ 'zoomIn' | translate }}
         </button>
@@ -68,6 +69,7 @@ import type {
           class="pointer-events-auto"
           (click.zoneless)="onZoomOutClick()"
           [iconStart]="'@tui.minus'"
+          [attr.aria-label]="'zoomOut' | translate"
         >
           {{ 'zoomOut' | translate }}
         </button>
@@ -80,6 +82,7 @@ import type {
           class="pointer-events-auto"
           (click.zoneless)="onLocateClick()"
           [iconStart]="'@tui.locate'"
+          [attr.aria-label]="'myLocation' | translate"
         >
           {{ 'myLocation' | translate }}
         </button>

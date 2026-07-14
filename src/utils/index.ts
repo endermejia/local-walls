@@ -11,6 +11,7 @@ export * from './number.utils';
 export * from './pagination.utils';
 export * from './rem-to-px';
 export * from './resource-helpers';
+export * from './route-mapper';
 export * from './routes.utils';
 export * from './slugify';
 export * from './stats.utils';

@@ -140,7 +140,7 @@ import {
   ],
   template: `
     <aside
-      class="w-full md:w-20 md:hover:w-64 md:h-full bg-(--tui-background-base) transition-[width] duration-300 z-100 group flex flex-col border-t md:border xl:border-none border-(--tui-border-normal) md:absolute md:left-0 md:top-0 md:bottom-0 overflow-hidden sm:rounded-2xl"
+      class="w-full md:w-20 md:hover:w-64 md:h-full bg-(--tui-background-base) transition-[width] duration-300 z-100 group flex flex-col border-t md:border xl:border-none border-(--tui-border-normal) md:absolute md:left-0 md:top-0 md:bottom-0 overflow-hidden sm:rounded-2xl select-none"
       ngSkipHydration
     >
       <div

@@ -11,6 +11,8 @@ import { injectContext } from '@taiga-ui/polymorpheus';
 import { TuiButton, TuiIcon } from '@taiga-ui/core';
 import { TuiDialogContext } from '@taiga-ui/core';
 
+import { TranslatePipe } from '@ngx-translate/core';
+
 import {
   createViewerDragState,
   handleViewerMouseDown,
@@ -30,7 +32,7 @@ export interface PhotoViewerData {
 @Component({
   selector: 'app-photo-viewer-dialog',
   standalone: true,
-  imports: [CommonModule, TuiButton, TuiIcon],
+  imports: [CommonModule, TranslatePipe, TuiButton, TuiIcon],
   template: `
     <div
       #container
@@ -85,6 +87,7 @@ export interface PhotoViewerData {
           size="l"
           class="bg-(--tui-background-base) rounded-full"
           (click)="context.completeWith(); $event.stopPropagation()"
+          [attr.aria-label]="'close' | translate"
         >
           <tui-icon icon="@tui.x" />
         </button>

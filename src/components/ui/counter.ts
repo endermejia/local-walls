@@ -51,6 +51,7 @@ let nextCounterId = 0;
           class="rounded-full! shrink-0"
           (click)="change(-step())"
           [disabled]="disabled() || isControlDisabled"
+          [attr.aria-label]="'decrement' | translate"
         >
           -
         </button>
@@ -86,6 +87,7 @@ let nextCounterId = 0;
           class="rounded-full! shrink-0"
           (click)="change(step())"
           [disabled]="disabled() || isControlDisabled"
+          [attr.aria-label]="'increment' | translate"
         >
           +
         </button>

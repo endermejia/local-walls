@@ -101,7 +101,9 @@ export class FollowsService {
     }
 
     this.notifyChange();
-    this.toast.success('messages.toasts.userUnfollowed');
+    this.toast.showWithUndo('messages.toasts.userUnfollowed', () => {
+      void this.follow(followedUserId);
+    });
     return true;
   }
 
