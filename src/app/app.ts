@@ -109,6 +109,16 @@ export class AppComponent implements OnDestroy {
     });
 
     effect(() => {
+      if (
+        isPlatformBrowser(this.platformId) &&
+        this.storage.getItem('lw_update_applied') === 'true'
+      ) {
+        this.storage.removeItem('lw_update_applied');
+        this.notifications.success('updateApplied');
+      }
+    });
+
+    effect(() => {
       if (this.langChange()) {
         this.updateSeoTags();
       }
@@ -154,6 +164,7 @@ export class AppComponent implements OnDestroy {
         .subscribe(() => {
           void this.swUpdate.activateUpdate().then((activated) => {
             if (activated) {
+              this.storage.setItem('lw_update_applied', 'true');
               window.location.reload();
             }
           });

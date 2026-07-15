@@ -9,7 +9,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, switchMap } from 'rxjs';
 
 import { GdprNotificationComponent } from '../components/notifications/gdpr-notification';
-import { UpdateNotificationComponent } from '../components/notifications/update-notification';
 
 @Injectable({
   providedIn: 'root',
@@ -19,7 +18,6 @@ export class NotificationService {
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
   private isGdprShowing = false;
-  private isUpdateShowing = false;
 
   private show(
     message: string,
@@ -43,24 +41,6 @@ export class NotificationService {
       appearance: 'positive',
       label: label ? this.translate.instant(label) : undefined,
       autoClose: autoClose === false ? 0 : (autoClose as number | undefined),
-    });
-  }
-
-  showUpdateAvailable(): void {
-    if (this.isUpdateShowing) {
-      return;
-    }
-
-    this.isUpdateShowing = true;
-    firstValueFrom(
-      this.alerts.open(new PolymorpheusComponent(UpdateNotificationComponent), {
-        label: this.translate.instant('update_available'),
-        appearance: 'info',
-        autoClose: 0,
-      }),
-      { defaultValue: undefined },
-    ).finally(() => {
-      this.isUpdateShowing = false;
     });
   }
 
