@@ -761,6 +761,7 @@ export class IndoorService {
       .single();
 
     if (error) throw error;
+    this.reloadCenterRoutes();
     const row = data as unknown as IndoorAscentQueryRow;
     return {
       ...row,
@@ -796,6 +797,7 @@ export class IndoorService {
       .eq('id', id);
 
     if (error) throw error;
+    this.reloadCenterRoutes();
   }
 
   async uploadAscentPhoto(userId: string, file: File): Promise<string | null> {
@@ -820,5 +822,6 @@ export class IndoorService {
       .eq('id', ascentId);
 
     if (error) throw error;
+    this.reloadCenterRoutes();
   }
 }

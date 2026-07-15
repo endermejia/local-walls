@@ -549,9 +549,12 @@ export class IndoorCenterComponent implements OnDestroy {
   });
 
   protected readonly centerAscentsResource = resource({
-    params: () => this.center()?.id,
-    loader: ({ params: id }) =>
-      id ? this.indoor.getCenterAscents(id) : Promise.resolve([]),
+    params: () => ({
+      id: this.center()?.id,
+      reloadTick: this.global.indoorRoutesReloadTick(),
+    }),
+    loader: ({ params }) =>
+      params.id ? this.indoor.getCenterAscents(params.id) : Promise.resolve([]),
   });
 
   protected readonly isAdmin = computed(() => {

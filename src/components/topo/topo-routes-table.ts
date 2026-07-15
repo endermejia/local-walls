@@ -45,6 +45,7 @@ import { RoutesService } from '../../services/routes.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { ToposService } from '../../services/topos.service';
+import { GlobalData } from '../../services/global-data';
 import { GradeComponent } from '../ui/avatar-grade';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { PaywallComponent } from '../paywall/paywall';
@@ -52,7 +53,7 @@ import { AscentInfoPipe } from '../../pipes/ascent-info.pipe';
 import { TableSorterPipe } from '../../pipes/table-sorter.pipe';
 import { handleErrorToast } from '../../utils';
 import type { TopoRouteRow } from './topo.types';
-import type { TopoRouteWithRoute } from '../../models';
+import type { TopoRouteWithRoute, Json } from '../../models';
 
 @Component({
   selector: 'app-topo-routes-table',
@@ -380,6 +381,7 @@ export class TopoRoutesTableComponent {
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
+  private readonly global = inject(GlobalData);
 
   sortedTableData = input.required<TopoRouteRow[]>();
   columns = input.required<string[]>();
@@ -526,7 +528,28 @@ export class TopoRoutesTableComponent {
           .eq('topo_id', String(topoRoute.topo_id))
           .eq('route_id', String(topoRoute.route_id))
           .then(({ error }) => {
-            if (error) handleErrorToast(error, this.toast);
+            if (error) {
+              handleErrorToast(error, this.toast);
+            } else {
+              this.toast.showWithUndo('messages.toasts.routeRemoved', () => {
+                this.supabase.client
+                  .from('indoor_topo_routes')
+                  .insert({
+                    topo_id: String(topoRoute.topo_id),
+                    route_id: String(topoRoute.route_id),
+                    number: Number(topoRoute.number || 0),
+                    path: (topoRoute.path as unknown as Json) || null,
+                  })
+                  .then(({ error: undoError }) => {
+                    if (undoError) {
+                      handleErrorToast(undoError, this.toast);
+                    } else {
+                      this.global.topoDetailResource.reload();
+                    }
+                  });
+              });
+              this.global.topoDetailResource.reload();
+            }
           });
       } else {
         this.toposService
