@@ -199,10 +199,12 @@ import { handleErrorToast, slugify } from '../../utils';
         </div>
       }
 
-      <label class="flex items-center gap-2 cursor-pointer">
-        <input tuiCheckbox type="checkbox" [formField]="topoForm.legacy" />
-        <span>{{ 'topos.markAsLegacy' | translate }}</span>
-      </label>
+      @if (isIndoor()) {
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input tuiCheckbox type="checkbox" [formField]="topoForm.legacy" />
+          <span>{{ 'topos.markAsLegacy' | translate }}</span>
+        </label>
+      }
 
       <section class="grid gap-3">
         <!-- Header -->
