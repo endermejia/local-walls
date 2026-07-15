@@ -16,6 +16,7 @@ import {
   CragListItem,
   CragWithJoins,
   RouteAscentDto,
+  RouteAscentWithExtras,
   RouteWithExtras,
   TopoDetail,
   TopoListItem,
@@ -307,18 +308,20 @@ export class TopoDataService {
     params: () => ({
       cragId: this.cragDetail()?.id,
       routeSlug: this.selectedRouteSlug(),
+      userId: this.supabase.authUserId(),
     }),
     loader: async ({
-      params: { cragId, routeSlug },
+      params: { cragId, routeSlug, userId },
     }): Promise<RouteWithExtras | null> => {
       if (!cragId || !routeSlug) return null;
       if (!isPlatformBrowser(this.platformId)) return null;
-      const cacheKey = `cached_route_detail_${routeSlug}_v2`;
+      const cacheKey = userId
+        ? `cached_route_detail_${routeSlug}_user_${userId}_v2`
+        : `cached_route_detail_${routeSlug}_v2`;
       return this.cache.fetchOrCache(
         cacheKey,
         async () => {
           await this.supabase.whenReady();
-          const userId = this.supabase.authUser()?.id;
           let query = this.supabase.client
             .from('routes')
             .select(
@@ -380,11 +383,13 @@ export class TopoDataService {
   readonly routeAscentsResource = resource({
     params: () => ({
       routeId: this.routeDetail()?.id,
+      userId: this.supabase.authUserId(),
+      route: this.routeDetail() || undefined,
     }),
     loader: async ({
       params,
-    }): Promise<{ items: RouteAscentDto[]; total: number }> => {
-      const { routeId } = params;
+    }): Promise<{ items: RouteAscentWithExtras[]; total: number }> => {
+      const { routeId, route } = params;
       if (!routeId) return { items: [], total: 0 };
       if (!isPlatformBrowser(this.platformId)) return { items: [], total: 0 };
       try {
@@ -394,7 +399,6 @@ export class TopoDataService {
           .from('route_ascents')
           .select('*', { count: 'exact' })
           .eq('route_id', routeId)
-          .neq('type', 'attempt')
           .order('date', { ascending: false })
           .order('id', { ascending: false });
 
@@ -402,7 +406,32 @@ export class TopoDataService {
           return { items: [], total: 0 };
         }
 
-        return { items: data ?? [], total: count ?? 0 };
+        const ascents = data ?? [];
+        if (ascents.length === 0) {
+          return { items: [], total: 0 };
+        }
+
+        const userIds = [...new Set(ascents.map((a) => a.user_id))].filter(
+          (id): id is string => !!id,
+        );
+
+        const { data: profiles } = await this.supabase.client
+          .from('user_profiles')
+          .select('id, name, avatar')
+          .in('id', userIds);
+
+        const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
+
+        const items = ascents.map((a) => ({
+          ...a,
+          user: profileMap.get(a.user_id),
+          route: route || undefined,
+        })) as unknown as RouteAscentWithExtras[];
+
+        return {
+          items,
+          total: count ?? 0,
+        };
       } catch {
         return { items: [], total: 0 };
       }

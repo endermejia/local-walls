@@ -383,7 +383,7 @@ import { handleErrorToast } from '../../utils';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-1 flex-col min-h-0' },
 })
-export class RouteComponent {
+export class OutdoorRouteComponent {
   protected readonly global = inject(GlobalData);
   private readonly location = inject(Location);
   protected readonly routesService = inject(RoutesService);

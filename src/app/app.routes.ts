@@ -124,7 +124,9 @@ export const routes: Routes = [
     path: 'area/:areaSlug/:cragSlug/:routeSlug',
     canMatch: [authGuard],
     loadComponent: () =>
-      import('../pages/area/route').then((m) => m.RouteComponent),
+      import('../pages/area/outdoor-route').then(
+        (m) => m.OutdoorRouteComponent,
+      ),
   },
   {
     path: 'indoor',
@@ -147,7 +149,9 @@ export const routes: Routes = [
       {
         path: ':centerSlug/route/:routeSlug',
         loadComponent: () =>
-          import('../pages/indoor/route').then((m) => m.IndoorRouteComponent),
+          import('../pages/indoor/indoor-route').then(
+            (m) => m.IndoorRouteComponent,
+          ),
       },
       {
         path: ':centerSlug/topo/:id',

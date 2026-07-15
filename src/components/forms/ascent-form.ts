@@ -198,10 +198,13 @@ import { handleErrorToast } from '../../utils';
               'ascent.thoughts' | translate
             }}</label>
             <textarea
+              tuiTextarea
               id="ascentComment"
-              [formField]="ascentForm.comment"
+              [ngModel]="model().comment"
+              (ngModelChange)="onCommentChange($event)"
+              name="comment"
               [placeholder]="'ascent.thoughtsPlaceholder' | translate"
-              rows="5"
+              class="h-24"
             ></textarea>
           </tui-textfield>
           <label class="flex items-center gap-2 cursor-pointer self-start">
@@ -1346,5 +1349,9 @@ export default class AscentFormComponent {
 
   onGradeChange(grade: number | null): void {
     this.model.update((m) => ({ ...m, grade }));
+  }
+
+  onCommentChange(comment: string): void {
+    this.model.update((m) => ({ ...m, comment }));
   }
 }
