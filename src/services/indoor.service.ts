@@ -19,6 +19,7 @@ import {
   IndoorInventoryDto,
   IndoorRouteWithExtras,
   IndoorAscentDto,
+  IndoorAscentInsertDto,
   IndoorAscentWithExtras,
   EquipperDto,
   IndoorTopoQueryRow,
@@ -27,6 +28,8 @@ import {
   IndoorTopoListItem,
 } from '../models';
 import type { TopoPath } from '../models/topo.model';
+import { ToastService } from './toast.service';
+import { handleErrorToast } from '../utils';
 
 type CenterRouteQuery = IndoorRouteDto & {
   ascents: Pick<IndoorAscentDto, 'id' | 'type' | 'user_id' | 'rate'>[];
@@ -42,6 +45,7 @@ export class IndoorService {
   private readonly global = inject(GlobalData);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
 
   private readonly platformId = inject(PLATFORM_ID);
   loading = signal(false);
@@ -389,6 +393,7 @@ export class IndoorService {
       .eq('id', id);
 
     if (error) throw error;
+    this.toast.success('messages.toasts.routeDeleted');
     return true;
   }
 
@@ -762,6 +767,7 @@ export class IndoorService {
 
     if (error) throw error;
     this.reloadCenterRoutes();
+    this.toast.success('messages.toasts.ascentCreated');
     const row = data as unknown as IndoorAscentQueryRow;
     return {
       ...row,
@@ -798,6 +804,7 @@ export class IndoorService {
 
     if (error) throw error;
     this.reloadCenterRoutes();
+    this.toast.success('messages.toasts.ascentUpdated');
   }
 
   async uploadAscentPhoto(userId: string, file: File): Promise<string | null> {
@@ -816,12 +823,37 @@ export class IndoorService {
   }
 
   async deleteRouteAscent(ascentId: string): Promise<void> {
+    const { data: ascent, error: fetchError } = await this.supabase.client
+      .from('indoor_ascents')
+      .select('*')
+      .eq('id', ascentId)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+    if (!ascent) return;
+
     const { error } = await this.supabase.client
       .from('indoor_ascents')
       .delete()
       .eq('id', ascentId);
 
     if (error) throw error;
+
+    this.toast.showWithUndo('messages.toasts.ascentDeleted', () => {
+      this.supabase.client
+        .from('indoor_ascents')
+        .insert(ascent as unknown as IndoorAscentInsertDto)
+        .then(({ error: undoError }) => {
+          if (undoError) {
+            handleErrorToast(undoError, this.toast);
+          } else {
+            this.reloadCenterRoutes();
+            this.global.routeDetailResource.reload();
+            this.global.topoDetailResource.reload();
+          }
+        });
+    });
+
     this.reloadCenterRoutes();
   }
 }
