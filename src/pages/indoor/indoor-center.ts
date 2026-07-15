@@ -355,7 +355,9 @@ import { IndoorVouchersComponent } from '../../components/indoor/indoor-vouchers
               <button tuiTab>{{ 'indoor.routes' | translate }}</button>
               <button tuiTab>{{ 'indoor.topos' | translate }}</button>
               <button tuiTab>{{ 'indoor.ascents' | translate }}</button>
-              <button tuiTab>{{ 'indoor.vouchers' | translate }}</button>
+              @if (hasVouchers()) {
+                <button tuiTab>{{ 'indoor.vouchers' | translate }}</button>
+              }
             </tui-tabs>
           </div>
 
@@ -513,6 +515,16 @@ export class IndoorCenterComponent implements OnDestroy {
       id ? this.indoor.getCenterTopos(id) : Promise.resolve([]),
   });
 
+  protected readonly vouchersResource = resource({
+    params: () => this.center()?.id,
+    loader: ({ params: id }) =>
+      id ? this.indoor.getCenterVouchers(id) : Promise.resolve([]),
+  });
+
+  protected readonly hasVouchers = computed(
+    () => (this.vouchersResource.value()?.length ?? 0) > 0,
+  );
+
   protected readonly showLegacyRoutes = signal<boolean>(
     typeof window !== 'undefined'
       ? localStorage.getItem('show_legacy_routes') === 'true'
@@ -663,6 +675,13 @@ export class IndoorCenterComponent implements OnDestroy {
         }
       } catch {
         // Ignored
+      }
+    });
+
+    effect(() => {
+      const has = this.hasVouchers();
+      if (!has && this.activeTabIndex() === 3) {
+        this.activeTabIndex.set(0);
       }
     });
   }
