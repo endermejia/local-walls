@@ -553,7 +553,7 @@ export class TopoRoutesTableComponent {
           });
       } else {
         this.toposService
-          .removeRoute(topoRoute.topo_id, topoRoute.route_id)
+          .removeRoute(topoRoute.topo_id, topoRoute.route_id, false)
           .then(() => {
             this.toast.showWithUndo('messages.toasts.routeRemoved', () => {
               void this.toposService.addRoute({
@@ -562,6 +562,7 @@ export class TopoRoutesTableComponent {
                 number: 0,
               });
             });
+            this.global.topoDetailResource.reload();
           })
           .catch((err) => handleErrorToast(err, this.toast));
       }
