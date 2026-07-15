@@ -789,11 +789,11 @@ export class TopoFormComponent {
           if (indoorTopoData) {
             await this.indoor.updateTopo(indoorTopoData.id, payload);
             topoId = indoorTopoData.id;
-            this.toast.success('topos.updateSuccess');
+            this.toast.success('messages.toasts.topoUpdated');
           } else {
             const topo = await this.indoor.createTopo(payload);
             topoId = topo?.id;
-            this.toast.success('topos.createSuccess');
+            this.toast.success('messages.toasts.topoCreated');
           }
 
           if (topoId) {

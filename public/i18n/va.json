@@ -754,7 +754,6 @@
   "topos.restrictedMessage": "Este croquis es secreto. Solo los administradores del área pueden concederte acceso.",
   "topos.secretText": "Croquis secretos (acceso por invitación)",
   "topos.shadeChangeHour": "Hora de canvi d'ombra",
-  "topos.updateSuccess": "Croquis actualitzat correctament",
   "topos.visibility.paywalled": "Este croquis es de pago",
   "topos.visibility.public": "Este croquis es público (gratuito)",
   "topos.visibility.secret": "Este croquis es secreto (solo accesible por invitación)",

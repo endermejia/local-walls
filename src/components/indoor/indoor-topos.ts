@@ -26,6 +26,7 @@ import { TUI_CONFIRM, TuiConfirmData } from '@taiga-ui/kit';
 
 import { IndoorService } from '../../services/indoor.service';
 import { SupabaseService } from '../../services/supabase.service';
+import { ToastService } from '../../services/toast.service';
 import { EmptyStateComponent } from '../ui/empty-state';
 import { TopoCardComponent } from '../topo/topo-card';
 import type { IndoorTopoListItem } from '../../models/indoor.model';
@@ -106,6 +107,7 @@ export class IndoorToposComponent {
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly dialogs = inject(TuiDialogService);
+  private readonly toast = inject(ToastService);
 
   protected readonly canEdit = computed(() => {
     return this.global.indoorAdminPermissions()[this.centerId()];
@@ -187,6 +189,7 @@ export class IndoorToposComponent {
 
     if (confirmed) {
       await this.indoor.deleteTopo(topo.id);
+      this.toast.success('messages.toasts.topoDeleted');
       this.toposResource.reload();
     }
   }

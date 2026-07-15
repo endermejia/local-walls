@@ -130,13 +130,17 @@ export class AppComponent implements OnDestroy {
           takeUntilDestroyed(this.destroyRef),
         )
         .subscribe(() => {
-          this.swUpdate.checkForUpdate().catch(() => {});
+          this.swUpdate.checkForUpdate().catch(() => {
+            // Ignore errors
+          });
         });
 
       // Check for updates every hour
       const oneHour = 60 * 60 * 1000;
       this.swCheckInterval = setInterval(() => {
-        this.swUpdate.checkForUpdate().catch(() => {});
+        this.swUpdate.checkForUpdate().catch(() => {
+          // Ignore errors
+        });
       }, oneHour);
 
       // Auto-apply update and reload

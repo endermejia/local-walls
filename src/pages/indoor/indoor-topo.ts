@@ -261,7 +261,10 @@ export class IndoorTopoComponent extends TopoPageBase {
       if (!confirmed) return;
       this.indoorService
         .deleteTopo(String(this.id()))
-        .then(() => this.router.navigate(['/indoor', this.centerSlug()]))
+        .then(() => {
+          this.toast.success('messages.toasts.topoDeleted');
+          this.router.navigate(['/indoor', this.centerSlug()]);
+        })
         .catch(() => {
           // noop
         });

@@ -754,7 +754,6 @@
   "topos.restrictedMessage": "This topo is secret. Only area administrators can grant you access.",
   "topos.secretText": "Secret topos (access by invitation)",
   "topos.shadeChangeHour": "Shade change hour",
-  "topos.updateSuccess": "Topo updated successfully",
   "topos.visibility.paywalled": "This topo requires purchase",
   "topos.visibility.public": "This topo is public (free)",
   "topos.visibility.secret": "This topo is secret (only accessible by invitation)",
