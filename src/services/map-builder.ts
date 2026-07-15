@@ -614,11 +614,14 @@ export class MapBuilder {
             commonAreaName &&
             mapAreaItems.find((a) => a.name === commonAreaName)?.liked;
 
+          const hasLikedItem = group.markers.some((m) => m.liked);
+          const isClusterLiked = !!isAreaLiked || hasLikedItem;
+
           const icon = new L.DivIcon({
             html: this.clusterLabelHtml(
               group.count,
               commonAreaName,
-              !!isAreaLiked,
+              isClusterLiked,
             ),
             className: 'marker-cluster',
             iconSize: new L.Point(size, size),
@@ -697,6 +700,34 @@ export class MapBuilder {
       this.attachMarkerKeyboardSelection(marker, () => {
         this.centerOn(latitude, longitude, minZoomForParkings);
         cb.onSelectedCragChange(mapCragItem);
+      });
+    }
+
+    const visibleIndoorItems = mapIndoorItems.filter((c) =>
+      bounds.contains(new L.LatLng(c.latitude, c.longitude)),
+    );
+
+    for (const mapIndoorItem of visibleIndoorItems) {
+      const { latitude, longitude } = mapIndoorItem;
+      const latLng: [number, number] = [latitude, longitude];
+      const icon = new L.DivIcon({
+        html: this.cragLabelHtml(mapIndoorItem.name, false, false, 'indoor'),
+        className: 'pointer-events-none',
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      });
+
+      const marker = new L.Marker(latLng, { icon }).addTo(this.map);
+      this.markers.push(marker);
+
+      marker.on('click', (e: LeafletEvent) => {
+        e.originalEvent?.preventDefault?.();
+        (e.originalEvent as Event | undefined)?.stopPropagation?.();
+        window.open(`/indoor/${mapIndoorItem.slug}`, '_self');
+      });
+
+      this.attachMarkerKeyboardSelection(marker, () => {
+        window.open(`/indoor/${mapIndoorItem.slug}`, '_self');
       });
     }
   }
