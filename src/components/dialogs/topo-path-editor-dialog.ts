@@ -242,16 +242,16 @@ export interface TopoPathEditorConfig {
               @for (entry of pathsEntries(); track entry[0]) {
                 @let routeId = entry[0];
                 @let pathData = entry[1];
-                @let isSelected = selectedRoute()?.route_id === +routeId;
+                @let isSelected = selectedRoute()?.route_id == routeId;
                 @let style = routeStyleMap()[routeId];
                 <g
                   class="path-group"
                   (click)="
-                    selectRoute(pathData._ref || { route_id: +routeId });
+                    selectRoute(pathData._ref || { route_id: routeId });
                     $event.stopPropagation()
                   "
                   (touchstart)="
-                    selectRoute(pathData._ref || { route_id: +routeId });
+                    selectRoute(pathData._ref || { route_id: routeId });
                     $event.stopPropagation()
                   "
                 >
@@ -839,7 +839,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     const lw = this.lineWidth();
     const map: Record<string, number> = {};
     for (const [key] of this.pathsMap) {
-      const isSelected = selected?.route_id === +key;
+      const isSelected = String(selected?.route_id) === String(key);
       map[key] = getRouteStrokeWidth(isSelected, false, lw, 'editor');
     }
     return map;
@@ -849,7 +849,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     const selected = this.selectedRoute();
     const map: Record<string, ReturnType<typeof getRouteStyleProperties>> = {};
     for (const [key, entry] of this.pathsMap) {
-      const isSelected = selected?.route_id === +key;
+      const isSelected = String(selected?.route_id) === String(key);
       map[key] = getRouteStyleProperties(
         isSelected,
         false,
@@ -875,7 +875,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     return map;
   });
 
-  draggingPoint: { routeId: number; index: number } | null = null;
+  draggingPoint: { routeId: string | number; index: number } | null = null;
   scale = signal(1);
   translateX = signal(0);
   translateY = signal(0);
@@ -1143,12 +1143,12 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     routeId: string | number,
     index: number,
   ): void {
-    const numericRouteId = +routeId;
-    this.draggingPoint = { routeId: numericRouteId, index };
+    const parsedRouteId = isNaN(Number(routeId)) ? routeId : Number(routeId);
+    this.draggingPoint = { routeId: parsedRouteId, index };
 
     startDragPointMouse(
       event,
-      numericRouteId,
+      parsedRouteId,
       index,
       this.containerElement().nativeElement,
       this.pathsMap,
@@ -1171,18 +1171,18 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     routeId: string | number,
     index: number,
   ): void {
-    const numericRouteId = +routeId;
-    this.draggingPoint = { routeId: numericRouteId, index };
+    const parsedRouteId = isNaN(Number(routeId)) ? routeId : Number(routeId);
+    this.draggingPoint = { routeId: parsedRouteId, index };
 
     startDragPointTouch(
       event,
-      numericRouteId,
+      parsedRouteId,
       index,
       this.containerElement().nativeElement,
       this.pathsMap,
       {
         onLongPress: () => {
-          this.removePoint(event, numericRouteId, index);
+          this.removePoint(event, parsedRouteId, index);
           this.draggingPoint = null;
         },
         onUpdate: () => {

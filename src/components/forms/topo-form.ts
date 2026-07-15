@@ -1162,11 +1162,11 @@ export class TopoFormComponent {
       }
 
       const topo_id = this.isIndoor()
-        ? Number(this._dialogCtx?.data?.indoorTopoData?.id || 0)
+        ? this._dialogCtx?.data?.indoorTopoData?.id || ''
         : topo?.id || 0;
       return {
         topo_id,
-        route_id: Number(r.id),
+        route_id: this.isIndoor() ? r.id : Number(r.id),
         number: (existing?.number || i) + 1,
         route: { ...r, own_ascent: null, project: false },
         path:
