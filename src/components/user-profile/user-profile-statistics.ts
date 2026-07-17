@@ -1,4 +1,4 @@
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -83,7 +83,8 @@ import {
         >
           <input
             tuiSelect
-            [formControl]="dateFilterControl"
+            [value]="dateFilterValue()"
+            (change)="onDateFilterChange($event)"
             autocomplete="off"
           />
           <tui-data-list *tuiDropdown>
@@ -159,7 +160,7 @@ export class UserProfileStatisticsComponent {
   userId = input.required<string | undefined>();
 
   // --- Date Filter Support ---
-  readonly dateFilterControl = new FormControl('last_12_months');
+  readonly dateFilterValue = signal('last_12_months');
   readonly showAllGrades = signal(false);
 
   readonly dateFilterOptions = computed(() => {
@@ -191,7 +192,7 @@ export class UserProfileStatisticsComponent {
   statsResource = resource({
     params: () => ({
       userId: this.userId(),
-      dateFilter: this.dateFilterControl.value,
+      dateFilter: this.dateFilterValue(),
     }),
     loader: async ({ params }) => {
       if (!params.userId) return [];
@@ -208,10 +209,8 @@ export class UserProfileStatisticsComponent {
   // Filtered Stats
   stats = computed(() => {
     const all = this.rawStats();
-    return filterAscentsByDate(all, this.dateFilterSignal());
+    return filterAscentsByDate(all, this.dateFilterValue());
   });
-
-  private dateFilterSignal = signal<string>('last_12_months');
 
   // --- New Computed Signals for Dashboard ---
 
@@ -234,10 +233,15 @@ export class UserProfileStatisticsComponent {
   });
 
   constructor() {
-    // Sync form control to signal
-    this.dateFilterControl.valueChanges.subscribe((val) => {
-      this.dateFilterSignal.set(val || 'last_12_months');
-    });
+    // Date filter is now a signal, no need for subscription
+  }
+
+  protected toValue(event: Event): string {
+    return (event.target as HTMLSelectElement)?.value ?? '';
+  }
+
+  protected onDateFilterChange(event: Event): void {
+    this.dateFilterValue.set(this.toValue(event));
   }
 
   // --- Grade Distribution Logic (Pyramid) ---

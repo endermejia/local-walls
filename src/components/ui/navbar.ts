@@ -1,7 +1,7 @@
-import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -45,7 +45,6 @@ import {
   distinctUntilChanged,
   firstValueFrom,
   map,
-  startWith,
   switchMap,
 } from 'rxjs';
 
@@ -358,7 +357,8 @@ import {
                   #searchInput
                   autocomplete="off"
                   tuiAutoFocus
-                  [formControl]="control"
+                  [value]="searchValue()"
+                  (input)="searchValue.set(toValue($event))"
                   [tuiInputSearch]="searchContent"
                   [(tuiInputSearchOpen)]="searchOpen"
                   [placeholder]="'searchPlaceholder' | translate"
@@ -637,7 +637,7 @@ export class NavbarComponent {
   private readonly routesService = inject(RoutesService);
 
   protected readonly searchExpanded = signal(false);
-  protected readonly control = new FormControl('');
+  protected readonly searchValue = signal('');
   protected searchOpen = false;
   protected activeSearchTab = signal(0);
 
@@ -653,7 +653,7 @@ export class NavbarComponent {
         setTimeout(() => {
           this.searchOpen = true;
           this.searchExpanded.set(true);
-          this.control.setValue('Millena');
+          this.searchValue.set('Millena');
           cdr.markForCheck();
         }, 500);
       }
@@ -673,15 +673,17 @@ export class NavbarComponent {
   }
 
   protected readonly results = toSignal(
-    this.control.valueChanges.pipe(
-      map((v) => (v ?? '').trim()),
+    toObservable(this.searchValue).pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      switchMap((query) => this.searchService.search(query)),
-      startWith(null as SearchData | null),
+      switchMap((query: string) => this.searchService.search(query)),
     ),
     { initialValue: null as SearchData | null },
   );
+
+  protected toValue(event: Event): string {
+    return (event.target as HTMLInputElement)?.value ?? '';
+  }
 
   protected readonly groupedResults = computed(() => {
     const data = this.results();
@@ -706,7 +708,7 @@ export class NavbarComponent {
       event?.preventDefault();
       event?.stopPropagation();
 
-      const query = (this.control.value || '').trim();
+      const query = (this.searchValue() || '').trim();
 
       switch (item.type) {
         case 'create-area':
@@ -764,7 +766,7 @@ export class NavbarComponent {
     }
 
     this.searchOpen = false;
-    this.control.setValue('', { emitEvent: false });
+    this.searchValue.set('');
   }
 
   protected scrollToTop(event: MouseEvent): void {
@@ -778,7 +780,7 @@ export class NavbarComponent {
     if (this.tourService.step() === TourStep.SEARCH) {
       this.searchOpen = false;
       this.searchExpanded.set(false);
-      this.control.setValue('', { emitEvent: false });
+      this.searchValue.set('');
     }
     this.tourService.next();
   }

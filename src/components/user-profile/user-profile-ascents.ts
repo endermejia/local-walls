@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
@@ -31,7 +31,7 @@ import {
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { debounceTime, startWith, Subject } from 'rxjs';
+import { debounceTime, Subject } from 'rxjs';
 
 import { FiltersService } from '../../services/filters.service';
 import { FollowsService } from '../../services/follows.service';
@@ -130,7 +130,8 @@ import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
               <input
                 tuiSelect
                 id="date-filter"
-                [formControl]="dateFilterControl"
+                [value]="dateFilterValue()"
+                (change)="onDateFilterChange($event)"
                 autocomplete="off"
               />
               <tui-data-list *tuiDropdown>
@@ -150,7 +151,8 @@ import { getAscentDateFilterOptions, processAscentsToFeed } from '../../utils';
               <input
                 tuiSelect
                 id="sort-filter"
-                [formControl]="sortFilterControl"
+                [value]="sortFilterValue()"
+                (change)="onSortFilterChange($event)"
                 autocomplete="off"
               />
               <tui-data-list *tuiDropdown>
@@ -226,33 +228,32 @@ export class UserProfileAscentsComponent {
   protected readonly dialogs = inject(TuiDialogService);
   private readonly platformId = inject(PLATFORM_ID);
 
+  protected toValue(event: Event): string {
+    return (event.target as HTMLSelectElement)?.value ?? '';
+  }
+
+  protected onDateFilterChange(event: Event): void {
+    const value = this.toValue(event) as 'last12' | 'all' | string;
+    this.dateFilterValue.set(value);
+  }
+
+  protected onSortFilterChange(event: Event): void {
+    const value = this.toValue(event) as 'grade' | 'date';
+    this.sortFilterValue.set(value);
+  }
+
   private readonly querySubject = new Subject<string>();
   protected readonly query = toSignal(
     this.querySubject.pipe(debounceTime(400)),
     { initialValue: '' },
   );
-  protected readonly dateFilterControl = new FormControl<string>('last12', {
-    nonNullable: true,
-  });
-  protected readonly dateFilter = toSignal(
-    this.dateFilterControl.valueChanges.pipe(
-      startWith(this.dateFilterControl.value),
-    ),
-    { initialValue: this.dateFilterControl.value },
-  );
+  protected readonly dateFilterValue = signal<string>('last12');
+  protected readonly dateFilter = this.dateFilterValue;
 
-  protected readonly sortFilterControl = new FormControl<'grade' | 'date'>(
+  protected readonly sortFilterValue = signal<'grade' | 'date'>(
     this.global.ascentsSort(),
-    {
-      nonNullable: true,
-    },
   );
-  protected readonly sortFilter = toSignal(
-    this.sortFilterControl.valueChanges.pipe(
-      startWith(this.sortFilterControl.value),
-    ),
-    { initialValue: this.sortFilterControl.value },
-  );
+  protected readonly sortFilter = this.sortFilterValue;
 
   protected readonly selectedGradeRange = this.global.areaListGradeRange;
   protected readonly selectedCategories = this.global.areaListCategories;

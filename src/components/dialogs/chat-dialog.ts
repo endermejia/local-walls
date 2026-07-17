@@ -1,6 +1,6 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
   ChangeDetectionStrategy,
@@ -270,7 +270,8 @@ export interface ChatDialogData {
               tuiInput
               id="user-search"
               autocomplete="off"
-              [formControl]="userSearchControl"
+              [value]="userSearchValue()"
+              (input)="userSearchValue.set(toValue($event))"
             />
             <tui-icon icon="@tui.search" />
           </tui-textfield>
@@ -393,7 +394,7 @@ export class ChatDialogComponent implements OnDestroy {
   protected readonly messagesOffset = signal(0);
   protected readonly limit = 20;
 
-  protected readonly userSearchControl = new FormControl('');
+  protected readonly userSearchValue = signal('');
   protected readonly searchResults = signal<UserProfileBasicDto[]>([]);
 
   protected readonly roomsResource = resource({
@@ -451,7 +452,7 @@ export class ChatDialogComponent implements OnDestroy {
       void this.openChatWithRoom(initialRoomId);
     }
 
-    this.userSearchControl.valueChanges
+    toObservable(this.userSearchValue)
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
@@ -486,6 +487,10 @@ export class ChatDialogComponent implements OnDestroy {
     });
   }
 
+  protected toValue(event: Event): string {
+    return (event.target as HTMLInputElement)?.value ?? '';
+  }
+
   private async openChatWithUser(userId: string) {
     const roomId = await this.messagingService.getOrCreateRoom(userId);
     if (roomId) {
@@ -517,7 +522,7 @@ export class ChatDialogComponent implements OnDestroy {
     this.messagesOffset.set(0);
     this.accumulatedMessages.set([]);
     this.hasMore.set(true);
-    this.userSearchControl.setValue('', { emitEvent: false });
+    this.userSearchValue.set('');
     this.searchResults.set([]);
     void this.messagingService.markAsRead(room.id);
 
@@ -598,7 +603,7 @@ export class ChatDialogComponent implements OnDestroy {
 
   protected onSelectUser(user: UserProfileBasicDto) {
     void this.openChatWithUser(user.id);
-    this.userSearchControl.setValue('', { emitEvent: false });
+    this.userSearchValue.set('');
     this.searchResults.set([]);
   }
 

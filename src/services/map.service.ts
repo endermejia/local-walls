@@ -1,5 +1,4 @@
-import { FormControl } from '@angular/forms';
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, WritableSignal } from '@angular/core';
 
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TuiDialogService } from '@taiga-ui/core';
@@ -31,16 +30,14 @@ export class MapService {
   }
 
   pickLocationAndUpdate(
-    latCtrl: FormControl<number | null>,
-    lngCtrl: FormControl<number | null>,
+    latCtrl: WritableSignal<number | null>,
+    lngCtrl: WritableSignal<number | null>,
   ): void {
-    void firstValueFrom(this.pickLocation(latCtrl.value, lngCtrl.value)).then(
+    void firstValueFrom(this.pickLocation(latCtrl(), lngCtrl())).then(
       (result) => {
         if (result) {
-          latCtrl.setValue(result.lat);
-          lngCtrl.setValue(result.lng);
-          latCtrl.markAsDirty();
-          lngCtrl.markAsDirty();
+          latCtrl.set(result.lat);
+          lngCtrl.set(result.lng);
         }
       },
     );
@@ -66,8 +63,8 @@ export class MapService {
 
   handlePasteLocation(
     event: ClipboardEvent,
-    latCtrl: FormControl<number | null>,
-    lngCtrl: FormControl<number | null>,
+    latCtrl: WritableSignal<number | null>,
+    lngCtrl: WritableSignal<number | null>,
   ): void {
     const text = event.clipboardData?.getData('text');
     if (!text) return;
@@ -75,26 +72,20 @@ export class MapService {
     const coords = this.parseCoordinates(text);
     if (coords) {
       event.preventDefault();
-      latCtrl.setValue(coords.lat);
-      lngCtrl.setValue(coords.lng);
-      latCtrl.markAsDirty();
-      lngCtrl.markAsDirty();
+      latCtrl.set(coords.lat);
+      lngCtrl.set(coords.lng);
     }
   }
 
   sanitizeCoordinates(
-    latCtrl: FormControl<number | null>,
-    lngCtrl: FormControl<number | null>,
+    latCtrl: WritableSignal<number | null>,
+    lngCtrl: WritableSignal<number | null>,
   ): void {
-    if (latCtrl.value != null) {
-      latCtrl.setValue(parseFloat(latCtrl.value.toFixed(6)), {
-        emitEvent: false,
-      });
+    if (latCtrl() != null) {
+      latCtrl.set(parseFloat(latCtrl()!.toFixed(6)));
     }
-    if (lngCtrl.value != null) {
-      lngCtrl.setValue(parseFloat(lngCtrl.value.toFixed(6)), {
-        emitEvent: false,
-      });
+    if (lngCtrl() != null) {
+      lngCtrl.set(parseFloat(lngCtrl()!.toFixed(6)));
     }
   }
 }

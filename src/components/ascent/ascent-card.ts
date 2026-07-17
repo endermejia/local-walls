@@ -97,7 +97,7 @@ import { getEmbedUrl } from '../../utils';
               @if (ascent.user?.avatar; as avatar) {
                 <img
                   [src]="avatar | avatarUrl"
-                  [alt]="ascent.user?.name || ''"
+                  [alt]="ascent.user.name || ''"
                 />
               } @else {
                 <tui-icon icon="@tui.user" />

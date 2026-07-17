@@ -68,7 +68,7 @@ import { RouteDto } from '../../models';
                           <div class="text-sm opacity-70">
                             @if (
                               route.crag?.area_slug &&
-                              route.crag?.slug &&
+                              route.crag.slug &&
                               route.slug
                             ) {
                               <a
@@ -80,7 +80,7 @@ import { RouteDto } from '../../models';
                                 ]"
                                 target="_blank"
                                 class="underline underline-offset-2 hover:opacity-100"
-                                >{{ route.crag?.name || 'Unknown' }}</a
+                                >{{ route.crag.name || 'Unknown' }}</a
                               >
                             } @else {
                               {{ route.crag?.name || 'Unknown' }}
@@ -130,9 +130,7 @@ import { RouteDto } from '../../models';
                     @for (route of group.routes; track route.id) {
                       <div class="text-sm">
                         @if (
-                          route.crag?.area_slug &&
-                          route.crag?.slug &&
-                          route.slug
+                          route.crag?.area_slug && route.crag.slug && route.slug
                         ) {
                           <a
                             [routerLink]="[
@@ -155,14 +153,14 @@ import { RouteDto } from '../../models';
                               target="_blank"
                               class="underline underline-offset-2 hover:opacity-100"
                               >{{
-                                route.crag?.area_name || route.crag!.area_slug
+                                route.crag.area_name || route.crag!.area_slug
                               }}</a
                             >
                           } @else {
                             {{ route.crag?.area_name || '?' }}
                           }
                           /
-                          @if (route.crag?.area_slug && route.crag?.slug) {
+                          @if (route.crag?.area_slug && route.crag.slug) {
                             <a
                               [routerLink]="[
                                 '/area',
@@ -171,7 +169,7 @@ import { RouteDto } from '../../models';
                               ]"
                               target="_blank"
                               class="underline underline-offset-2 hover:opacity-100"
-                              >{{ route.crag?.name || 'Unknown' }}</a
+                              >{{ route.crag.name || 'Unknown' }}</a
                             >
                           } @else {
                             {{ route.crag?.name || 'Unknown' }}

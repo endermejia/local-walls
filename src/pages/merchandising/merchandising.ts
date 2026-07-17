@@ -1,14 +1,16 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   PLATFORM_ID,
   resource,
+  signal,
 } from '@angular/core';
 
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
@@ -51,7 +53,7 @@ import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormsModule,
     TranslatePipe,
     TuiAppearance,
     TuiBadgedContentComponent,
@@ -171,7 +173,8 @@ import { AreaPackDetail, MerchandiseItemDetail } from '../../models';
               <tui-filter
                 size="l"
                 [items]="availableCategories()"
-                [formControl]="categoryControl"
+                [(ngModel)]="categoryLabels"
+                (ngModelChange)="categoryValue.set($event)"
               />
             </div>
           }
@@ -328,15 +331,17 @@ export class MerchandisingComponent {
     return selectedLabels.includes(packLabel);
   });
 
-  /** FormControl for TuiFilter */
-  protected readonly categoryControl = new FormControl<string[]>([], {
-    nonNullable: true,
-  });
+  /** Signal for TuiFilter */
+  protected readonly categoryValue = signal<string[]>([]);
+  protected categoryLabels: string[] = [];
 
-  private readonly selectedCategoryLabels = toSignal(
-    this.categoryControl.valueChanges.pipe(startWith([] as string[])),
-    { initialValue: [] as string[] },
-  );
+  private readonly selectedCategoryLabels = this.categoryValue;
+
+  constructor() {
+    effect(() => {
+      this.categoryLabels = [...this.categoryValue()];
+    });
+  }
 
   private readonly langChange = toSignal(
     this.translate.onLangChange.pipe(startWith(this.translate.currentLang)),
