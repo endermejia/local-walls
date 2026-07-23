@@ -419,7 +419,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
             </div>
           </h3>
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-10">
-            <div class="grid gap-2">
+            <div class="flex flex-col gap-2">
               @for (c of indoorCenters; track c.id) {
                 <app-indoor-center-card [item]="c" />
               }
@@ -451,7 +451,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
             </div>
           </h3>
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
-            <div class="grid gap-2">
+            <div class="flex flex-col gap-2">
               @for (a of areas; track a.slug) {
                 <app-area-card [area]="a" />
               }
@@ -479,7 +479,7 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
             </div>
           </h3>
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
-            <div class="grid gap-2">
+            <div class="flex flex-col gap-2">
               @for (c of crags; track c.id) {
                 <app-crag-card [crag]="c" />
               }
