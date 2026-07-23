@@ -19,7 +19,7 @@ import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 import { TUI_CONFIRM } from '@taiga-ui/kit';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
 import { TuiDialogService } from '@taiga-ui/core';
-import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
+
 import { TuiConfirmData, TuiTabs, TuiPulse, TuiSkeleton } from '@taiga-ui/kit';
 import {
   TuiAppearance,
@@ -75,7 +75,7 @@ import { UserInfoComponent } from '../../components/ui/user-info';
     TuiScrollbar,
     TuiScrollbar,
     TuiSkeleton,
-    TuiSwipe,
+
     TuiTabs,
     UserProfileAscentsComponent,
     UserProfileLikesComponent,
@@ -86,11 +86,7 @@ import { UserInfoComponent } from '../../components/ui/user-info';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <tui-scrollbar class="flex grow">
-      <section
-        (tuiSwipe)="onSwipe($event)"
-        (touchstart.zoneless)="lastTouchTarget = $event.target"
-        class="w-full max-w-7xl mx-auto p-4 grid gap-4"
-      >
+      <section class="w-full max-w-7xl mx-auto p-4 grid gap-4">
         @let loading = !profile();
         <app-user-info
           [loading]="loading"
@@ -372,7 +368,7 @@ export class UserProfileComponent {
 
   protected dropdownOpen = signal(false);
   protected readonly followLoading = signal(false);
-  protected lastTouchTarget: EventTarget | null = null;
+
   protected readonly activeTab = this.global.profileActiveTab;
   protected readonly followedIds = signal<Set<string>>(new Set());
   protected readonly requestedIds = signal<Set<string>>(new Set());
@@ -678,25 +674,6 @@ export class UserProfileComponent {
           .then((ids) => this.incomingRequestIds.set(new Set(ids)));
       }
     });
-  }
-
-  protected onSwipe(event: TuiSwipeEvent): void {
-    if (
-      this.lastTouchTarget instanceof HTMLElement &&
-      (this.lastTouchTarget.closest('app-pyramid') ||
-        this.lastTouchTarget.closest('app-routes-table'))
-    ) {
-      return;
-    }
-
-    const direction = event.direction;
-    const currentIndex = this.activeTab();
-    const maxIndex = this.visibleTabs().length - 1;
-    if (direction === 'left' && currentIndex < maxIndex) {
-      this.activeTab.set(currentIndex + 1);
-    } else if (direction === 'right' && currentIndex > 0) {
-      this.activeTab.set(currentIndex - 1);
-    }
   }
 
   protected async toggleFollow(): Promise<void> {

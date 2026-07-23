@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 
 import { TuiDialogService } from '@taiga-ui/core';
-import { TuiSwipe, TuiSwipeEvent } from '@taiga-ui/cdk';
+
 import {
   TUI_CONFIRM,
   TuiTabs,
@@ -77,17 +77,13 @@ import { handleErrorToast, mapLocationUrl } from '../../utils';
     TuiNotification,
     TuiPulse,
     TuiScrollbar,
-    TuiSwipe,
+
     TuiTabs,
     WeatherForecastComponent,
   ],
   template: `
     <tui-scrollbar class="flex grow">
-      <section
-        (tuiSwipe)="onSwipe($event)"
-        (touchstart.zoneless)="lastTouchTarget = $event.target"
-        class="w-full max-w-5xl mx-auto p-4 flex flex-col min-h-full"
-      >
+      <section class="w-full max-w-5xl mx-auto p-4 flex flex-col min-h-full">
         @let canEditAsAdmin = global.canEditAsAdmin();
         @if (cragDetail(); as c) {
           <ng-template #cragSwitcher>
@@ -333,25 +329,6 @@ export class CragComponent {
   protected readonly queryParams = toSignal(this.route.queryParams);
 
   protected readonly mapLocationUrl = mapLocationUrl;
-
-  protected lastTouchTarget: EventTarget | null = null;
-  protected onSwipe(event: TuiSwipeEvent): void {
-    if (
-      this.lastTouchTarget instanceof HTMLElement &&
-      (this.lastTouchTarget.closest('app-pyramid') ||
-        this.lastTouchTarget.closest('app-routes-table'))
-    ) {
-      return;
-    }
-    const direction = event.direction;
-    const currentIndex = this.activeTabIndex();
-    const maxIndex = this.visibleTabs().length - 1;
-    if (direction === 'left' && currentIndex < maxIndex) {
-      this.activeTabIndex.set(currentIndex + 1);
-    } else if (direction === 'right' && currentIndex > 0) {
-      this.activeTabIndex.set(currentIndex - 1);
-    }
-  }
 
   readonly showToposTab = computed(() => {
     const c = this.cragDetail();
