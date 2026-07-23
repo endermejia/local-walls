@@ -421,7 +421,13 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-10">
             <div class="flex flex-col gap-2">
               @for (c of indoorCenters; track c.id) {
-                <app-indoor-center-card [item]="c" />
+                @defer (on viewport) {
+                  <app-indoor-center-card [item]="c" />
+                } @placeholder {
+                  <div
+                    class="h-44 rounded-3xl border border-(--tui-border-normal) bg-(--tui-background-neutral-1) opacity-50 animate-pulse"
+                  ></div>
+                }
               }
             </div>
           </section>
@@ -453,7 +459,13 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
             <div class="flex flex-col gap-2">
               @for (a of areas; track a.slug) {
-                <app-area-card [area]="a" />
+                @defer (on viewport) {
+                  <app-area-card [area]="a" />
+                } @placeholder {
+                  <div
+                    class="h-36 rounded-3xl border border-(--tui-border-normal) bg-(--tui-background-neutral-1) opacity-50 animate-pulse"
+                  ></div>
+                }
               }
             </div>
           </section>
@@ -481,7 +493,13 @@ import { IconSrcPipe } from '../../pipes/icon-src.pipe';
           <section class="w-full max-w-5xl mx-auto sm:px-4 py-4 pb-20">
             <div class="flex flex-col gap-2">
               @for (c of crags; track c.id) {
-                <app-crag-card [crag]="c" />
+                @defer (on viewport) {
+                  <app-crag-card [crag]="c" />
+                } @placeholder {
+                  <div
+                    class="h-44 rounded-3xl border border-(--tui-border-normal) bg-(--tui-background-neutral-1) opacity-50 animate-pulse"
+                  ></div>
+                }
               }
             </div>
           </section>
