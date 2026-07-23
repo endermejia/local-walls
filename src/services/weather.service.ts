@@ -19,7 +19,7 @@ export class WeatherService {
       daily:
         'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum',
       hourly:
-        'temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m',
+        'temperature_2m,weather_code,precipitation_probability,relative_humidity_2m,wind_speed_10m,wind_direction_10m',
       timezone: 'auto',
       forecast_days: '7',
     };
@@ -45,6 +45,7 @@ export class WeatherService {
                 temp: response.hourly.temperature_2m[hIdx],
                 code: response.hourly.weather_code[hIdx],
                 icon: this.getWeatherIcon(response.hourly.weather_code[hIdx]),
+                humidity: response.hourly.relative_humidity_2m[hIdx],
                 precipProb: response.hourly.precipitation_probability[hIdx],
                 windSpeed: response.hourly.wind_speed_10m[hIdx],
                 windDir: response.hourly.wind_direction_10m[hIdx],

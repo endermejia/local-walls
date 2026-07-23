@@ -14,7 +14,7 @@ import {
   viewChildren,
 } from '@angular/core';
 
-import { TuiIcon, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
+import { TuiHint, TuiIcon, TuiLoader, TuiScrollbar } from '@taiga-ui/core';
 import { TuiSkeleton } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -32,6 +32,7 @@ import { WeatherService } from '../../services/weather.service';
     DatePipe,
     DecimalPipe,
     TranslatePipe,
+    TuiHint,
     TuiIcon,
     TuiLoader,
     TuiScrollbar,
@@ -59,7 +60,7 @@ import { WeatherService } from '../../services/weather.service';
               <button
                 type="button"
                 (click)="selectedDayIdx.set(idx)"
-                class="flex flex-col items-center p-3 rounded-2xl border transition-all min-w-[70px] hover:bg-(--tui-background-neutral-1-hover) cursor-pointer"
+                class="flex flex-col items-center gap-1 p-3 rounded-2xl border transition-all min-w-[70px] hover:bg-(--tui-background-neutral-1-hover) cursor-pointer"
                 [class.bg-(--tui-background-neutral-1)]="
                   selectedDayIdx() === idx
                 "
@@ -69,13 +70,13 @@ import { WeatherService } from '../../services/weather.service';
                 [class.bg-(--tui-background-base)]="selectedDayIdx() !== idx"
                 [class.border-(--tui-border-normal)]="selectedDayIdx() !== idx"
               >
-                <span class="text-xs opacity-70 mb-1 capitalize">
+                <span class="text-xs opacity-70 capitalize">
                   {{
                     day.date
                       | date: 'EEE' : undefined : global.selectedLanguage()
                   }}
                 </span>
-                <tui-icon [icon]="day.icon" class="size-8! my-1" />
+                <tui-icon [icon]="day.icon" class="size-8!" />
                 <div class="flex flex-col items-center">
                   <span class="font-bold">
                     {{ day.maxTemp | number: '1.0-0' }}°
@@ -102,7 +103,7 @@ import { WeatherService } from '../../services/weather.service';
               @for (hour of selectedDay.hourly; track hour.time) {
                 <div
                   #hourItem
-                  class="flex flex-col items-center min-w-[50px] py-1 px-1 rounded-xl transition-colors border hour-item"
+                  class="flex flex-col items-center min-w-[50px] min-h-[120px] p-1 rounded-xl transition-colors border hour-item select-none"
                   [class.bg-(--tui-background-neutral-1)]="
                     isCurrentHour(hour.time)
                   "
@@ -116,31 +117,55 @@ import { WeatherService } from '../../services/weather.service';
                   <span class="text-[10px] opacity-60">
                     {{ hour.time | date: 'HH:mm' }}
                   </span>
-                  <tui-icon [icon]="hour.icon" class="size-6! my-1" />
+                  <tui-icon [icon]="hour.icon" class="size-6!" />
                   <span class="text-xs font-medium">
                     {{ hour.temp | number: '1.0-0' }}°
                   </span>
-                  @if (hour.precipProb > 0) {
-                    <span class="text-[9px] text-blue-500 font-bold mb-1">
-                      {{ hour.precipProb }}%
+                  <div
+                    class="flex items-center gap-0.5"
+                    [tuiHint]="'weather.humidity' | translate"
+                  >
+                    <tui-icon icon="@tui.droplet" class="size-3! opacity-70" />
+                    <span class="text-[9px] opacity-70">
+                      {{ hour.humidity }}%
                     </span>
-                  } @else {
-                    <span class="h-[14px] mb-1"></span>
+                  </div>
+
+                  @if (hour.precipProb > 0) {
+                    <div
+                      class="flex items-center gap-0.5"
+                      [tuiHint]="'weather.precipitation' | translate"
+                    >
+                      <tui-icon
+                        icon="@tui.cloud-rain"
+                        class="size-3! text-blue-500"
+                      />
+                      <span class="text-[9px] text-blue-500 font-bold">
+                        {{ hour.precipProb }}%
+                      </span>
+                    </div>
                   }
 
+                  <div class="flex-1"></div>
+
                   <div
-                    class="flex flex-col items-center gap-0.5 mt-auto"
+                    class="flex flex-col items-center gap-0.5"
                     [attr.aria-label]="
                       hour.windSpeed + ' km/h, ' + hour.windDir + '°'
                     "
                   >
-                    <tui-icon
-                      [icon]="hour.windDirIcon"
-                      class="size-4! opacity-70"
-                    />
-                    <span class="text-[9px] opacity-70">
-                      {{ hour.windSpeed | number: '1.0-0' }} km/h
-                    </span>
+                    <div
+                      [tuiHint]="'weather.wind' | translate"
+                      class="flex flex-col items-center gap-0.5"
+                    >
+                      <tui-icon
+                        [icon]="hour.windDirIcon"
+                        class="size-4! opacity-70"
+                      />
+                      <span class="text-[9px] opacity-70">
+                        {{ hour.windSpeed | number: '1.0-0' }} km/h
+                      </span>
+                    </div>
                   </div>
                 </div>
               }
@@ -161,16 +186,13 @@ import { WeatherService } from '../../services/weather.service';
           <div class="flex gap-2 px-2 pb-4 overflow-hidden">
             @for (i of [1, 2, 3, 4, 5, 6, 7]; track i) {
               <div
-                class="flex flex-col items-center p-3 rounded-2xl border border-(--tui-border-normal) min-w-[70px] bg-(--tui-background-base)"
+                class="flex flex-col items-center gap-1 p-3 rounded-2xl border border-(--tui-border-normal) min-w-[70px] bg-(--tui-background-base)"
               >
                 <div
                   [tuiSkeleton]="true"
-                  class="w-8 h-2 rounded-full mb-1 opacity-70"
+                  class="w-8 h-2 rounded-full opacity-70"
                 ></div>
-                <div
-                  [tuiSkeleton]="true"
-                  class="w-8 h-8 rounded-full my-1"
-                ></div>
+                <div [tuiSkeleton]="true" class="w-8 h-8 rounded-full"></div>
                 <div class="flex flex-col items-center gap-1">
                   <div [tuiSkeleton]="true" class="w-6 h-3 rounded-full"></div>
                   <div
@@ -185,18 +207,25 @@ import { WeatherService } from '../../services/weather.service';
           <!-- Hourly Skeleton -->
           <div class="flex gap-3 px-2 pb-4 overflow-hidden mt-2">
             @for (i of hoursSkeleton; track i) {
-              <div class="flex flex-col items-center min-w-[45px] py-1 gap-1">
+              <div
+                class="flex flex-col items-center min-w-[45px] min-h-[120px] p-1 gap-1"
+              >
                 <div
                   [tuiSkeleton]="true"
                   class="w-6 h-2 rounded-full opacity-60"
                 ></div>
-                <div
-                  [tuiSkeleton]="true"
-                  class="w-6 h-6 rounded-full my-1"
-                ></div>
+                <div [tuiSkeleton]="true" class="w-6 h-6 rounded-full"></div>
                 <div [tuiSkeleton]="true" class="w-4 h-3 rounded-full"></div>
-                <div class="h-[14px] mb-1"></div>
-                <div class="flex flex-col items-center gap-0.5 mt-auto">
+                <div class="flex items-center gap-0.5">
+                  <div [tuiSkeleton]="true" class="w-3 h-3 rounded-full"></div>
+                  <div [tuiSkeleton]="true" class="w-4 h-2 rounded-full"></div>
+                </div>
+                <div class="flex items-center gap-0.5">
+                  <div [tuiSkeleton]="true" class="w-3 h-3 rounded-full"></div>
+                  <div [tuiSkeleton]="true" class="w-4 h-2 rounded-full"></div>
+                </div>
+                <div class="flex-1"></div>
+                <div class="flex flex-col items-center gap-0.5">
                   <div
                     [tuiSkeleton]="true"
                     class="w-4 h-4 rounded-full opacity-70"
