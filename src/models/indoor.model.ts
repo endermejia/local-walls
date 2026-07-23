@@ -3,6 +3,7 @@ import {
   TableRow,
   TableUpdate,
   EquipperDto,
+  UserProfileDto,
 } from './supabase-interfaces';
 import { AscentType } from './app-enums.model';
 
@@ -104,6 +105,13 @@ export interface IndoorAscentWithExtras extends IndoorAscentDto {
   >;
   user_profile?: { id: string; name: string | null; avatar: string | null };
   user?: { id: string; name: string | null; avatar: string | null };
+}
+
+export interface IndoorAscentRaw extends IndoorAscentDto {
+  user?: UserProfileDto;
+  route?: IndoorRouteDto & {
+    center?: IndoorCenterDto;
+  };
 }
 
 // --- Query result shapes (raw Supabase joins) ---

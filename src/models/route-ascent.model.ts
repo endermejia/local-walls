@@ -1,7 +1,19 @@
+import { RouteDto } from './supabase-interfaces';
+import { CragDto } from './crag.model';
+import { AreaDto } from './area.model';
 import { RouteWithExtras } from './route.model';
 import { UserProfileBasicDto } from './user.model';
 
 import { RouteAscentCommentDto, RouteAscentDto } from './supabase-interfaces';
+
+export interface RouteAscentRaw extends RouteAscentDto {
+  user?: UserProfileBasicDto;
+  route?: RouteDto & {
+    crag?: CragDto & {
+      area?: Pick<AreaDto, 'slug' | 'name'>;
+    };
+  };
+}
 
 export interface RouteAscentWithExtras extends RouteAscentDto {
   user?: UserProfileBasicDto;

@@ -74,8 +74,10 @@ import {
   FeedItem,
   LABEL_TO_VERTICAL_LIFE,
   ORDERED_GRADE_VALUES,
+  RouteAscentRaw,
   RouteAscentWithExtras,
 } from '../../models';
+import { IndoorAscentRaw } from '../../models/indoor.model';
 
 export type HomeFeedFilter =
   | 'following'
@@ -432,15 +434,6 @@ export class HomeComponent implements OnDestroy {
             startWith(void 0),
             scan((acc) => acc + 1, -1),
             concatMap(async (page) => {
-              // Cache-first: serve cached data on first page load
-              if (page === 0) {
-                const cached = this.readFeedCache(filter, 0);
-                if (cached.length > 0) {
-                  this.ascents.set(cached);
-                  this.isLoading.set(false);
-                }
-              }
-
               const promises: Promise<
                 (RouteAscentWithExtras & { kind: 'ascent' })[]
               >[] = [this.fetchAscents(page, filter)];
@@ -555,17 +548,19 @@ export class HomeComponent implements OnDestroy {
         { id: number; name: string; slug: string; area_slug: string }
       >();
       data?.forEach((d) => {
-        const route = d.route as unknown as {
-          crag: {
+        const route = d.route as {
+          crag?: {
             id: number;
             name: string;
             slug: string;
-            area: { slug: string }[] | { slug: string };
-          }[];
-        };
-        const c = Array.isArray(route?.crag) ? route?.crag[0] : route?.crag;
+            area?: { slug: string } | { slug: string }[];
+          } | null;
+        } | null;
+        const rawCrag = route?.crag;
+        const c = Array.isArray(rawCrag) ? rawCrag[0] : rawCrag;
         if (c && !cragsMap.has(c.id)) {
-          const area = Array.isArray(c.area) ? c.area[0] : c.area;
+          const rawArea = c.area;
+          const area = Array.isArray(rawArea) ? rawArea[0] : rawArea;
           cragsMap.set(c.id, {
             id: c.id,
             name: c.name,
@@ -664,41 +659,36 @@ export class HomeComponent implements OnDestroy {
       const { data: ascents, error } = await query
         .order('date', { ascending: false })
         .order('id', { ascending: false })
-        .range(fromIdx, toIdx);
+        .range(fromIdx, toIdx)
+        .overrideTypes<IndoorAscentRaw[]>();
 
       if (error) throw error;
       if (!ascents || ascents.length === 0) return [];
 
       return ascents.map((a) => {
-        const { route, user, ...ascentRest } = a as {
-          route?: {
-            center?:
-              | { slug?: string; name?: string }
-              | { slug?: string; name?: string }[];
-          };
-          user?: Record<string, unknown> | null;
-          user_id: string;
-          [key: string]: unknown;
-        };
+        const { route, user, ...ascentRest } = a;
         let mappedRoute: RouteAscentWithExtras['route'] = undefined;
         if (route) {
           const center = Array.isArray(route.center)
             ? route.center[0]
             : route.center;
+          const { center: _center, ...routeFields } = route;
           mappedRoute = {
-            ...route,
+            ...routeFields,
             crag_slug: center?.slug,
             crag_name: center?.name,
             liked: false,
             project: false,
-          } as RouteAscentWithExtras['route'];
+          } as unknown as RouteAscentWithExtras['route'];
         }
         return {
           ...ascentRest,
           kind: 'ascent',
-          user: user ?? undefined,
+          user: user
+            ? { id: user.id, name: user.name, avatar: user.avatar }
+            : undefined,
           route: mappedRoute,
-        } as RouteAscentWithExtras & { kind: 'ascent' };
+        } as unknown as RouteAscentWithExtras & { kind: 'ascent' };
       });
     } catch (e: unknown) {
       console.warn('[Home] fetchIndoorAscents error', e);
@@ -798,7 +788,7 @@ export class HomeComponent implements OnDestroy {
         .order('date', { ascending: false })
         .order('id', { ascending: false })
         .range(fromIdx, toIdx)
-        .overrideTypes<RouteAscentWithExtras[]>();
+        .overrideTypes<RouteAscentRaw[]>();
 
       if (error) throw error;
 
@@ -812,35 +802,25 @@ export class HomeComponent implements OnDestroy {
       }
 
       const result = ascents.map((a) => {
-        const raw = a as unknown as {
-          route?: Record<string, unknown>;
-          user?: Record<string, unknown> | null;
-        };
-        const { route, user, ...ascentRest } = a as Record<string, unknown>;
+        const { route, user, ...ascentRest } = a;
         let mappedRoute: RouteAscentWithExtras['route'] = undefined;
-        if (raw.route) {
-          const rawCrag = raw.route['crag'];
-          const crag = Array.isArray(rawCrag)
-            ? (rawCrag[0] as Record<string, unknown>)
-            : (rawCrag as Record<string, unknown> | undefined);
-          const rawArea = crag?.['area'];
-          const area = Array.isArray(rawArea)
-            ? (rawArea[0] as Record<string, unknown>)
-            : (rawArea as Record<string, unknown> | undefined);
+        if (route) {
+          const crag = route.crag;
+          const area = crag?.area;
           mappedRoute = {
-            ...(route as Record<string, unknown>),
-            crag_slug: crag?.['slug'] as string,
-            crag_name: crag?.['name'] as string,
-            area_slug: area?.['slug'] as string,
-            area_name: area?.['name'] as string,
+            ...route,
+            crag_slug: crag?.slug,
+            crag_name: crag?.name,
+            area_slug: area?.slug,
+            area_name: area?.name,
             liked: false,
             project: false,
-          } as RouteAscentWithExtras['route'];
+          };
         }
         return {
           ...ascentRest,
           kind: 'ascent',
-          user: raw.user ?? undefined,
+          user: user ?? undefined,
           route: mappedRoute,
         } as RouteAscentWithExtras & { kind: 'ascent' };
       });
@@ -866,22 +846,6 @@ export class HomeComponent implements OnDestroy {
         }
       }
       this.hasMore.set(false);
-      return [];
-    }
-  }
-
-  private readFeedCache(
-    filter: HomeFeedFilter,
-    page: number,
-  ): (RouteAscentWithExtras & { kind: 'ascent' })[] {
-    try {
-      const cacheKey = `cached_home_feed_${filter}_${page}_v1`;
-      const cached = this.storage.getItem(cacheKey);
-      if (!cached) return [];
-      const parsed = JSON.parse(cached) as unknown[];
-      if (!parsed || parsed.length === 0) return [];
-      return parsed as (RouteAscentWithExtras & { kind: 'ascent' })[];
-    } catch {
       return [];
     }
   }
