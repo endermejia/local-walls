@@ -53,7 +53,8 @@ import { AscentInfoPipe } from '../../pipes/ascent-info.pipe';
 import { TableSorterPipe } from '../../pipes/table-sorter.pipe';
 import { handleErrorToast } from '../../utils';
 import type { TopoRouteRow } from './topo.types';
-import type { TopoRouteWithRoute, Json } from '../../models';
+import type { TopoRouteWithRoute } from '../../models';
+import { topoPathToJson } from '../../models/topo.model';
 
 @Component({
   selector: 'app-topo-routes-table',
@@ -538,7 +539,7 @@ export class TopoRoutesTableComponent {
                     topo_id: String(topoRoute.topo_id),
                     route_id: String(topoRoute.route_id),
                     number: Number(topoRoute.number || 0),
-                    path: (topoRoute.path as unknown as Json) || null,
+                    path: topoPathToJson(topoRoute.path),
                   })
                   .then(({ error: undoError }) => {
                     if (undoError) {

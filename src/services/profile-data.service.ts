@@ -101,7 +101,7 @@ export class ProfileDataService {
               | null;
             if (!r) return null;
 
-            return mapRouteToExtras(r as unknown as RawRouteData, {
+            return mapRouteToExtras(r as RawRouteData, {
               areaIdSource: 'crag.area.id',
               includeTopos: false,
             }) as RouteWithExtras;
@@ -284,7 +284,7 @@ export class ProfileDataService {
 
           if (route) {
             mappedRoute = mapAscentRouteToExtras(
-              route as unknown as Record<string, unknown>,
+              route as Record<string, unknown>,
             );
           }
 

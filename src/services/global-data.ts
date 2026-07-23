@@ -518,7 +518,7 @@ export class GlobalData {
         return null;
       }
 
-      return data as unknown as EquipperDto & {
+      return data as EquipperDto & {
         user_profile: UserProfileDto | null;
       };
     },
@@ -583,7 +583,7 @@ export class GlobalData {
             | null;
           if (!r) return null;
 
-          return mapRouteToExtras(r as unknown as RawRouteData, {
+          return mapRouteToExtras(r as RawRouteData, {
             areaIdSource: 'crag.area.id',
             includeEquippers: true,
             includeTopos: true,
@@ -807,7 +807,7 @@ export class GlobalData {
 
           return (
             data.map((r) =>
-              mapRouteToExtras(r as unknown as RawRouteData, {
+              mapRouteToExtras(r as RawRouteData, {
                 areaIdSource: 'crag.area_id',
                 ratingFallback: filterTopos ? null : 0,
                 includeEquippers: true,

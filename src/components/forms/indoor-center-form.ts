@@ -55,7 +55,8 @@ import {
   NewPhoto,
   reorderGallery,
 } from '../../utils';
-import { IndoorCenterDto, IndoorSchedule, Json } from '../../models';
+import { IndoorCenterDto, IndoorSchedule } from '../../models';
+import { scheduleToJson, scheduleFromJson } from '../../models/indoor.model';
 import { ImageEditorDialogComponent } from '../dialogs/image-editor-dialog';
 import { TuiDialogService, TuiIcon, TuiLoader } from '@taiga-ui/core';
 
@@ -736,7 +737,7 @@ export class IndoorCenterFormComponent {
       }));
 
       // Initialize Schedule
-      const schedule = (data.schedule as unknown as IndoorSchedule) || {
+      const schedule = scheduleFromJson(data.schedule) || {
         normal: {},
       };
       const defaultSchedule = this.weekDays.reduce(
@@ -1044,7 +1045,7 @@ export class IndoorCenterFormComponent {
           contact_info: this.effectiveCenterData()?.contact_info ?? null,
           country: this.effectiveCenterData()?.country ?? null,
           gallery_urls: [...modelVal.gallery_urls, ...newPhotoUrls],
-          schedule: schedulePayload as unknown as Json,
+          schedule: scheduleToJson(schedulePayload as IndoorSchedule),
           location: this.effectiveCenterData()?.location ?? null,
         };
 

@@ -44,8 +44,18 @@ export interface UserAscentStatRecord {
   private_ascent: boolean | null;
 }
 
+/** Comment with likes count from Supabase query */
+export interface CommentWithLikes extends RouteAscentCommentDto {
+  likes: { count: number }[];
+}
+
 export interface RouteAscentCommentWithExtras extends RouteAscentCommentDto {
   user_profiles: UserProfileBasicDto;
   likes_count: number;
   user_liked: boolean;
+}
+
+/** RouteAscentWithExtras with kind field for feed items */
+export interface RouteAscentFeedItem extends RouteAscentWithExtras {
+  kind: 'ascent';
 }

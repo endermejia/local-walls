@@ -9,6 +9,7 @@ import type {
   AreaPackDetail,
   AreaPack,
   MerchandiseItemDetail,
+  MerchandiseItemWithStockRow,
   OrderDetail,
   OrderItem,
   OrderStatus,
@@ -43,7 +44,15 @@ export class MerchandiseService {
       console.error('[MerchandiseService] getMerchandiseItems error', error);
       return [];
     }
-    return (data as unknown as MerchandiseItemDetail[]) || [];
+    if (!includeStock) {
+      return (data || []) as unknown as MerchandiseItemDetail[];
+    }
+    return ((data as unknown as MerchandiseItemWithStockRow[]) || []).map(
+      (item) => ({
+        ...item,
+        stock: item?.stock ?? [],
+      }),
+    ) as unknown as MerchandiseItemDetail[];
   }
 
   async getAreaPacks(onlyActive = true): Promise<AreaPackDetail[]> {
@@ -74,7 +83,7 @@ export class MerchandiseService {
       return [];
     }
 
-    return (data || []) as unknown as AreaPackDetail[];
+    return (data || []) as AreaPackDetail[];
   }
 
   async getMerchandiseItemById(
@@ -90,7 +99,7 @@ export class MerchandiseService {
       .single();
 
     if (error) return null;
-    return data as unknown as MerchandiseItemDetail;
+    return data as MerchandiseItemDetail;
   }
 
   async getAreaPackById(id: string): Promise<AreaPackDetail | null> {
@@ -104,7 +113,7 @@ export class MerchandiseService {
       .single();
 
     if (error) return null;
-    return data as unknown as AreaPackDetail;
+    return data as AreaPackDetail;
   }
 
   async upsertMerchandiseItem(

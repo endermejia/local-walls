@@ -17,7 +17,7 @@ import {
 } from '../components/dialogs/topo-path-editor-dialog';
 import TopoFormComponent from '../components/forms/topo-form';
 
-import type { Json } from '../models/supabase-generated';
+import { topoPathToJson } from '../models/topo.model';
 import type {
   TopoDetail,
   TopoDto,
@@ -302,7 +302,7 @@ export class ToposService {
     await this.supabase.whenReady();
     const { error } = await this.supabase.client
       .from('topo_routes')
-      .update({ path: path as unknown as Json })
+      .update({ path: topoPathToJson(path) })
       .match({ topo_id: topoId, route_id: routeId });
 
     if (error) {
@@ -327,7 +327,7 @@ export class ToposService {
       paths.map(({ routeId, path }) =>
         this.supabase.client
           .from('topo_routes')
-          .update({ path: path as unknown as Json })
+          .update({ path: topoPathToJson(path) })
           .match({ topo_id: topoId, route_id: routeId }),
       ),
     );

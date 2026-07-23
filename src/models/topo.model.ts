@@ -1,7 +1,7 @@
 import { AmountByEveryGrade } from './grade.model';
 import { RouteBasicWithOwnData } from './route.model';
 
-import { RouteAscentDto, RouteDto, TopoDto } from './supabase-interfaces';
+import { Json, RouteAscentDto, RouteDto, TopoDto } from './supabase-interfaces';
 
 export interface TopoListItem {
   id: number;
@@ -25,6 +25,11 @@ export interface TopoPath {
   color?: string;
   width?: number;
   [key: string]: unknown;
+}
+
+/** Safely convert a TopoPath to Json for Supabase storage */
+export function topoPathToJson(path: TopoPath | null | undefined): Json {
+  return (path ?? null) as Json;
 }
 
 export interface TopoRouteWithRoute {

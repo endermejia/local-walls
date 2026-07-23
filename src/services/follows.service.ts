@@ -46,9 +46,7 @@ export class FollowsService {
 
       if (data && data.length > 0) {
         allIds.push(
-          ...(data as unknown as Record<string, unknown>[]).map(
-            (row) => row[targetColumn] as string,
-          ),
+          ...data.map((row) => row[targetColumn as keyof typeof row] as string),
         );
         if (data.length < pageSize) {
           hasMore = false;

@@ -72,3 +72,31 @@ export interface CragWithJoins extends CragDto {
     | null;
   liked: { id: number }[];
 }
+
+/** Raw row returned by get_crags_list RPC (grades/topos are Json from DB) */
+export interface CragListRpcRow {
+  id: number;
+  name: string;
+  slug: string;
+  area_id: number;
+  grades: unknown;
+  topos: unknown;
+  approach?: number;
+  is_public?: boolean | null;
+  price?: number | null;
+  purchased?: boolean;
+  user_creator_id?: string | null;
+  created_at?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  eight_anu_sector_slugs?: string[] | null;
+}
+
+/** Row returned by getAllCragsSimple query */
+export interface CragSimpleRow {
+  id: number;
+  name: string;
+  slug: string;
+  area_id: number;
+  area: { name: string; slug: string } | null;
+}

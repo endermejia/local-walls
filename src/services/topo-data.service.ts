@@ -14,6 +14,7 @@ import {
   ClimbingKind,
   CragDetail,
   CragListItem,
+  CragListRpcRow,
   CragWithJoins,
   RouteAscentDto,
   RouteAscentWithExtras,
@@ -61,10 +62,10 @@ export class TopoDataService {
             throw error;
           }
           return (
-            (data?.map((c) => ({
+            ((data as CragListRpcRow[] | null)?.map((c) => ({
               ...c,
-              grades: c.grades as unknown as AmountByEveryGrade,
-              topos: c.topos as unknown as {
+              grades: c.grades as AmountByEveryGrade,
+              topos: c.topos as {
                 id: number;
                 name: string;
                 slug: string;
@@ -126,7 +127,7 @@ export class TopoDataService {
               }
             }
             return {
-              id: t.id as unknown as number,
+              id: t.id as string | number,
               name: t.name,
               slug: t.id,
               crag_slug: '',
@@ -359,7 +360,7 @@ export class TopoDataService {
           const r = data;
 
           return {
-            ...mapRouteToExtras(r as unknown as RawRouteData, {
+            ...mapRouteToExtras(r as RawRouteData, {
               areaIdSource: 'crag.area.id',
               includeTopos: true,
             }),
@@ -426,7 +427,7 @@ export class TopoDataService {
           ...a,
           user: profileMap.get(a.user_id),
           route: route || undefined,
-        })) as unknown as RouteAscentWithExtras[];
+        })) as RouteAscentWithExtras[];
 
         return {
           items,
@@ -636,6 +637,6 @@ export class TopoDataService {
             },
           }
         : undefined,
-    } as unknown as TopoDetail;
+    } as TopoDetail;
   }
 }

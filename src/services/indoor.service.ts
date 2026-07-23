@@ -180,7 +180,7 @@ export class IndoorService {
     if (!data) return [];
 
     const userId = this.global.userProfile()?.id;
-    const routes = data as unknown as CenterRouteQuery[];
+    const routes = data as CenterRouteQuery[];
     return routes.map((route) => {
       const ratedAscents = route.ascents.filter(
         (ascent) => ascent.rate !== null && ascent.rate > 0,
@@ -234,7 +234,7 @@ export class IndoorService {
 
     const userId = this.global.userProfile()?.id;
     return (data || []).map((t) => {
-      const row = t as unknown as IndoorTopoQueryRow;
+      const row = t as IndoorTopoQueryRow;
       const grades: Record<number, number> = {};
       const topoRoutes = row.indoor_topo_routes || [];
       let ownAscentsCount = 0;
@@ -686,7 +686,7 @@ export class IndoorService {
     if (error) throw error;
 
     return (data || []).map((ascent) => {
-      const row = ascent as unknown as IndoorAscentQueryRow;
+      const row = ascent as IndoorAscentQueryRow;
       return {
         ...row,
         route: row.route
@@ -728,7 +728,7 @@ export class IndoorService {
     if (error) throw error;
 
     return (data || []).map((ascent) => {
-      const row = ascent as unknown as IndoorAscentQueryRow;
+      const row = ascent as IndoorAscentQueryRow;
       return {
         ...row,
         route: row.route
@@ -768,7 +768,7 @@ export class IndoorService {
     if (error) throw error;
     this.reloadCenterRoutes();
     this.toast.success('messages.toasts.ascentCreated');
-    const row = data as unknown as IndoorAscentQueryRow;
+    const row = data as IndoorAscentQueryRow;
     return {
       ...row,
       route: row.route
@@ -842,7 +842,7 @@ export class IndoorService {
     this.toast.showWithUndo('messages.toasts.ascentDeleted', () => {
       this.supabase.client
         .from('indoor_ascents')
-        .insert(ascent as unknown as IndoorAscentInsertDto)
+        .insert(ascent as IndoorAscentInsertDto)
         .then(({ error: undoError }) => {
           if (undoError) {
             handleErrorToast(undoError, this.toast);

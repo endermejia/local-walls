@@ -21,7 +21,12 @@ import { ToastService } from './toast.service';
 import { CragFormComponent } from '../components/forms/crag-form';
 import { CragUnifyComponent } from '../components/forms/crag-unify';
 
-import type { CragDto, CragInsertDto, CragUpdateDto } from '../models';
+import type {
+  CragDto,
+  CragInsertDto,
+  CragUpdateDto,
+  CragSimpleRow,
+} from '../models';
 
 import { GlobalData } from './global-data';
 
@@ -98,7 +103,7 @@ export class CragsService {
     });
   }
 
-  openUnifyCrags(crags?: CragDto[]): Promise<boolean> {
+  openUnifyCrags(crags?: Pick<CragDto, 'id' | 'name'>[]): Promise<boolean> {
     return firstValueFrom(
       this.dialogs.open<boolean>(
         new PolymorpheusComponent(CragUnifyComponent),
@@ -139,7 +144,16 @@ export class CragsService {
       }
 
       if (data && data.length > 0) {
-        allCrags = [...allCrags, ...(data as unknown as CragSimple[])];
+        allCrags = [
+          ...allCrags,
+          ...(data as CragSimpleRow[]).map((r) => ({
+            id: r.id,
+            name: r.name,
+            slug: r.slug,
+            area_id: r.area_id,
+            area: r.area,
+          })),
+        ];
         if (data.length < step) {
           hasMore = false;
         } else {

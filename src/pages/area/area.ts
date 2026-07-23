@@ -606,7 +606,7 @@ export class AreaComponent {
         console.error('[AreaComponent] Error searching routes:', error);
         return [];
       }
-      return data as unknown as {
+      return data as {
         id: number;
         name: string;
         slug: string;

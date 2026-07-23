@@ -74,6 +74,7 @@ import {
   FeedItem,
   LABEL_TO_VERTICAL_LIFE,
   ORDERED_GRADE_VALUES,
+  RouteAscentFeedItem,
   RouteAscentRaw,
   RouteAscentWithExtras,
 } from '../../models';
@@ -683,12 +684,12 @@ export class HomeComponent implements OnDestroy {
         }
         return {
           ...ascentRest,
-          kind: 'ascent',
+          kind: 'ascent' as const,
           user: user
             ? { id: user.id, name: user.name, avatar: user.avatar }
             : undefined,
           route: mappedRoute,
-        } as unknown as RouteAscentWithExtras & { kind: 'ascent' };
+        } as unknown as RouteAscentFeedItem;
       });
     } catch (e: unknown) {
       console.warn('[Home] fetchIndoorAscents error', e);
@@ -819,10 +820,10 @@ export class HomeComponent implements OnDestroy {
         }
         return {
           ...ascentRest,
-          kind: 'ascent',
+          kind: 'ascent' as const,
           user: user ?? undefined,
           route: mappedRoute,
-        } as RouteAscentWithExtras & { kind: 'ascent' };
+        } as unknown as RouteAscentFeedItem;
       });
 
       this.storage.setItem(cacheKey, JSON.stringify(result));

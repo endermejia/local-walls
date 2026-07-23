@@ -31,6 +31,8 @@ import type {
   AreaInsertDto,
   AreaListItem,
   AreaUpdateDto,
+  AreaWithPurchase,
+  AreaAdminRequestWithArea,
   EightAnuRoute,
   RouteInsertDto,
 } from '../models';
@@ -186,14 +188,12 @@ export class AreasService {
       .single();
 
     if (data) {
-      const result = data as unknown as AreaDetail & {
-        purchased: { id: string }[] | boolean;
-      };
+      const result = data as AreaWithPurchase;
       result.purchased =
         Array.isArray(result.purchased) && result.purchased.length > 0;
     }
 
-    return { data: data as unknown as AreaDetail | null, error };
+    return { data: data as AreaDetail | null, error };
   }
 
   async getAllAreasSimple(): Promise<
@@ -646,12 +646,7 @@ export class AreasService {
       console.error('[AreasService] getAreaAdminRequests error', error);
       return [];
     }
-    return (data || []) as unknown as {
-      id: number;
-      created_at: string;
-      area: { id: number; name: string; slug: string };
-      user: { id: string; name: string | null };
-    }[];
+    return (data || []) as AreaAdminRequestWithArea[];
   }
 
   async approveAreaAdminRequest(

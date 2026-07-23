@@ -21,7 +21,8 @@ import {
 import { TuiTextarea } from '@taiga-ui/kit';
 
 import { IndoorService } from '../../services/indoor.service';
-import { IndoorCenterDto, IndoorSchedule, Json } from '../../models';
+import { IndoorCenterDto } from '../../models';
+import { scheduleToJson, scheduleFromJson } from '../../models/indoor.model';
 
 @Component({
   selector: 'app-indoor-admin-info',
@@ -231,7 +232,7 @@ export class IndoorAdminInfoComponent implements OnInit {
       description: c.description,
     });
 
-    const schedule = (c.schedule as unknown as IndoorSchedule) || {
+    const schedule = scheduleFromJson(c.schedule) || {
       normal: {},
     };
     const defaultSchedule = this.weekDays.reduce(
@@ -327,7 +328,7 @@ export class IndoorAdminInfoComponent implements OnInit {
       }
       const payload = {
         ...this.form(),
-        schedule: { normal: normalSchedule } as unknown as Json,
+        schedule: scheduleToJson({ normal: normalSchedule, exceptions: [] }),
       };
       await this.indoor.updateCenter(this.center().id, payload);
       void this.router.navigate(['/indoor', this.center().slug]);

@@ -102,7 +102,10 @@ export class AscentsService {
       `,
       )
       .eq('id', id)
-      .maybeSingle();
+      .maybeSingle()
+      .overrideTypes<
+        (RouteAscentDto & { route: Record<string, unknown> | null }) | null
+      >();
 
     if (error || !data) {
       if (error) console.error('[AscentsService] getAscentById error', error);
@@ -121,7 +124,7 @@ export class AscentsService {
     let mappedRoute: RouteWithExtras | undefined = undefined;
     if (a.route) {
       const routeRaw = Array.isArray(a.route) ? a.route[0] : a.route;
-      const routeData = routeRaw as unknown as Record<string, unknown>;
+      const routeData = routeRaw as Record<string, unknown>;
       const cragData = (
         Array.isArray(routeData['crag'])
           ? routeData['crag'][0]
@@ -180,7 +183,8 @@ export class AscentsService {
       `,
       )
       .eq('user_id', userId)
-      .order('date', { ascending: false });
+      .order('date', { ascending: false })
+      .overrideTypes<QueryResult[]>();
 
     if (error) {
       console.error('[AscentsService] getUserStats error', error);
@@ -210,7 +214,7 @@ export class AscentsService {
     }
 
     return (
-      (data as unknown as QueryResult[])?.map((a) => {
+      data?.map((a) => {
         const route = a.route;
         const crag = route?.crag;
         const area = crag?.area;
@@ -300,7 +304,8 @@ export class AscentsService {
       .eq('user_id', userId)
       .gte('date', from_)
       .lte('date', to)
-      .order('date', { ascending: false });
+      .order('date', { ascending: false })
+      .overrideTypes<MonthQueryResult[]>();
 
     if (error) {
       console.error('[AscentsService] getUserAscentsByMonth error', error);
@@ -326,7 +331,7 @@ export class AscentsService {
       } | null;
     }
 
-    return ((data ?? []) as unknown as MonthQueryResult[]).map((a) => {
+    return (data ?? []).map((a) => {
       const route = a.route;
       const crag = route?.crag;
       const area = crag?.area;
@@ -774,7 +779,7 @@ export class AscentsService {
       userLiked = !!like;
     }
 
-    const c = comment as unknown as CommentWithLikes;
+    const c = comment as CommentWithLikes;
     return {
       ...c,
       user_profiles: user as UserProfileBasicDto,
@@ -849,7 +854,7 @@ export class AscentsService {
       }
     }
 
-    return (commentsData as unknown as CommentWithLikes[])
+    return (commentsData as CommentWithLikes[])
       .map((comment) => {
         return {
           ...comment,

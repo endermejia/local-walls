@@ -81,7 +81,7 @@ export class AreaRedirectComponent {
       }
       void this.router.navigate([
         '/area',
-        (crag.area as unknown as { slug: string }).slug,
+        (crag.area as { slug: string }).slug,
         crag.slug,
       ]);
     } else {

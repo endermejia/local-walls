@@ -1,6 +1,7 @@
 import { EquipperDto, RouteAscentDto, RouteDto } from './supabase-interfaces';
 import { IndoorRouteWithExtras } from './indoor.model';
 import { AscentType } from './app-enums.model';
+import { CragDto } from './crag.model';
 
 export interface RouteBasicDto extends Pick<
   RouteDto,
@@ -31,6 +32,49 @@ export interface RouteWithExtras extends RouteDto {
   own_ascent?: RouteAscentDto | null;
   topos?: { id: number; name: string; slug: string }[];
   equippers?: EquipperDto[];
+}
+
+/** Supabase route query with common joins (for mapRouteToExtras) */
+export interface RouteWithJoins extends RouteDto {
+  liked: { id: number }[];
+  project: { id: number }[];
+  ascents: { rate: number | null; type: AscentType }[];
+  own_ascent: RouteAscentDto[];
+  crag:
+    | (CragDto & {
+        area: { id: number; name: string; slug: string } | null;
+      })
+    | null;
+  route_equippers?: { equipper: EquipperDto }[];
+  topo_routes?: { topo: { id: number; name: string; slug: string } }[];
+}
+
+/** Route query result for profile ascents (uses 'crags' alias instead of 'crag') */
+export interface RouteWithJoinsAlias extends RouteDto {
+  liked: { id: number }[];
+  project: { id: number }[];
+  ascents: { rate: number | null; type: AscentType }[];
+  crag:
+    | (CragDto & {
+        areas?: { slug?: string; name?: string };
+        area?: { id: number; name: string; slug: string } | null;
+      })
+    | null;
+}
+
+/** Row returned by getRoutesByAreaSimple query */
+export interface RouteSimpleRow {
+  id: number;
+  name: string;
+  slug?: string;
+  crag_id: number;
+  crag: {
+    name: string;
+    slug?: string;
+    area_id: number;
+    area_slug?: string;
+    area_name?: string;
+  } | null;
 }
 
 export type RouteItem = RouteWithExtras;

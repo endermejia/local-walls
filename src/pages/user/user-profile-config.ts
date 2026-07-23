@@ -1312,7 +1312,7 @@ export class UserProfileConfigComponent {
     const current = this.profile();
     const value = options.transform
       ? options.transform(control.value())
-      : (control.value() as unknown as UserProfileDto[K]);
+      : (control.value() as UserProfileDto[K]);
 
     const validationError = options.validate ? options.validate(value) : null;
     if (control.invalid() || validationError) {

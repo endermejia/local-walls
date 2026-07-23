@@ -61,3 +61,20 @@ export type OrderStatus =
 export interface MerchandiseItemDetail extends MerchandiseItem {
   stock?: MerchandiseStock[];
 }
+
+/** Supabase query result for merchandise items with stock join */
+export type MerchandiseItemWithStockRow =
+  | (Database['public']['Tables']['merchandise_items']['Row'] & {
+      stock: MerchandiseStock[];
+    })
+  | null;
+
+/** Supabase query result for area packs with items join */
+export type AreaPackWithItemsRow =
+  | (Database['public']['Tables']['area_packs']['Row'] & {
+      items: {
+        area_id: number;
+        area: { id: number; name: string; slug: string };
+      }[];
+    })
+  | null;

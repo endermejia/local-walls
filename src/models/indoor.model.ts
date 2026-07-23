@@ -1,4 +1,5 @@
 import {
+  Json,
   TableInsert,
   TableRow,
   TableUpdate,
@@ -62,8 +63,8 @@ export interface IndoorSchedule {
   normal: Record<
     string,
     {
-      open: string;
-      close: string;
+      open: string | null;
+      close: string | null;
       closed?: boolean;
       open2?: string | null;
       close2?: string | null;
@@ -76,6 +77,16 @@ export interface IndoorSchedule {
     closed: boolean;
     note?: string;
   }[];
+}
+
+/** Safely convert an IndoorSchedule to Json for Supabase storage */
+export function scheduleToJson(schedule: IndoorSchedule): Json {
+  return schedule as unknown as Json;
+}
+
+/** Safely parse a Json value from Supabase as IndoorSchedule */
+export function scheduleFromJson(value: unknown): IndoorSchedule {
+  return value as unknown as IndoorSchedule;
 }
 
 export interface IndoorVoucherWithCenter extends IndoorVoucherDto {

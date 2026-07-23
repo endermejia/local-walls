@@ -746,9 +746,12 @@ export default class AscentFormComponent {
     highball: false,
   });
 
-  protected readonly modelDict = computed(
-    () => this.model() as unknown as Record<string, boolean | null>,
-  );
+  protected readonly modelDict = computed(() => {
+    const m = this.model();
+    return Object.fromEntries(
+      Object.entries(m).filter(([, v]) => typeof v === 'boolean' || v === null),
+    ) as Record<string, boolean | null>;
+  });
 
   ascentForm = form(this.model, (path) => {
     required(path.type);

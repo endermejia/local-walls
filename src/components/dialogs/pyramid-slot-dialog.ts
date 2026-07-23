@@ -239,7 +239,7 @@ export class PyramidSlotDialogComponent {
   }
 
   getExtra(route: RouteDto): Record<string, unknown> {
-    return route as unknown as Record<string, unknown>;
+    return route as Record<string, unknown>;
   }
 
   selectRoute(route: RouteDto): void {
@@ -258,7 +258,7 @@ export class PyramidSlotDialogComponent {
     const routeSlug = route.slug;
 
     if (areaSlug && cragSlug && routeSlug) {
-      this.context.completeWith(undefined as unknown as null); // Dismiss without action
+      this.context.completeWith(null); // Dismiss without action
       void this.router.navigate(['/area', areaSlug, cragSlug, routeSlug]);
     }
   }

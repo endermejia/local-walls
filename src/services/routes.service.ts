@@ -23,6 +23,7 @@ import type {
   RouteInsertDto,
   RouteUpdateDto,
   RouteWithExtras,
+  RouteSimpleRow,
 } from '../models';
 
 import { normalizeNameStrict } from '../utils';
@@ -107,7 +108,7 @@ export class RoutesService {
     });
   }
 
-  openUnifyRoutes(routes?: RouteDto[]): Promise<boolean> {
+  openUnifyRoutes(routes?: Pick<RouteDto, 'id' | 'name'>[]): Promise<boolean> {
     return firstValueFrom(
       this.dialogs.open<boolean>(
         new PolymorpheusComponent(RouteUnifyComponent),
@@ -151,7 +152,22 @@ export class RoutesService {
           if (error) throw error;
 
           if (data && data.length > 0) {
-            allRoutes = [...allRoutes, ...(data as unknown as RouteSimple[])];
+            allRoutes = [
+              ...allRoutes,
+              ...(data as RouteSimpleRow[]).map((r) => ({
+                id: r.id,
+                name: r.name,
+                slug: r.slug,
+                crag_id: r.crag_id,
+                crag: r.crag
+                  ? {
+                      name: r.crag.name,
+                      slug: r.crag.slug,
+                      area_id: r.crag.area_id,
+                    }
+                  : null,
+              })),
+            ];
             if (data.length < step) {
               hasMore = false;
             } else {
@@ -545,7 +561,7 @@ export class RoutesService {
       return [];
     }
     return (data || []).map((d) => {
-      const item = d as unknown as { equipper: EquipperDto };
+      const item = d as { equipper: EquipperDto };
       return item.equipper;
     });
   }

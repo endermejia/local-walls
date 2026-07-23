@@ -89,7 +89,7 @@ export class SuggestedUnifiedAreasComponent {
       if (!groups.has(key)) {
         groups.set(key, []);
       }
-      groups.get(key)!.push(area as unknown as AreaDto);
+      groups.get(key)!.push(area as AreaDto);
     }
 
     return Array.from(groups.values()).filter((g) => g.length > 1);

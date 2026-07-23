@@ -5,28 +5,14 @@ import { SupabaseService } from './supabase.service';
 
 import {
   AreaListItem,
+  AreaListRpcRow,
   AmountByEveryGrade,
   CragListItem,
+  CragListRpcRow,
   RouteWithExtras,
-  RouteDto,
+  RouteWithJoins,
 } from '../models';
 import { mapRouteToExtras, RawRouteData } from '../utils/route-mapper';
-
-interface RouteWithJoins extends RouteDto {
-  liked: { id: number }[];
-  project: { id: number }[];
-  ascents: { rate: number | null; type: string }[];
-  own_ascent: { id: number; rate: number | null; type: string }[];
-  crag: {
-    slug: string;
-    name: string;
-    area: {
-      id: number;
-      slug: string;
-      name: string;
-    } | null;
-  } | null;
-}
 
 @Injectable({
   providedIn: 'root',
@@ -65,10 +51,10 @@ export class FavoritesService {
     return (likedAreas || [])
       .filter((a) => !purchasedIds.has(a.id))
       .map((a) => ({
-        ...a,
-        grades: a.grades as unknown as AmountByEveryGrade,
+        ...(a as unknown as AreaListRpcRow),
+        grades: (a as unknown as AreaListRpcRow).grades as AmountByEveryGrade,
         liked: true,
-      })) as AreaListItem[];
+      })) as unknown as AreaListItem[];
   }
 
   async getLikedCrags(userId: string): Promise<CragListItem[]> {
@@ -92,9 +78,13 @@ export class FavoritesService {
     }
 
     return (likedCrags || []).map((c) => ({
-      ...c,
-      grades: c.grades as unknown as AmountByEveryGrade,
-      topos: c.topos as unknown as { id: number; name: string; slug: string }[],
+      ...(c as CragListRpcRow),
+      grades: (c as CragListRpcRow).grades as AmountByEveryGrade,
+      topos: (c as CragListRpcRow).topos as {
+        id: number;
+        name: string;
+        slug: string;
+      }[],
       liked: true,
     })) as CragListItem[];
   }
@@ -142,10 +132,10 @@ export class FavoritesService {
       return [];
     }
 
-    const routes = data as unknown as RouteWithJoins[];
+    const routes = data as RouteWithJoins[];
 
     return routes.map((r) =>
-      mapRouteToExtras(r as unknown as RawRouteData, {
+      mapRouteToExtras(r as RawRouteData, {
         areaIdSource: 'crag.area.id',
         includeEquippers: false,
         includeTopos: false,
