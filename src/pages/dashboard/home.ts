@@ -432,20 +432,36 @@ export class HomeComponent implements OnDestroy {
             startWith(void 0),
             scan((acc) => acc + 1, -1),
             concatMap(async (page) => {
-              let ascents = await this.fetchAscents(page, filter);
-              if (showIndoor) {
-                const indoor = await this.fetchIndoorAscents(page, filter);
-                ascents = [...ascents, ...indoor].sort((a, b) => {
-                  const dateA = a.date ? new Date(a.date).getTime() : 0;
-                  const dateB = b.date ? new Date(b.date).getTime() : 0;
-                  return dateB - dateA;
-                });
+              // Cache-first: serve cached data on first page load
+              if (page === 0) {
+                const cached = this.readFeedCache(filter, 0);
+                if (cached.length > 0) {
+                  this.ascents.set(cached);
+                  this.isLoading.set(false);
+                }
               }
+
+              const promises: Promise<
+                (RouteAscentWithExtras & { kind: 'ascent' })[]
+              >[] = [this.fetchAscents(page, filter)];
+              if (showIndoor) {
+                promises.push(this.fetchIndoorAscents(page, filter));
+              }
+              const results = await Promise.all(promises);
+              let ascents = results.flat().sort((a, b) => {
+                const dateA = a.date ? new Date(a.date).getTime() : 0;
+                const dateB = b.date ? new Date(b.date).getTime() : 0;
+                return dateB - dateA;
+              });
               if (filter === 'all') {
-                const lastItem = this.ascents().slice(-1)[0];
                 const beforeDate =
-                  lastItem && lastItem.date
-                    ? new Date(lastItem.date).toISOString()
+                  page > 0
+                    ? (() => {
+                        const lastItem = this.ascents().slice(-1)[0];
+                        return lastItem?.date
+                          ? new Date(lastItem.date).toISOString()
+                          : undefined;
+                      })()
                     : undefined;
                 const news = await this.desnivelService.getLatestPosts(
                   5,
@@ -598,6 +614,7 @@ export class HomeComponent implements OnDestroy {
     let query = this.supabase.client.from('indoor_ascents').select(
       `
           *,
+          user:user_profiles(*),
           route:indoor_routes!inner(
             *,
             center:indoor_centers!inner(*)
@@ -652,23 +669,14 @@ export class HomeComponent implements OnDestroy {
       if (error) throw error;
       if (!ascents || ascents.length === 0) return [];
 
-      const userIds = [...new Set(ascents.map((a) => a.user_id))].filter(
-        (id): id is string => id !== null,
-      );
-      const { data: profiles } = await this.supabase.client
-        .from('user_profiles')
-        .select('*')
-        .in('id', userIds);
-
-      const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
-
       return ascents.map((a) => {
-        const { route, ...ascentRest } = a as {
+        const { route, user, ...ascentRest } = a as {
           route?: {
             center?:
               | { slug?: string; name?: string }
               | { slug?: string; name?: string }[];
           };
+          user?: Record<string, unknown> | null;
           user_id: string;
           [key: string]: unknown;
         };
@@ -688,7 +696,7 @@ export class HomeComponent implements OnDestroy {
         return {
           ...ascentRest,
           kind: 'ascent',
-          user: a.user_id ? profileMap.get(a.user_id) : undefined,
+          user: user ?? undefined,
           route: mappedRoute,
         } as RouteAscentWithExtras & { kind: 'ascent' };
       });
@@ -714,6 +722,7 @@ export class HomeComponent implements OnDestroy {
     let query = this.supabase.client.from('route_ascents').select(
       `
           *,
+          user:user_profiles(*),
           route:routes!inner(
             *,
             crag:crags!inner(
@@ -802,34 +811,36 @@ export class HomeComponent implements OnDestroy {
         this.hasMore.set(false);
       }
 
-      const userIds = [...new Set(ascents.map((a) => a.user_id))];
-      const { data: profiles } = await this.supabase.client
-        .from('user_profiles')
-        .select('*')
-        .in('id', userIds);
-
-      const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
-
       const result = ascents.map((a) => {
-        const { route, ...ascentRest } = a;
+        const raw = a as unknown as {
+          route?: Record<string, unknown>;
+          user?: Record<string, unknown> | null;
+        };
+        const { route, user, ...ascentRest } = a as Record<string, unknown>;
         let mappedRoute: RouteAscentWithExtras['route'] = undefined;
-        if (route) {
-          const crag = Array.isArray(route.crag) ? route.crag[0] : route.crag;
-          const area = Array.isArray(crag?.area) ? crag?.area[0] : crag?.area;
+        if (raw.route) {
+          const rawCrag = raw.route['crag'];
+          const crag = Array.isArray(rawCrag)
+            ? (rawCrag[0] as Record<string, unknown>)
+            : (rawCrag as Record<string, unknown> | undefined);
+          const rawArea = crag?.['area'];
+          const area = Array.isArray(rawArea)
+            ? (rawArea[0] as Record<string, unknown>)
+            : (rawArea as Record<string, unknown> | undefined);
           mappedRoute = {
-            ...route,
-            crag_slug: crag?.slug,
-            crag_name: crag?.name,
-            area_slug: area?.slug,
-            area_name: area?.name,
+            ...(route as Record<string, unknown>),
+            crag_slug: crag?.['slug'] as string,
+            crag_name: crag?.['name'] as string,
+            area_slug: area?.['slug'] as string,
+            area_name: area?.['name'] as string,
             liked: false,
             project: false,
-          };
+          } as RouteAscentWithExtras['route'];
         }
         return {
           ...ascentRest,
           kind: 'ascent',
-          user: a.user_id ? profileMap.get(a.user_id) : undefined,
+          user: raw.user ?? undefined,
           route: mappedRoute,
         } as RouteAscentWithExtras & { kind: 'ascent' };
       });
@@ -855,6 +866,22 @@ export class HomeComponent implements OnDestroy {
         }
       }
       this.hasMore.set(false);
+      return [];
+    }
+  }
+
+  private readFeedCache(
+    filter: HomeFeedFilter,
+    page: number,
+  ): (RouteAscentWithExtras & { kind: 'ascent' })[] {
+    try {
+      const cacheKey = `cached_home_feed_${filter}_${page}_v1`;
+      const cached = this.storage.getItem(cacheKey);
+      if (!cached) return [];
+      const parsed = JSON.parse(cached) as unknown[];
+      if (!parsed || parsed.length === 0) return [];
+      return parsed as (RouteAscentWithExtras & { kind: 'ascent' })[];
+    } catch {
       return [];
     }
   }
