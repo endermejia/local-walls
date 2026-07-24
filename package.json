@@ -2,6 +2,9 @@
   "name": "climbeast",
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve --hmr=false",
