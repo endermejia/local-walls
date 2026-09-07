@@ -66,7 +66,6 @@ import { UserProfilesService } from '../../services/user-profiles.service';
 
 import { FirstStepsDialogComponent } from '../../components/dialogs/first-steps-dialog';
 import { FollowRequestsDialogComponent } from '../../components/dialogs/follow-requests-dialog';
-import { TourHintComponent } from '../../components/ui/tour-hint';
 import { Profile8aSectionComponent } from '../../components/user-profile/profile-8a-section';
 import { ProfileDangerZoneComponent } from '../../components/user-profile/profile-danger-zone';
 import { ProfileGeneralSectionComponent } from '../../components/user-profile/profile-general-section';
@@ -101,7 +100,6 @@ interface Country {
     ProfileDangerZoneComponent,
     ProfileGeneralSectionComponent,
     ProfilePreferencesComponent,
-    TourHintComponent,
     TranslatePipe,
     TuiHeader,
     TuiIcon,
@@ -224,19 +222,6 @@ interface Country {
         </div>
       </section>
     </tui-scrollbar>
-
-    <ng-template #tourHint>
-      <app-tour-hint
-        [description]="'tour.config.description' | translate"
-        (next)="tourService.next()"
-        (skip)="tourService.finish()"
-        [disabled]="
-          profileForm.fullName().invalid() ||
-          profileForm.fullName().value() === userEmail()
-        "
-        [showSkip]="false"
-      />
-    </ng-template>
   `,
 })
 export class UserProfileConfigComponent {

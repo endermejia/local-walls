@@ -161,7 +161,9 @@ import { TourHintComponent } from '../ui/tour-hint';
         @if (
           tourService.isActive() && tourService.step() === TourStep.WELCOME
         ) {
-          <tui-pulse />
+          <span class="absolute top-4 right-4 pointer-events-none z-10 size-0">
+            <tui-pulse />
+          </span>
         }
         @if (nameEqualsEmail()) {
           <div tuiNotification appearance="warning" class="mt-2">

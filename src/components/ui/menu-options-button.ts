@@ -12,7 +12,7 @@ import {
 import { Router } from '@angular/router';
 
 import { TuiAppearance, TuiButton, TuiDropdown, TuiIcon } from '@taiga-ui/core';
-import { TuiAvatar, TuiSkeleton } from '@taiga-ui/kit';
+import { TuiAvatar, TuiPulse, TuiSkeleton } from '@taiga-ui/kit';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -28,6 +28,7 @@ import { MenuOptionsDropdownComponent } from './menu-options-dropdown';
     TuiButton,
     TuiDropdown,
     TuiIcon,
+    TuiPulse,
     TuiSkeleton,
   ],
   template: `
@@ -41,7 +42,7 @@ import { MenuOptionsDropdownComponent } from './menu-options-dropdown';
         <button
           type="button"
           [tuiAppearance]="appearance()"
-          class="flex items-center gap-4 p-3 rounded-xl transition-colors cursor-pointer select-none touch-manipulation w-fit md:w-full group"
+          class="flex items-center gap-4 p-3 rounded-xl transition-colors cursor-pointer select-none touch-manipulation w-fit md:w-full group relative"
           [tuiSkeleton]="loading()"
           (pointerdown)="onPointerDown($event)"
           (pointermove)="onPointerMove($event)"
@@ -52,27 +53,36 @@ import { MenuOptionsDropdownComponent } from './menu-options-dropdown';
           (click)="onButtonClick($event)"
           [attr.aria-label]="label() || ('nav.profile' | translate)"
         >
-          <span
-            tuiAvatar
-            [tuiSkeleton]="loading()"
-            [class.ring-2]="isActive()"
-            [class.ring-offset-2]="isActive()"
-            [style.--tw-ring-color]="
-              isActive() ? 'var(--tui-text-negative)' : ''
-            "
-            size="xs"
-          >
-            @if (avatarUrl()) {
-              <img [src]="avatarUrl()" [alt]="userName() || ''" />
-            } @else {
-              <tui-icon
-                icon="@tui.user"
-                [style.color]="
-                  isActive()
-                    ? 'var(--tui-text-negative)'
-                    : 'var(--tui-text-primary)'
-                "
-              />
+          <span class="relative inline-flex">
+            <span
+              tuiAvatar
+              [tuiSkeleton]="loading()"
+              [class.ring-2]="isActive()"
+              [class.ring-offset-2]="isActive()"
+              [style.--tw-ring-color]="
+                isActive() ? 'var(--tui-text-negative)' : ''
+              "
+              size="xs"
+            >
+              @if (avatarUrl()) {
+                <img [src]="avatarUrl()" [alt]="userName() || ''" />
+              } @else {
+                <tui-icon
+                  icon="@tui.user"
+                  [style.color]="
+                    isActive()
+                      ? 'var(--tui-text-negative)'
+                      : 'var(--tui-text-primary)'
+                  "
+                />
+              }
+            </span>
+            @if (hasPulse()) {
+              <span
+                class="absolute bottom-0 left-0 pointer-events-none z-10 size-0"
+              >
+                <tui-pulse />
+              </span>
             }
           </span>
           @if (label()) {
@@ -100,7 +110,7 @@ import { MenuOptionsDropdownComponent } from './menu-options-dropdown';
         <button
           type="button"
           [tuiAppearance]="appearance()"
-          class="flex items-center gap-4 transition-colors p-3 rounded-xl w-full cursor-pointer no-underline text-inherit"
+          class="flex items-center gap-4 transition-colors p-3 rounded-xl w-full cursor-pointer no-underline text-inherit relative"
           [tuiSkeleton]="loading()"
           (click)="open.set(!open())"
         >
@@ -133,6 +143,7 @@ export class MenuOptionsButtonComponent {
   avatarUrl = input<string | null | undefined>(undefined);
   userName = input<string | null | undefined>(undefined);
   isActive = input<boolean>(false);
+  hasPulse = input<boolean>(false);
   label = input<string>('');
   showNavigationOptions = input<boolean>(false);
   showProfile = input<boolean>(false);

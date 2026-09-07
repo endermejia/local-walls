@@ -118,9 +118,11 @@ import { TourHintComponent } from './tour-hint';
             @if (
               tourService.isActive() && tourService.step() === TourStep.HOME
             ) {
-              <tui-pulse
-                class="absolute bottom-2 left-2 pointer-events-none z-10"
-              />
+              <span
+                class="absolute bottom-2 left-2 pointer-events-none z-10 size-0"
+              >
+                <tui-pulse />
+              </span>
             }
             <app-notification-badge>
               <tui-icon
@@ -164,9 +166,11 @@ import { TourHintComponent } from './tour-hint';
             @if (
               tourService.isActive() && tourService.step() === TourStep.EXPLORE
             ) {
-              <tui-pulse
-                class="absolute bottom-2 left-2 pointer-events-none z-10"
-              />
+              <span
+                class="absolute bottom-2 left-2 pointer-events-none z-10 size-0"
+              >
+                <tui-pulse />
+              </span>
             }
             <tui-icon
               icon="@tui.map"
@@ -264,19 +268,16 @@ import { TourHintComponent } from './tour-hint';
               "
               tuiDropdownDirection="top"
             ></div>
-            @if (
-              tourService.isActive() && tourService.step() === TourStep.PROFILE
-            ) {
-              <tui-pulse
-                class="absolute bottom-2 left-2 pointer-events-none z-10"
-              />
-            }
             <app-menu-options-button
               appearance="flat-grayscale"
               [avatarMode]="true"
               [avatarUrl]="authState.userAvatar()"
               [userName]="authState.userProfile()?.name"
               [isActive]="isProfileActive()"
+              [hasPulse]="
+                tourService.isActive() &&
+                tourService.step() === TourStep.PROFILE
+              "
               [label]="'nav.profile' | translate"
               [showNavigationOptions]="true"
               [showLogout]="false"
@@ -361,7 +362,7 @@ export class NavbarComponent {
       case TourStep.EXPLORE:
         return 'tour.explore.description';
       case TourStep.PROFILE:
-        return 'tour.profile.ascentsDescription';
+        return 'tour.profile.description';
       case TourStep.HOME:
       default:
         return 'tour.home.description';

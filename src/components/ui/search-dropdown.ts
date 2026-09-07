@@ -121,9 +121,11 @@ import { TourHintComponent } from './tour-hint';
         [attr.aria-label]="'search' | translate"
       >
         @if (tourService.isActive() && tourService.step() === TourStep.SEARCH) {
-          <tui-pulse
-            class="absolute bottom-2 left-2 pointer-events-none z-10"
-          />
+          <span
+            class="absolute bottom-2 left-2 pointer-events-none z-10 size-0"
+          >
+            <tui-pulse />
+          </span>
         }
         <tui-icon
           icon="@tui.search"
@@ -222,7 +224,11 @@ import { TourHintComponent } from './tour-hint';
                               class="relative"
                             >
                               @if (isTourHighlight(item)) {
-                                <tui-pulse />
+                                <span
+                                  class="absolute bottom-2 left-2 pointer-events-none z-10 size-0"
+                                >
+                                  <tui-pulse />
+                                </span>
                               }
                               <ng-container
                                 [ngTemplateOutlet]="itemTemplate"
@@ -253,7 +259,11 @@ import { TourHintComponent } from './tour-hint';
                             class="relative"
                           >
                             @if (isTourHighlight(item)) {
-                              <tui-pulse />
+                              <span
+                                class="absolute bottom-2 left-2 pointer-events-none z-10 size-0"
+                              >
+                                <tui-pulse />
+                              </span>
                             }
                             <ng-container
                               [ngTemplateOutlet]="itemTemplate"

@@ -197,11 +197,14 @@ import { IS_BROWSER } from '../../app/is-browser';
                 [tuiDropdown]="tourHint"
                 [tuiDropdownManual]="isExploreAreasTourStep"
                 tuiDropdownDirection="top"
+                (click)="onOutdoorClick()"
               >
                 @if (isExploreAreasTourStep) {
-                  <tui-pulse
-                    class="absolute bottom-2 left-2 pointer-events-none z-10"
-                  />
+                  <span
+                    class="absolute bottom-2 left-2 pointer-events-none z-10 size-0"
+                  >
+                    <tui-pulse />
+                  </span>
                 }
                 {{ 'outdoor.button' | translate }}
               </button>
@@ -234,6 +237,7 @@ import { IS_BROWSER } from '../../app/is-browser';
                 appearance="primary-grayscale"
                 iconStart="@tui.mountain"
                 routerLink="/area"
+                (click)="onOutdoorClick()"
               >
                 {{ 'outdoor.button' | translate }}
               </button>
@@ -525,6 +529,15 @@ export class ExploreComponent {
         return 'tour.explore.description';
     }
   });
+
+  protected onOutdoorClick(): void {
+    if (
+      this.tourService.isActive() &&
+      this.tourService.step() === TourStep.EXPLORE_AREAS
+    ) {
+      void this.tourService.next();
+    }
+  }
   private readonly filtersService = inject(FiltersService);
   private readonly parkingsService = inject(ParkingsService);
   protected readonly areasService = inject(AreasService);
