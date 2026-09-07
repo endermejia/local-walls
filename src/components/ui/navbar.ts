@@ -94,7 +94,7 @@ import { TourHintComponent } from './tour-hint';
 
         <!-- Navigation Links (Middle) -->
         <nav
-          class="w-full flex md:flex-col gap-2 md:gap-4 justify-around md:justify-start overflow-y-auto overflow-x-hidden my-auto"
+          class="w-full flex md:flex-col gap-2 md:gap-4 justify-around md:justify-start overflow-hidden md:overflow-y-auto md:overflow-x-hidden my-auto"
         >
           <!-- Home -->
           <a
@@ -335,6 +335,7 @@ import { TourHintComponent } from './tour-hint';
 
     <ng-template #tourHint>
       <app-tour-hint
+        class="w-72 max-w-[calc(100vw-2rem)] block"
         [description]="tourDescription() | translate"
         [isLast]="tourService.step() === TourStep.PROFILE"
         (next)="onTourNext()"

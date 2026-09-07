@@ -384,6 +384,7 @@ import { IS_BROWSER } from '../../app/is-browser';
 
       <ng-template #tourHint>
         <app-tour-hint
+          class="w-72 max-w-[calc(100vw-2rem)] block"
           [description]="tourDescription() | translate"
           (next)="tourService.next()"
           (skip)="tourService.finish()"

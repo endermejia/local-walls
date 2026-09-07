@@ -1,10 +1,12 @@
-import { NgOptimizedImage } from '@angular/common';
+import { isPlatformBrowser, NgOptimizedImage } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   inject,
   input,
   output,
+  PLATFORM_ID,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -418,6 +420,7 @@ import { TourHintComponent } from '../ui/tour-hint';
 
     <ng-template #tourHint>
       <app-tour-hint
+        class="w-72 max-w-[calc(100vw-2rem)] block"
         [description]="'tour.config.description' | translate"
         (next)="tourService.next()"
         (skip)="tourService.finish()"
@@ -432,8 +435,24 @@ import { TourHintComponent } from '../ui/tour-hint';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileGeneralSectionComponent {
+  private readonly platformId = inject(PLATFORM_ID);
   protected readonly tourService = inject(TourService);
   protected readonly TourStep = TourStep;
+
+  constructor() {
+    effect(() => {
+      const isWelcomeStep =
+        this.tourService.isActive() &&
+        this.tourService.step() === TourStep.WELCOME;
+
+      if (isWelcomeStep && isPlatformBrowser(this.platformId)) {
+        setTimeout(() => {
+          const input = document.getElementById('nameInput');
+          input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+      }
+    });
+  }
 
   readonly model = input.required<ProfileConfigModel>();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

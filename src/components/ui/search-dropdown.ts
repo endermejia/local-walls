@@ -16,7 +16,6 @@ import { RouterLink } from '@angular/router';
 import { TuiAutoFocus } from '@taiga-ui/cdk';
 import {
   TuiDataList,
-  TuiDropdown,
   TuiIcon,
   TuiScrollbar,
   TuiTextfield,
@@ -70,7 +69,6 @@ import { TourHintComponent } from './tour-hint';
     TuiAvatar,
     TuiBadge,
     TuiDataList,
-    TuiDropdown,
     TuiIcon,
     TuiInputSearch,
     TuiPulse,
@@ -157,12 +155,6 @@ import { TourHintComponent } from './tour-hint';
             @if (results() !== null) {
               <div
                 class="flex flex-col h-full bg-(--tui-background-base) rounded-xl overflow-hidden w-[calc(100vw-1rem)] md:w-auto md:min-w-200 max-h-[80vh] relative"
-                [tuiDropdown]="tourHint"
-                [tuiDropdownManual]="
-                  tourService.isActive() &&
-                  tourService.step() === TourStep.SEARCH
-                "
-                tuiDropdownDirection="bottom"
               >
                 <div class="p-2">
                   <tui-tabs [(activeItemIndex)]="activeSearchTab">
@@ -194,6 +186,21 @@ import { TourHintComponent } from './tour-hint';
                     }
                   </tui-tabs>
                 </div>
+
+                @if (
+                  tourService.isActive() &&
+                  tourService.step() === TourStep.SEARCH
+                ) {
+                  <div
+                    class="mx-4 mb-2 rounded-xl bg-(--tui-background-neutral-1) border border-(--tui-border-normal)"
+                  >
+                    <app-tour-hint
+                      [description]="'tour.search.description' | translate"
+                      (next)="onTourNext()"
+                      (skip)="onTourSkip()"
+                    />
+                  </div>
+                }
 
                 <tui-scrollbar class="flex-1 min-h-0">
                   <tui-data-list
@@ -324,14 +331,6 @@ import { TourHintComponent } from './tour-hint';
           </ng-template>
         </tui-textfield>
       </div>
-
-      <ng-template #tourHint>
-        <app-tour-hint
-          [description]="'tour.search.description' | translate"
-          (next)="onTourNext()"
-          (skip)="onTourSkip()"
-        />
-      </ng-template>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
