@@ -302,6 +302,7 @@ export class PurchaseHistoryDialogComponent {
           size: 'm',
         },
       ),
+      { defaultValue: undefined },
     );
   }
 
@@ -316,6 +317,7 @@ export class PurchaseHistoryDialogComponent {
           no: this.translate.instant('merchandising.order.cancelNo'),
         },
       }),
+      { defaultValue: false },
     );
 
     if (confirmed) {

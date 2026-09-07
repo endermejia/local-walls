@@ -1067,6 +1067,7 @@ export class UserProfileConfigComponent {
       this.dialogs.open(template, {
         size: 'm',
       }),
+      { defaultValue: undefined },
     );
   }
 
@@ -1079,6 +1080,7 @@ export class UserProfileConfigComponent {
           size: 'm',
         },
       ),
+      { defaultValue: undefined },
     );
   }
 
@@ -1109,6 +1111,7 @@ export class UserProfileConfigComponent {
       this.dialogs.open(template, {
         size: 'm',
       }),
+      { defaultValue: undefined },
     );
   }
 

@@ -618,6 +618,7 @@ export class AreaRevenuePanelComponent {
         label: this.translate.instant('areaRevenue.recentDonations'),
         size: 'm',
       }),
+      { defaultValue: undefined },
     );
   }
 
@@ -629,6 +630,7 @@ export class AreaRevenuePanelComponent {
         label: this.translate.instant('areaRevenue.deliveredEquipment'),
         size: 'm',
       }),
+      { defaultValue: undefined },
     );
   }
 

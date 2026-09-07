@@ -82,7 +82,9 @@ export class LanguageService {
     effect(() => {
       const selectedLanguage = this.selectedLanguage();
       if (selectedLanguage) {
-        void firstValueFrom(this.translate.use(selectedLanguage));
+        void firstValueFrom(this.translate.use(selectedLanguage), {
+          defaultValue: undefined,
+        });
       }
     });
   }

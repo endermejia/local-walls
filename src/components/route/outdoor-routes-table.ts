@@ -275,6 +275,7 @@ export class OutdoorRoutesTableComponent {
           appearance: 'primary-destructive',
         } as TuiConfirmData,
       }),
+      { defaultValue: false },
     ).then((confirmed) => {
       if (!confirmed) return;
       this.routesService

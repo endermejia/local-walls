@@ -597,6 +597,7 @@ export class CragFormComponent {
           this.model().latitude,
           this.model().longitude,
         ),
+        { defaultValue: null },
       ),
     );
     if (result) {

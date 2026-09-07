@@ -174,17 +174,7 @@ import { IS_BROWSER } from '../../app/is-browser';
           "
           [style.transform]="'translate(-50%, -' + _sheetScrollTop() + 'px)'"
         >
-          <div
-            class="flex gap-2 relative"
-            [tuiDropdown]="tourHint"
-            [tuiDropdownManual]="isExploreAreasTourStep"
-            tuiDropdownDirection="top"
-          >
-            @if (isExploreAreasTourStep) {
-              <tui-pulse
-                class="absolute -bottom-1 -left-1 pointer-events-none z-10"
-              />
-            }
+          <div class="flex gap-2">
             @if (shouldShowIndoor()) {
               <button
                 tuiButton
@@ -203,7 +193,16 @@ import { IS_BROWSER } from '../../app/is-browser';
                 appearance="primary-grayscale"
                 iconStart="@tui.mountain"
                 routerLink="/area"
+                class="relative"
+                [tuiDropdown]="tourHint"
+                [tuiDropdownManual]="isExploreAreasTourStep"
+                tuiDropdownDirection="top"
               >
+                @if (isExploreAreasTourStep) {
+                  <tui-pulse
+                    class="absolute bottom-2 left-2 pointer-events-none z-10"
+                  />
+                }
                 {{ 'outdoor.button' | translate }}
               </button>
             }

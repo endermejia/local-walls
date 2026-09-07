@@ -33,14 +33,14 @@ export class MapService {
     latCtrl: WritableSignal<number | null>,
     lngCtrl: WritableSignal<number | null>,
   ): void {
-    void firstValueFrom(this.pickLocation(latCtrl(), lngCtrl())).then(
-      (result) => {
-        if (result) {
-          latCtrl.set(result.lat);
-          lngCtrl.set(result.lng);
-        }
-      },
-    );
+    void firstValueFrom(this.pickLocation(latCtrl(), lngCtrl()), {
+      defaultValue: null,
+    }).then((result) => {
+      if (result) {
+        latCtrl.set(result.lat);
+        lngCtrl.set(result.lng);
+      }
+    });
   }
 
   parseCoordinates(text: string): { lat: number; lng: number } | null {

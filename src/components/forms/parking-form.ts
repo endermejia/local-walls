@@ -329,6 +329,7 @@ export class ParkingFormComponent {
           this.model().latitude,
           this.model().longitude,
         ),
+        { defaultValue: null },
       ),
     );
     if (result) {

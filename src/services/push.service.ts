@@ -52,7 +52,9 @@ export class PushService {
 
   async unsubscribe(): Promise<void> {
     try {
-      const subscription = await firstValueFrom(this.swPush.subscription);
+      const subscription = await firstValueFrom(this.swPush.subscription, {
+        defaultValue: null,
+      });
       if (subscription) {
         await this.deleteSubscription(subscription);
         await this.swPush.unsubscribe();
@@ -65,7 +67,7 @@ export class PushService {
   }
 
   async getCurrentSubscription(): Promise<PushSubscription | null> {
-    return firstValueFrom(this.swPush.subscription);
+    return firstValueFrom(this.swPush.subscription, { defaultValue: null });
   }
 
   private checkSubscription(): void {

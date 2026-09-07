@@ -592,6 +592,7 @@ export class AdminErrorLogsComponent {
         label: this.translate.instant('admin.errorLogs.confirmClearTitle'),
         data,
       }),
+      { defaultValue: false },
     );
 
     if (confirm) {

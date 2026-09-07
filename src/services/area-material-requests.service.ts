@@ -268,6 +268,7 @@ export class AreaMaterialRequestsService {
           size: 'l',
         },
       ),
+      { defaultValue: undefined },
     );
   }
 

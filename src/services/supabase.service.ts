@@ -106,9 +106,15 @@ export class SupabaseService {
 
             const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
             if (options?.signal) {
-              options.signal.addEventListener('abort', () =>
-                controller.abort(),
-              );
+              if (options.signal.aborted) {
+                controller.abort(options.signal.reason);
+              } else {
+                options.signal.addEventListener(
+                  'abort',
+                  () => controller.abort(options.signal?.reason),
+                  { once: true },
+                );
+              }
             }
             try {
               const response = await fetch(reqUrl, {

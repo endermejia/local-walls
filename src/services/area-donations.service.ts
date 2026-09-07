@@ -94,6 +94,7 @@ export class AreaDonationsService {
           size: 'l',
         },
       ),
+      { defaultValue: undefined },
     );
   }
 }
