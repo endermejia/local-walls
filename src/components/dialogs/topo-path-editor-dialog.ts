@@ -716,7 +716,7 @@ export interface TopoPathEditorConfig {
           <button
             tuiButton
             type="button"
-            appearance="secondary"
+            appearance="flat"
             size="m"
             (click)="close()"
           >

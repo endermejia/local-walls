@@ -256,7 +256,7 @@ export interface IndoorRouteFormData {
 
       <footer class="flex flex-wrap gap-2 justify-end items-center mt-4">
         <button
-          appearance="secondary"
+          appearance="flat"
           tuiButton
           type="button"
           (click.zoneless)="onCancel()"

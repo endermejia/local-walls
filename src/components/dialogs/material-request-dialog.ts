@@ -237,7 +237,7 @@ export interface MaterialRequestDialogData {
         <div class="flex items-center justify-end gap-3 pt-2">
           <button
             tuiButton
-            appearance="secondary"
+            appearance="flat"
             type="button"
             (click)="context.completeWith(false)"
           >

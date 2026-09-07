@@ -231,7 +231,7 @@ import { CounterComponent } from '../ui/counter';
                 <button
                   tuiButton
                   type="button"
-                  appearance="negative"
+                  appearance="flat-destructive"
                   size="s"
                   iconStart="@tui.trash"
                   (click)="onDeleteExistingPhoto()"
@@ -590,7 +590,7 @@ import { CounterComponent } from '../ui/counter';
         @if (isEdit()) {
           <button
             tuiButton
-            appearance="negative"
+            appearance="flat-destructive"
             type="button"
             (click.zoneless)="onDelete()"
           >
@@ -600,7 +600,7 @@ import { CounterComponent } from '../ui/counter';
         <div class="grow"></div>
         <button
           tuiButton
-          appearance="secondary"
+          appearance="flat"
           type="button"
           (click.zoneless)="cancel()"
         >

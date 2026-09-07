@@ -25,6 +25,7 @@ import {
   TuiAvatar,
   TuiBadgedContent,
   TuiBadgeNotification,
+  TuiPulse,
 } from '@taiga-ui/kit';
 import { TuiHeader } from '@taiga-ui/layout';
 
@@ -92,6 +93,7 @@ import { IS_BROWSER } from '../../app/is-browser';
     TuiDropdown,
     TuiHeader,
     TuiLoader,
+    TuiPulse,
     TuiScrollbar,
     TuiTitle,
     IndoorCenterCardComponent,
@@ -172,7 +174,17 @@ import { IS_BROWSER } from '../../app/is-browser';
           "
           [style.transform]="'translate(-50%, -' + _sheetScrollTop() + 'px)'"
         >
-          <div class="flex gap-2">
+          <div
+            class="flex gap-2 relative"
+            [tuiDropdown]="tourHint"
+            [tuiDropdownManual]="isExploreAreasTourStep"
+            tuiDropdownDirection="top"
+          >
+            @if (isExploreAreasTourStep) {
+              <tui-pulse
+                class="absolute -bottom-1 -left-1 pointer-events-none z-10"
+              />
+            }
             @if (shouldShowIndoor()) {
               <button
                 tuiButton
@@ -191,8 +203,6 @@ import { IS_BROWSER } from '../../app/is-browser';
                 appearance="primary-grayscale"
                 iconStart="@tui.mountain"
                 routerLink="/area"
-                [tuiDropdown]="tourHint"
-                [tuiDropdownManual]="isExploreAreasTourStep"
               >
                 {{ 'outdoor.button' | translate }}
               </button>

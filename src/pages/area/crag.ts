@@ -21,12 +21,7 @@ import {
   TuiNotification,
   TuiScrollbar,
 } from '@taiga-ui/core';
-import {
-  TUI_CONFIRM,
-  TuiTabs,
-  TuiPulse,
-  type TuiConfirmData,
-} from '@taiga-ui/kit';
+import { TUI_CONFIRM, TuiTabs, type TuiConfirmData } from '@taiga-ui/kit';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
@@ -41,7 +36,6 @@ import { OutdoorDataService } from '../../services/outdoor-data.service';
 import { SeoService } from '../../services/seo.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
-import { TourService, TourStep } from '../../services/tour.service';
 import { VisitedCragsService } from '../../services/visited-crags.service';
 
 import { ChartRoutesByGradeComponent } from '../../components/charts/chart-routes-by-grade';
@@ -50,7 +44,6 @@ import { CragParkingsComponent } from '../../components/crag/crag-parkings';
 import { CragRoutesComponent } from '../../components/crag/crag-routes';
 import { CragToposComponent } from '../../components/crag/crag-topos';
 import { SectionHeaderComponent } from '../../components/ui/section-header';
-import { TourHintComponent } from '../../components/ui/tour-hint';
 import { WeatherForecastComponent } from '../../components/ui/weather-forecast';
 
 import {
@@ -71,7 +64,6 @@ import { IS_BROWSER } from '../../app/is-browser';
     CragRoutesComponent,
     CragToposComponent,
     SectionHeaderComponent,
-    TourHintComponent,
     TranslatePipe,
     TuiButton,
     TuiDataList,
@@ -79,7 +71,6 @@ import { IS_BROWSER } from '../../app/is-browser';
     TuiIcon,
     TuiLoader,
     TuiNotification,
-    TuiPulse,
     TuiScrollbar,
 
     TuiTabs,
@@ -236,30 +227,9 @@ import { IS_BROWSER } from '../../app/is-browser';
               [activeItemIndex]="activeTabIndex()"
               (activeItemIndexChange)="activeTabIndex.set($event)"
               class="mt-6"
-              [tuiDropdown]="tourHint"
-              [tuiDropdownManual]="
-                tourService.isActive() &&
-                (tourService.step() === TourStep.CRAG ||
-                  tourService.step() === TourStep.CRAG_TOPOS ||
-                  tourService.step() === TourStep.CRAG_PARKINGS ||
-                  tourService.step() === TourStep.CRAG_WEATHER)
-              "
-              tuiDropdownDirection="top"
             >
               @for (tabIdx of visibleTabs(); track tabIdx) {
                 <button tuiTab class="relative">
-                  @if (
-                    tourService.isActive() &&
-                    ((tabIdx === 0 && tourService.step() === TourStep.CRAG) ||
-                      (tabIdx === 1 &&
-                        tourService.step() === TourStep.CRAG_TOPOS) ||
-                      (tabIdx === 2 &&
-                        tourService.step() === TourStep.CRAG_PARKINGS) ||
-                      (tabIdx === 3 &&
-                        tourService.step() === TourStep.CRAG_WEATHER))
-                  ) {
-                    <tui-pulse />
-                  }
                   {{
                     (tabIdx === 0
                       ? 'routes'
@@ -323,23 +293,6 @@ import { IS_BROWSER } from '../../app/is-browser';
         }
       </section>
     </tui-scrollbar>
-
-    <ng-template #tourHint>
-      <app-tour-hint
-        [description]="
-          (tourService.step() === TourStep.CRAG
-            ? 'tour.crag.routesDescription'
-            : tourService.step() === TourStep.CRAG_TOPOS
-              ? 'tour.crag.toposDescription'
-              : tourService.step() === TourStep.CRAG_PARKINGS
-                ? 'tour.crag.parkingsDescription'
-                : 'tour.crag.weatherDescription'
-          ) | translate
-        "
-        (next)="tourService.next()"
-        (skip)="tourService.finish()"
-      />
-    </ng-template>
   `,
   host: { class: 'flex grow min-h-0' },
 })
@@ -357,8 +310,6 @@ export class CragComponent {
   protected readonly toast = inject(ToastService);
   protected readonly translate = inject(TranslateService);
   protected readonly dialogs = inject(TuiDialogService);
-  protected readonly tourService = inject(TourService);
-  protected readonly TourStep = TourStep;
   private readonly visitedCragsService = inject(VisitedCragsService);
   private readonly seo = inject(SeoService);
   private readonly route = inject(ActivatedRoute);
@@ -452,22 +403,6 @@ export class CragComponent {
   });
 
   constructor() {
-    effect(() => {
-      const step = this.tourService.step();
-      const tabs = this.visibleTabs();
-      if (!tabs.length) return;
-
-      if (step === TourStep.CRAG) {
-        if (tabs.includes(0)) this.activeTabIndex.set(tabs.indexOf(0));
-      } else if (step === TourStep.CRAG_TOPOS) {
-        if (tabs.includes(1)) this.activeTabIndex.set(tabs.indexOf(1));
-      } else if (step === TourStep.CRAG_PARKINGS) {
-        if (tabs.includes(2)) this.activeTabIndex.set(tabs.indexOf(2));
-      } else if (step === TourStep.CRAG_WEATHER) {
-        if (tabs.includes(3)) this.activeTabIndex.set(tabs.indexOf(3));
-      }
-    });
-
     effect(() => {
       const aSlug = this.areaSlug();
       const cSlug = this.cragSlug();

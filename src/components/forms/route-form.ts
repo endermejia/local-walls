@@ -309,7 +309,7 @@ interface RouteFormModel {
       <div class="flex flex-wrap gap-2 justify-end">
         <button
           tuiButton
-          appearance="secondary"
+          appearance="flat"
           type="button"
           (click.zoneless)="goBack()"
         >

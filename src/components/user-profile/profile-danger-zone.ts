@@ -131,7 +131,7 @@ import { Observer } from 'rxjs';
         <div class="flex justify-end gap-2">
           <button
             tuiButton
-            appearance="secondary"
+            appearance="flat"
             type="button"
             (click)="observer.complete()"
           >
@@ -189,11 +189,7 @@ import { Observer } from 'rxjs';
         }
 
         <div class="flex justify-end gap-2">
-          <button
-            tuiButton
-            appearance="secondary"
-            (click)="observer.complete()"
-          >
+          <button tuiButton appearance="flat" (click)="observer.complete()">
             {{ 'cancel' | translate }}
           </button>
           <button

@@ -19,7 +19,6 @@ import {
   TuiButton,
   TuiIcon,
   TuiLoader,
-  TuiDropdown,
   TuiHint,
   TuiScrollbar,
 } from '@taiga-ui/core';
@@ -43,8 +42,6 @@ import { ProfileDataService } from '../../services/profile-data.service';
 import { RoutesService } from '../../services/routes.service';
 import { SeoService } from '../../services/seo.service';
 import { ToastService } from '../../services/toast.service';
-import { TourService } from '../../services/tour.service';
-import { TourStep } from '../../services/tour.service';
 
 import { AscentsFeedComponent } from '../../components/ascent/ascents-feed';
 
@@ -52,7 +49,6 @@ import { ChartAscentsByGradeComponent } from '../../components/charts/chart-asce
 import { ChartAscentsByStyleComponent } from '../../components/charts/chart-ascents-by-style';
 import { GradeComponent } from '../../components/ui/avatar-grade';
 import { SectionHeaderComponent } from '../../components/ui/section-header';
-import { TourHintComponent } from '../../components/ui/tour-hint';
 
 import {
   CLIMBING_ICONS,
@@ -78,11 +74,9 @@ import { IS_BROWSER } from '../../app/is-browser';
     GradeComponent,
     LowerCasePipe,
     SectionHeaderComponent,
-    TourHintComponent,
     TranslatePipe,
     TuiAvatar,
     TuiButton,
-    TuiDropdown,
     TuiHint,
     TuiIcon,
     TuiLoader,
@@ -94,14 +88,7 @@ import { IS_BROWSER } from '../../app/is-browser';
       <section class="w-full max-w-5xl mx-auto p-4">
         @let canEditAsAdmin = authState.canEditAsAdmin();
         @if (route(); as r) {
-          <div
-            class="mb-4 flex items-center justify-between gap-2"
-            [tuiDropdown]="tourHint"
-            [tuiDropdownManual]="
-              tourService.isActive() && tourService.step() === TourStep.ROUTE
-            "
-            tuiDropdownDirection="bottom"
-          >
+          <div class="mb-4 flex items-center justify-between gap-2">
             <app-section-header
               class="w-full"
               [title]="r.name"
@@ -394,14 +381,6 @@ import { IS_BROWSER } from '../../app/is-browser';
           </div>
         }
       </section>
-
-      <ng-template #tourHint>
-        <app-tour-hint
-          [description]="'tour.route.description' | translate"
-          (next)="tourService.next()"
-          (skip)="tourService.finish()"
-        />
-      </ng-template>
     </tui-scrollbar>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -414,8 +393,6 @@ export class OutdoorRouteComponent {
   private readonly location = inject(Location);
   protected readonly routesService = inject(RoutesService);
   protected readonly ascentsService = inject(AscentsService);
-  protected readonly tourService = inject(TourService);
-  protected readonly TourStep = TourStep;
   private readonly followsService = inject(FollowsService);
   protected readonly router = inject(Router);
   private readonly isBrowser = inject(IS_BROWSER);

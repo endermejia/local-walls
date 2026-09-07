@@ -32,7 +32,7 @@ import { MapComponent } from './map';
       >
         <button
           tuiButton
-          appearance="secondary"
+          appearance="flat"
           size="m"
           class="pointer-events-auto"
           (click.zoneless)="cancel()"

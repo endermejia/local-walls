@@ -118,7 +118,9 @@ import { TourHintComponent } from './tour-hint';
             @if (
               tourService.isActive() && tourService.step() === TourStep.HOME
             ) {
-              <tui-pulse />
+              <tui-pulse
+                class="absolute bottom-2 left-2 pointer-events-none z-10"
+              />
             }
             <app-notification-badge>
               <tui-icon
@@ -162,7 +164,9 @@ import { TourHintComponent } from './tour-hint';
             @if (
               tourService.isActive() && tourService.step() === TourStep.EXPLORE
             ) {
-              <tui-pulse />
+              <tui-pulse
+                class="absolute bottom-2 left-2 pointer-events-none z-10"
+              />
             }
             <tui-icon
               icon="@tui.map"
@@ -250,19 +254,36 @@ import { TourHintComponent } from './tour-hint';
           <app-search-dropdown [loading]="loading()" />
 
           <!-- Profile Menu Button -->
-          <app-menu-options-button
-            appearance="flat-grayscale"
-            [avatarMode]="true"
-            [avatarUrl]="authState.userAvatar()"
-            [userName]="authState.userProfile()?.name"
-            [isActive]="isProfileActive()"
-            [label]="'nav.profile' | translate"
-            [showNavigationOptions]="true"
-            [showLogout]="false"
-            [loading]="loading()"
-            direction="top"
-            class="lg:mt-auto"
-          />
+          <div class="relative w-fit md:w-full lg:mt-auto">
+            <div
+              class="absolute inset-0 pointer-events-none"
+              [tuiDropdown]="tourHint"
+              [tuiDropdownManual]="
+                tourService.isActive() &&
+                tourService.step() === TourStep.PROFILE
+              "
+              tuiDropdownDirection="top"
+            ></div>
+            @if (
+              tourService.isActive() && tourService.step() === TourStep.PROFILE
+            ) {
+              <tui-pulse
+                class="absolute bottom-2 left-2 pointer-events-none z-10"
+              />
+            }
+            <app-menu-options-button
+              appearance="flat-grayscale"
+              [avatarMode]="true"
+              [avatarUrl]="authState.userAvatar()"
+              [userName]="authState.userProfile()?.name"
+              [isActive]="isProfileActive()"
+              [label]="'nav.profile' | translate"
+              [showNavigationOptions]="true"
+              [showLogout]="false"
+              [loading]="loading()"
+              direction="top"
+            />
+          </div>
         </nav>
 
         <!-- Desktop Bottom Options -->
@@ -314,6 +335,7 @@ import { TourHintComponent } from './tour-hint';
     <ng-template #tourHint>
       <app-tour-hint
         [description]="tourDescription() | translate"
+        [isLast]="tourService.step() === TourStep.PROFILE"
         (next)="onTourNext()"
         (skip)="tourService.finish()"
       />
@@ -338,12 +360,8 @@ export class NavbarComponent {
     switch (step) {
       case TourStep.EXPLORE:
         return 'tour.explore.description';
-      case TourStep.EXPLORE_AREAS:
-        return 'tour.explore.areasDescription';
-      case TourStep.AREAS:
-        return 'tour.areas.description';
-      case TourStep.SEARCH:
-        return 'tour.search.description';
+      case TourStep.PROFILE:
+        return 'tour.profile.ascentsDescription';
       case TourStep.HOME:
       default:
         return 'tour.home.description';

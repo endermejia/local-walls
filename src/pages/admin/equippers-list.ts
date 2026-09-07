@@ -327,7 +327,7 @@ import { IS_BROWSER } from '../../app/is-browser';
           <button
             tuiButton
             type="button"
-            appearance="secondary"
+            appearance="flat"
             size="m"
             (click.zoneless)="observer.complete()"
           >

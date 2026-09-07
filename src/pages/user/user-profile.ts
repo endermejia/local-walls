@@ -23,12 +23,7 @@ import {
   TuiScrollbar,
 } from '@taiga-ui/core';
 import { TuiCountryIsoCode } from '@taiga-ui/i18n';
-import {
-  TuiConfirmData,
-  TuiPulse,
-  TuiSkeleton,
-  TUI_CONFIRM,
-} from '@taiga-ui/kit';
+import { TuiConfirmData, TuiSkeleton, TUI_CONFIRM } from '@taiga-ui/kit';
 import { PolymorpheusComponent } from '@taiga-ui/polymorpheus';
 
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -44,13 +39,11 @@ import { OutdoorDataService } from '../../services/outdoor-data.service';
 import { ProfileDataService } from '../../services/profile-data.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
-import { TourService, TourStep } from '../../services/tour.service';
 import { UserProfilesService } from '../../services/user-profiles.service';
 
 import { UserListDialogComponent } from '../../components/dialogs/user-list-dialog';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
 import { MenuOptionsButtonComponent } from '../../components/ui/menu-options-button';
-import { TourHintComponent } from '../../components/ui/tour-hint';
 import { UserInfoComponent } from '../../components/ui/user-info';
 import { UserProfileAscentsComponent } from '../../components/user-profile/user-profile-ascents';
 import { UserProfileStatisticsComponent } from '../../components/user-profile/user-profile-statistics';
@@ -68,14 +61,12 @@ import { IS_BROWSER } from '../../app/is-browser';
     MenuOptionsButtonComponent,
     ReactiveFormsModule,
     RouterLink,
-    TourHintComponent,
     TranslatePipe,
     TuiAppearance,
     TuiButton,
     TuiDataList,
     TuiDropdown,
     TuiLink,
-    TuiPulse,
     TuiScrollbar,
     TuiSkeleton,
     UserInfoComponent,
@@ -122,12 +113,6 @@ import { IS_BROWSER } from '../../app/is-browser';
             (avatarClick)="showEnlargedPhoto()"
             class="shrink-0"
           >
-            @if (
-              tourService.isActive() && tourService.step() === TourStep.PROFILE
-            ) {
-              <tui-pulse badge />
-            }
-
             <div nameActions class="inline-flex items-center">
               @if (isOwnProfile()) {
                 <app-menu-options-button
@@ -356,15 +341,6 @@ import { IS_BROWSER } from '../../app/is-browser';
         }
       </section>
     </tui-scrollbar>
-
-    <ng-template #tourHint>
-      <app-tour-hint
-        [description]="'tour.profile.ascentsDescription' | translate"
-        [isLast]="true"
-        (next)="tourService.finish()"
-        (skip)="tourService.finish()"
-      />
-    </ng-template>
   `,
   host: { class: 'flex flex-col w-full h-full min-h-0' },
 })
@@ -375,8 +351,6 @@ export class UserProfileComponent {
   protected readonly layout = inject(LayoutService);
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
-  protected readonly tourService = inject(TourService);
-  protected readonly TourStep = TourStep;
   protected readonly userProfilesService = inject(UserProfilesService);
   private readonly isBrowser = inject(IS_BROWSER);
   private readonly translate = inject(TranslateService);

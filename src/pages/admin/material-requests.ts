@@ -366,7 +366,7 @@ import { AvatarUrlPipe } from '../../pipes';
             <div class="flex justify-end gap-3 pt-2">
               <button
                 tuiButton
-                appearance="secondary"
+                appearance="flat"
                 type="button"
                 (click)="rejectModalOpen.set(false)"
               >

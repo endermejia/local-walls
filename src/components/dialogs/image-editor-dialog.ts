@@ -239,7 +239,7 @@ export interface ImageEditorConfig {
         <div class="px-4 py-2 flex justify-between items-center">
           <button
             tuiButton
-            appearance="secondary"
+            appearance="flat"
             size="m"
             (click)="close()"
             type="button"

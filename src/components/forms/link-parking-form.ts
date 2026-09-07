@@ -100,7 +100,7 @@ import { IS_BROWSER } from '../../app/is-browser';
       <div class="flex flex-wrap gap-2 justify-end mt-4">
         <button
           tuiButton
-          appearance="secondary"
+          appearance="flat"
           type="button"
           (click.zoneless)="close()"
         >

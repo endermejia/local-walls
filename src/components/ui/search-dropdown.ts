@@ -121,7 +121,9 @@ import { TourHintComponent } from './tour-hint';
         [attr.aria-label]="'search' | translate"
       >
         @if (tourService.isActive() && tourService.step() === TourStep.SEARCH) {
-          <tui-pulse />
+          <tui-pulse
+            class="absolute bottom-2 left-2 pointer-events-none z-10"
+          />
         }
         <tui-icon
           icon="@tui.search"
@@ -316,8 +318,8 @@ import { TourHintComponent } from './tour-hint';
       <ng-template #tourHint>
         <app-tour-hint
           [description]="'tour.search.description' | translate"
-          (next)="tourService.next()"
-          (skip)="tourService.finish()"
+          (next)="onTourNext()"
+          (skip)="onTourSkip()"
         />
       </ng-template>
     </div>
@@ -341,14 +343,23 @@ export class SearchDropdownComponent {
 
   constructor() {
     const cdr = inject(ChangeDetectorRef);
+    let wasTourSearch = false;
     effect(() => {
-      const step = this.tourService.step();
-      if (step === TourStep.SEARCH) {
+      const isTourSearch =
+        this.tourService.isActive() &&
+        this.tourService.step() === TourStep.SEARCH;
+
+      if (isTourSearch) {
+        wasTourSearch = true;
         setTimeout(() => {
           this.searchOpen.set(true);
           this.searchValue.set('Millena');
           cdr.markForCheck();
         }, 500);
+      } else if (wasTourSearch) {
+        wasTourSearch = false;
+        this.searchOpen.set(false);
+        this.searchValue.set('');
       }
     });
 
@@ -395,6 +406,18 @@ export class SearchDropdownComponent {
       0,
     ),
   );
+
+  protected onTourNext(): void {
+    this.searchOpen.set(false);
+    this.searchValue.set('');
+    void this.tourService.next();
+  }
+
+  protected onTourSkip(): void {
+    this.searchOpen.set(false);
+    this.searchValue.set('');
+    void this.tourService.finish();
+  }
 
   protected onResultClick(item: SearchItem, event?: Event): void {
     if (item.type?.startsWith('create-') || item.type?.startsWith('import-')) {

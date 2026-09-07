@@ -175,7 +175,7 @@ export interface PyramidSlotDialogData {
         >
           <button
             tuiButton
-            appearance="secondary-destructive"
+            appearance="flat-destructive"
             size="m"
             class="w-full"
             [disabled]="data.canDelete === false"

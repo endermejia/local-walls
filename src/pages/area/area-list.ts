@@ -9,12 +9,11 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
-import { TuiDropdown } from '@taiga-ui/core';
 import {
   TuiAppearance,
   TuiButton,
-  TuiScrollbar,
   TuiInput,
+  TuiScrollbar,
 } from '@taiga-ui/core';
 import {
   TuiAvatar,
@@ -29,13 +28,10 @@ import { AuthStateService } from '../../services/auth-state.service';
 import { FilterStateService } from '../../services/filter-state.service';
 import { FiltersService } from '../../services/filters.service';
 import { OutdoorDataService } from '../../services/outdoor-data.service';
-import { TourService } from '../../services/tour.service';
-import { TourStep } from '../../services/tour.service';
 
 import { AreaCardComponent } from '../../components/area/area-card';
 import { AreaCardSkeletonComponent } from '../../components/area/area-card-skeleton';
 import { EmptyStateComponent } from '../../components/ui/empty-state';
-import { TourHintComponent } from '../../components/ui/tour-hint';
 
 import {
   ClimbingKinds,
@@ -55,14 +51,12 @@ import { matchesQuery } from '../../utils';
     IconSrcPipe,
     LowerCasePipe,
     RouterLink,
-    TourHintComponent,
     TranslatePipe,
     TuiAppearance,
     TuiAvatar,
     TuiBadgedContent,
     TuiBadgeNotification,
     TuiButton,
-    TuiDropdown,
     TuiInput,
     TuiScrollbar,
   ],
@@ -70,14 +64,7 @@ import { matchesQuery } from '../../utils';
     <div class="relative flex grow min-h-0">
       <tui-scrollbar class="flex grow">
         <section class="w-full max-w-5xl mx-auto p-4 pb-32">
-          <header
-            class="flex items-center justify-between gap-2"
-            [tuiDropdown]="tourHint"
-            [tuiDropdownManual]="
-              tourService.isActive() && tourService.step() === TourStep.AREAS
-            "
-            tuiDropdownDirection="bottom"
-          >
+          <header class="flex items-center justify-between gap-2">
             @let areasCount = filtered().length;
             <h1 class="text-2xl font-bold w-full sm:w-auto">
               <span
@@ -195,14 +182,6 @@ import { matchesQuery } from '../../utils';
         </button>
       </div>
     </div>
-
-    <ng-template #tourHint>
-      <app-tour-hint
-        [description]="'tour.areas.description' | translate"
-        (next)="tourService.next()"
-        (skip)="tourService.finish()"
-      />
-    </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex grow min-h-0' },
@@ -213,8 +192,6 @@ export class AreaListComponent {
   protected readonly areasService = inject(AreasService);
   protected readonly filtersService = inject(FiltersService);
   protected readonly outdoorData = inject(OutdoorDataService);
-  protected readonly tourService = inject(TourService);
-  protected readonly TourStep = TourStep;
   private readonly filterState = inject(FilterStateService);
 
   readonly loading = computed(

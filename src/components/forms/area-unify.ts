@@ -140,7 +140,7 @@ import { AreaDto, AreaListItem } from '../../models';
       <div class="flex justify-end gap-2 mt-4">
         <button
           tuiButton
-          appearance="secondary"
+          appearance="flat"
           type="button"
           (click)="context.completeWith(false)"
         >

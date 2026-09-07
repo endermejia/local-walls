@@ -569,7 +569,7 @@ import { openImageEditor } from '../../utils/open-image-editor';
       >
         <button
           tuiButton
-          appearance="secondary"
+          appearance="flat"
           type="button"
           (click.zoneless)="goBack()"
         >
