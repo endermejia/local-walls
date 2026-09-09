@@ -72,7 +72,12 @@ import {
 
 import { ShadeInfoPipe } from '../../pipes';
 
-import { handleErrorToast, openImageEditor, slugify } from '../../utils';
+import {
+  generateThumbnail,
+  handleErrorToast,
+  openImageEditor,
+  slugify,
+} from '../../utils';
 
 import { ImageEditorConfig } from '../dialogs/image-editor-dialog';
 
@@ -794,9 +799,20 @@ export class TopoFormComponent {
           let finalImageUrl = photo || '';
           const photoFile = this.model().photoControl;
           if (photoFile) {
+            let thumbFile: File | undefined;
+            try {
+              const thumbResult = await generateThumbnail(photoFile);
+              thumbFile = thumbResult.file;
+            } catch (thumbErr) {
+              console.warn(
+                '[TopoFormComponent] Could not generate thumbnail:',
+                thumbErr,
+              );
+            }
             const uploadedPath = await this.indoor.uploadAsset(
               centerId,
               photoFile,
+              thumbFile,
             );
             if (uploadedPath) {
               finalImageUrl = uploadedPath;

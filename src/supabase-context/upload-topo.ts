@@ -4,6 +4,7 @@ interface Payload {
   file_name: string;
   content_type?: string;
   base64: string;
+  thumbnail_base64?: string;
 }
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -217,6 +218,29 @@ Deno.serve(async (req: Request) => {
     }
 
     const path = uploadData?.path || fileName;
+
+    if (payload.thumbnail_base64) {
+      try {
+        const thumbBase64 = payload.thumbnail_base64.replace(
+          /^data:.*;base64,/,
+          '',
+        );
+        const thumbBinary = atob(thumbBase64);
+        const thumbBytes = new Uint8Array(thumbBinary.length);
+        for (let i = 0; i < thumbBinary.length; i++) {
+          thumbBytes[i] = thumbBinary.charCodeAt(i);
+        }
+        const thumbFileName = `topos/${topoId}_thumb.webp`;
+        await supabaseAdminClient.storage
+          .from(bucket)
+          .upload(thumbFileName, thumbBytes, {
+            contentType: 'image/webp',
+            upsert: true,
+          });
+      } catch (thumbErr) {
+        console.warn('[upload-topo-photo] Thumbnail upload error:', thumbErr);
+      }
+    }
 
     const { error: dbErr } = await supabaseAdminClient
       .from('topos')

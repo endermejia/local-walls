@@ -165,7 +165,7 @@ Deno.serve(async (req: Request) => {
     const bucket = 'topos';
     const { error: deleteError } = await supabaseAdminClient.storage
       .from(bucket)
-      .remove([topo.photo]);
+      .remove([topo.photo, `topos/${topoId}_thumb.webp`]);
 
     if (deleteError) {
       console.error('[delete-topo-photo] Storage removal failed', deleteError);

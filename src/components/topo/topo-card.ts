@@ -6,6 +6,7 @@ import {
   inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 
 import { TuiAppearance, TuiIcon, TuiTitle } from '@taiga-ui/core';
@@ -62,18 +63,13 @@ import { ChartRoutesByGradeComponent } from '../charts/chart-routes-by-grade';
           </h2>
         </header>
         <section class="flex flex-col gap-2">
-          @if (item.photo; as photo) {
+          @if (item.photo) {
             <div class="relative">
               <img
                 [src]="
-                  ({
-                    path: photo,
-                    version: this.outdoorData.topoPhotoVersion(),
-                    isIndoor: isIndoor(),
-                  }
-                    | topoImage
-                    | async) || ('topo' | iconSrc)
+                  (imageParams() | topoImage | async) || ('topo' | iconSrc)
                 "
+                (error)="onImageError()"
                 alt="topo"
                 class="w-full h-40 object-cover rounded shadow-sm"
                 loading="lazy"
@@ -145,6 +141,9 @@ import { ChartRoutesByGradeComponent } from '../charts/chart-routes-by-grade';
     </button>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block [content-visibility:auto] [contain-intrinsic-size:0_260px]',
+  },
 })
 export class TopoCardComponent {
   protected readonly outdoorData = inject(OutdoorDataService);
@@ -153,6 +152,25 @@ export class TopoCardComponent {
   pendingRoutes = input<number | null>(null);
   totalRoutes = input<number | null>(null);
   selected = output<void>();
+
+  protected readonly imageFailed = signal(false);
+
+  protected readonly imageParams = computed(() => {
+    const photo = this.topo().photo;
+    if (!photo) return null;
+    return {
+      path: photo,
+      version: this.outdoorData.topoPhotoVersion(),
+      isIndoor: this.isIndoor(),
+      isThumbnail: !this.imageFailed(),
+    };
+  });
+
+  protected onImageError(): void {
+    if (!this.imageFailed()) {
+      this.imageFailed.set(true);
+    }
+  }
 
   protected readonly legacy = computed(() => {
     const item = this.topo();

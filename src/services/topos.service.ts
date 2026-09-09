@@ -24,6 +24,8 @@ import type {
 } from '../models';
 import { topoPathToJson } from '../models/topo.model';
 
+import { generateThumbnail } from '../utils';
+
 import { IS_BROWSER } from '../app/is-browser';
 
 import { OutdoorDataService } from './outdoor-data.service';
@@ -235,6 +237,14 @@ export class ToposService {
 
     try {
       const base64 = await toBase64(file);
+      let thumbnailBase64: string | undefined;
+      try {
+        const thumbResult = await generateThumbnail(file);
+        thumbnailBase64 = thumbResult.base64;
+      } catch (thumbErr) {
+        console.warn('[ToposService] Could not generate thumbnail:', thumbErr);
+      }
+
       await this.supabase.whenReady();
       const { error } = await this.supabase.client.functions.invoke(
         'upload-topo-photo',
@@ -243,6 +253,7 @@ export class ToposService {
             file_name: file.name,
             content_type: file.type,
             base64,
+            thumbnail_base64: thumbnailBase64,
           },
           headers: {
             'Topo-Id': topoId.toString(),

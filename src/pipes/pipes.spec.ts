@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import { LanguageService } from '../services/language.service';
+import { SupabaseService } from '../services/supabase.service';
 import { ThemeService } from '../services/theme.service';
 
 import { COMMON_TEST_PROVIDERS } from '../testing';
@@ -373,9 +374,47 @@ describe('TopoImagePipe (with DI)', () => {
     expect(result).toContain('indoor/photo.jpg');
   });
 
+  it('uses thumbnail path when isThumbnail is true for indoor images', async () => {
+    const result = await pipe.transform({
+      path: 'indoor/photo.jpg',
+      version: 1,
+      isIndoor: true,
+      isThumbnail: true,
+    });
+    expect(result).toContain('indoor/photo_thumb.webp');
+  });
+
   it('calls getTopoSignedUrl for outdoor images', async () => {
     const result = await pipe.transform('topo/photo.jpg');
     expect(result).toContain('topo/photo.jpg');
+  });
+
+  it('uses thumbnail path when isThumbnail is true for outdoor images', async () => {
+    const result = await pipe.transform({
+      path: 'topos/123.png',
+      version: 1,
+      isIndoor: false,
+      isThumbnail: true,
+    });
+    expect(result).toContain('topos/123_thumb.webp');
+  });
+
+  it('falls back to original photo when outdoor thumbnail cannot be signed', async () => {
+    const supabase = TestBed.inject(SupabaseService);
+    vi.spyOn(supabase, 'getTopoSignedUrl').mockImplementation(
+      async (path: string | null | undefined) => {
+        if (path && path.includes('_thumb')) return '';
+        return path ? `https://example.com/${path}` : '';
+      },
+    );
+
+    const result = await pipe.transform({
+      path: 'topos/123.png',
+      version: 1,
+      isIndoor: false,
+      isThumbnail: true,
+    });
+    expect(result).toBe('https://example.com/topos/123.png');
   });
 
   it('handles null path', async () => {

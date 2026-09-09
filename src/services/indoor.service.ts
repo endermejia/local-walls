@@ -378,7 +378,11 @@ export class IndoorService {
     return data || [];
   }
 
-  async uploadAsset(centerId: string, file: File): Promise<string | null> {
+  async uploadAsset(
+    centerId: string,
+    file: File,
+    thumbnailFile?: File,
+  ): Promise<string | null> {
     if (!this.isBrowser) return null;
     await this.supabase.whenReady();
     const fileName = `${Date.now()}_${file.name}`;
@@ -389,6 +393,28 @@ export class IndoorService {
       .upload(filePath, file);
 
     if (error) throw error;
+
+    if (thumbnailFile) {
+      const dotIndex = fileName.lastIndexOf('.');
+      const nameWithoutExt =
+        dotIndex !== -1 ? fileName.substring(0, dotIndex) : fileName;
+      const thumbPath = `centers/${centerId}/${nameWithoutExt}_thumb.webp`;
+
+      const { error: thumbError } = await this.supabase.client.storage
+        .from('indoor-assets')
+        .upload(thumbPath, thumbnailFile, {
+          contentType: 'image/webp',
+          upsert: true,
+        });
+
+      if (thumbError) {
+        console.warn(
+          '[IndoorService] Failed to upload thumbnail asset:',
+          thumbError,
+        );
+      }
+    }
+
     return data.path;
   }
 

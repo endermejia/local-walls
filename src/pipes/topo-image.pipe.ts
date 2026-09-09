@@ -13,7 +13,12 @@ export class TopoImagePipe implements PipeTransform {
       | string
       | null
       | undefined
-      | { path: string | null; version: number; isIndoor?: boolean },
+      | {
+          path: string | null;
+          version: number;
+          isIndoor?: boolean;
+          isThumbnail?: boolean;
+        },
   ): Promise<string> {
     // Extract path from input
     const path =
@@ -22,10 +27,33 @@ export class TopoImagePipe implements PipeTransform {
       typeof input === 'object' && input !== null ? input.version : undefined;
     const isIndoor =
       typeof input === 'object' && input !== null ? input.isIndoor : false;
+    const isThumbnail =
+      typeof input === 'object' && input !== null ? input.isThumbnail : false;
+
+    if (!path) return '';
+
+    const effectivePath = isThumbnail ? this.getThumbnailPath(path) : path;
 
     if (isIndoor) {
-      return this.supabase.getPublicUrl('indoor-assets', path);
+      return this.supabase.getPublicUrl('indoor-assets', effectivePath);
     }
+
+    if (isThumbnail) {
+      const thumbSignedUrl = await this.supabase.getTopoSignedUrl(
+        effectivePath,
+        version,
+      );
+      if (thumbSignedUrl) {
+        return thumbSignedUrl;
+      }
+    }
+
     return await this.supabase.getTopoSignedUrl(path, version);
+  }
+
+  private getThumbnailPath(path: string): string {
+    const lastDotIndex = path.lastIndexOf('.');
+    if (lastDotIndex === -1) return `${path}_thumb.webp`;
+    return `${path.substring(0, lastDotIndex)}_thumb.webp`;
   }
 }
