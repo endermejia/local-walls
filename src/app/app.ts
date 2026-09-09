@@ -145,21 +145,33 @@ export class AppComponent implements OnDestroy {
 
     if (this.isBrowser) {
       // Intercept rogue hardware key events (e.g. OnePlus alert slider / physical mute switches)
-      // which fire KEYCODE_SEARCH / DomKey: BrowserSearch / Find, triggering the browser's Find-in-page bar
+      // which fire KEYCODE_F3 (133 / DOM 114) or KEYCODE_SEARCH (84 / DomKey: BrowserSearch / Find),
+      // triggering the browser's Find-in-page modal
       this.suppressRogueSearch = (e: KeyboardEvent) => {
-        const key = e.key;
-        const code = e.code;
+        const key = (e.key || '').toLowerCase();
+        const code = (e.code || '').toLowerCase();
         const keyCode = e.keyCode || e.which;
 
-        const isRogue =
-          key === 'BrowserSearch' ||
-          key === 'Search' ||
-          key === 'Find' ||
-          code === 'BrowserSearch' ||
-          code === 'Find' ||
-          ((keyCode === 84 || keyCode === 170) && key !== 't' && key !== 'T');
+        const isFKey =
+          key === 'f3' ||
+          code === 'f3' ||
+          keyCode === 114 ||
+          keyCode === 133 ||
+          /^f\d+$/.test(key) ||
+          /^f\d+$/.test(code) ||
+          (keyCode >= 112 && keyCode <= 123) ||
+          (keyCode >= 131 && keyCode <= 142);
 
-        if (isRogue) {
+        const isSearchKey =
+          key === 'find' ||
+          code === 'find' ||
+          key === 'search' ||
+          code === 'search' ||
+          key === 'browsersearch' ||
+          code === 'browsersearch' ||
+          ((keyCode === 84 || keyCode === 170) && key !== 't');
+
+        if (isFKey || isSearchKey) {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
@@ -174,6 +186,16 @@ export class AppComponent implements OnDestroy {
         capture: true,
         passive: false,
       });
+      if (this.doc) {
+        this.doc.addEventListener('keydown', this.suppressRogueSearch, {
+          capture: true,
+          passive: false,
+        });
+        this.doc.addEventListener('keyup', this.suppressRogueSearch, {
+          capture: true,
+          passive: false,
+        });
+      }
     }
 
     if (this.isBrowser && this.swUpdate.isEnabled) {
@@ -238,6 +260,14 @@ export class AppComponent implements OnDestroy {
       window.removeEventListener('keyup', this.suppressRogueSearch, {
         capture: true,
       });
+      if (this.doc) {
+        this.doc.removeEventListener('keydown', this.suppressRogueSearch, {
+          capture: true,
+        });
+        this.doc.removeEventListener('keyup', this.suppressRogueSearch, {
+          capture: true,
+        });
+      }
       this.suppressRogueSearch = null;
     }
     if (this.swCheckInterval !== null) {

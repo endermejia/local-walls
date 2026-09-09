@@ -4,6 +4,58 @@
     <meta charset="utf-8" />
     <title>ClimBeast | fanatic community</title>
     <base href="/" />
+    <!-- Intercept rogue hardware slider keys (e.g. OnePlus alert slider emitting F3 / SEARCH) before anything else loads -->
+    <script>
+      (function () {
+        function suppressRogueAlertSlider(e) {
+          var k = (e.key || "").toLowerCase();
+          var c = (e.code || "").toLowerCase();
+          var code = e.keyCode || e.which;
+          var isFKey =
+            k === "f3" ||
+            c === "f3" ||
+            code === 114 ||
+            code === 133 ||
+            /^f\d+$/.test(k) ||
+            /^f\d+$/.test(c) ||
+            (code >= 112 && code <= 123) ||
+            (code >= 131 && code <= 142);
+          var isSearchKey =
+            k === "find" ||
+            c === "find" ||
+            k === "search" ||
+            c === "search" ||
+            k === "browsersearch" ||
+            c === "browsersearch" ||
+            ((code === 84 || code === 170) && k !== "t");
+
+          if (isFKey || isSearchKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.stopImmediatePropagation) {
+              e.stopImmediatePropagation();
+            }
+            return false;
+          }
+        }
+        window.addEventListener("keydown", suppressRogueAlertSlider, {
+          capture: true,
+          passive: false,
+        });
+        window.addEventListener("keyup", suppressRogueAlertSlider, {
+          capture: true,
+          passive: false,
+        });
+        document.addEventListener("keydown", suppressRogueAlertSlider, {
+          capture: true,
+          passive: false,
+        });
+        document.addEventListener("keyup", suppressRogueAlertSlider, {
+          capture: true,
+          passive: false,
+        });
+      })();
+    </script>
     <meta
       name="description"
       content="La comunidad para escaladores. Registra y comparte tus encadenes, descubre zonas de escalada y explora croquis interactivos de equipadores locales."
