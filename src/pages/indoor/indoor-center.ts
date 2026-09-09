@@ -2,13 +2,14 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
+  effect,
   inject,
   input,
   resource,
   signal,
-  computed,
-  effect,
+  untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -488,8 +489,11 @@ import { IS_BROWSER } from '../../app/is-browser';
           </div>
 
           <div class="mt-6">
-            @switch (activeTabIndex()) {
-              @case (0) {
+            @if (loadedTabs().has(0)) {
+              <div
+                [hidden]="activeTabIndex() !== 0"
+                [class.hidden]="activeTabIndex() !== 0"
+              >
                 <div class="flex flex-col gap-4">
                   <div class="flex items-center justify-between px-3">
                     <label class="flex items-center gap-2 cursor-pointer">
@@ -544,11 +548,21 @@ import { IS_BROWSER } from '../../app/is-browser';
                     [availableTopos]="toposResource.value() || []"
                   />
                 </div>
-              }
-              @case (1) {
+              </div>
+            }
+            @if (loadedTabs().has(1)) {
+              <div
+                [hidden]="activeTabIndex() !== 1"
+                [class.hidden]="activeTabIndex() !== 1"
+              >
                 <app-indoor-topos [centerId]="c.id" [centerSlug]="c.slug" />
-              }
-              @case (2) {
+              </div>
+            }
+            @if (loadedTabs().has(2)) {
+              <div
+                [hidden]="activeTabIndex() !== 2"
+                [class.hidden]="activeTabIndex() !== 2"
+              >
                 @let ascents = mappedAscents();
                 @if (centerAscentsResource.isLoading()) {
                   <div class="flex items-center justify-center p-8">
@@ -571,10 +585,15 @@ import { IS_BROWSER } from '../../app/is-browser';
                     }
                   </div>
                 }
-              }
-              @case (3) {
+              </div>
+            }
+            @if (loadedTabs().has(3)) {
+              <div
+                [hidden]="activeTabIndex() !== 3"
+                [class.hidden]="activeTabIndex() !== 3"
+              >
                 <app-indoor-vouchers [centerId]="c.id" />
-              }
+              </div>
             }
           </div>
         } @else if (centerResource.isLoading()) {
@@ -622,6 +641,7 @@ export class IndoorCenterComponent {
   private readonly cache = inject(CacheService);
 
   protected readonly activeTabIndex = signal(0);
+  protected readonly loadedTabs = signal<Set<number>>(new Set([0]));
   protected readonly galleryIndex = signal(0);
 
   protected readonly carouselItems = computed<CarouselItem[]>(() => {
@@ -825,6 +845,23 @@ export class IndoorCenterComponent {
       if (!has && this.activeTabIndex() === 3) {
         this.activeTabIndex.set(0);
       }
+    });
+
+    effect(() => {
+      this.slug();
+      untracked(() => {
+        this.loadedTabs.set(new Set([this.activeTabIndex()]));
+      });
+    });
+
+    effect(() => {
+      const idx = this.activeTabIndex();
+      this.loadedTabs.update((set) => {
+        if (set.has(idx)) return set;
+        const next = new Set(set);
+        next.add(idx);
+        return next;
+      });
     });
   }
 

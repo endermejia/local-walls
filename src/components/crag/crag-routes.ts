@@ -272,7 +272,8 @@ export class CragRoutesComponent {
   });
 
   protected readonly areaRoutesResource = resource({
-    params: () => this.crag()?.area_id,
+    params: () =>
+      this.query().trim().length >= 2 ? this.crag()?.area_id : null,
     loader: async ({ params: areaId }) => {
       if (!areaId) return [];
       return this.routesService.getRoutesByAreaWithDetails(areaId);

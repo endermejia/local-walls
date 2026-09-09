@@ -6,6 +6,7 @@ import {
   input,
   InputSignal,
   signal,
+  untracked,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -247,11 +248,19 @@ import { IS_BROWSER } from '../../app/is-browser';
 
           <div class="mt-6">
             @let currentTab = visibleTabs()[activeTabIndex()];
-            @switch (currentTab) {
-              @case (0) {
+            @if (loadedTabs().has(0)) {
+              <div
+                [hidden]="currentTab !== 0"
+                [class.hidden]="currentTab !== 0"
+              >
                 <app-crag-routes [crag]="c" />
-              }
-              @case (1) {
+              </div>
+            }
+            @if (loadedTabs().has(1)) {
+              <div
+                [hidden]="currentTab !== 1"
+                [class.hidden]="currentTab !== 1"
+              >
                 @defer (on viewport; hydrate on viewport) {
                   <app-crag-topos
                     [crag]="c"
@@ -263,8 +272,13 @@ import { IS_BROWSER } from '../../app/is-browser';
                     <tui-loader size="l" />
                   </div>
                 }
-              }
-              @case (2) {
+              </div>
+            }
+            @if (loadedTabs().has(2)) {
+              <div
+                [hidden]="currentTab !== 2"
+                [class.hidden]="currentTab !== 2"
+              >
                 @defer (on viewport; hydrate on viewport) {
                   <app-crag-parkings [crag]="c" />
                 } @placeholder {
@@ -272,8 +286,13 @@ import { IS_BROWSER } from '../../app/is-browser';
                     <tui-loader size="l" />
                   </div>
                 }
-              }
-              @case (3) {
+              </div>
+            }
+            @if (loadedTabs().has(3)) {
+              <div
+                [hidden]="currentTab !== 3"
+                [class.hidden]="currentTab !== 3"
+              >
                 @defer (on viewport; hydrate on viewport) {
                   <app-weather-forecast
                     [coords]="{ lat: c.latitude, lng: c.longitude }"
@@ -283,7 +302,7 @@ import { IS_BROWSER } from '../../app/is-browser';
                     <tui-loader size="l" />
                   </div>
                 }
-              }
+              </div>
             }
           </div>
         } @else {
@@ -303,6 +322,7 @@ export class CragComponent {
   protected readonly cragRoutesData = inject(CragRoutesDataService);
   protected readonly mapData = inject(MapDataService);
   protected readonly activeTabIndex = signal(0);
+  protected readonly loadedTabs = signal<Set<number>>(new Set([0]));
   protected readonly supabase = inject(SupabaseService);
   protected readonly router = inject(Router);
   protected readonly cragsService = inject(CragsService);
@@ -407,6 +427,22 @@ export class CragComponent {
       const aSlug = this.areaSlug();
       const cSlug = this.cragSlug();
       this.outdoorData.selectCrag(aSlug, cSlug);
+      untracked(() => {
+        const currentTab = this.visibleTabs()[this.activeTabIndex()] ?? 0;
+        this.loadedTabs.set(new Set([currentTab]));
+      });
+    });
+
+    effect(() => {
+      const currentTab = this.visibleTabs()[this.activeTabIndex()];
+      if (currentTab !== undefined) {
+        this.loadedTabs.update((set) => {
+          if (set.has(currentTab)) return set;
+          const next = new Set(set);
+          next.add(currentTab);
+          return next;
+        });
+      }
     });
 
     effect(() => {

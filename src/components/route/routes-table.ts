@@ -163,7 +163,10 @@ import { EmptyStateComponent } from '../ui/empty-state';
             @let sortedData = d | tuiTableSort;
             @for (item of sortedData; track item.key) {
               @let canEditRoute = item.canEdit;
-              <tbody tuiTbody>
+              <tbody
+                tuiTbody
+                class="[content-visibility:auto] [contain-intrinsic-size:0_48px]"
+              >
                 <tr
                   tuiTr
                   [style.background]="
