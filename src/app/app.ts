@@ -70,6 +70,7 @@ export class AppComponent implements OnDestroy {
   private readonly themeService = inject(ThemeService);
   protected readonly cartService = inject(CartService);
   private swCheckInterval: ReturnType<typeof setInterval> | null = null;
+  private suppressRogueSearch: ((e: KeyboardEvent) => void) | null = null;
 
   protected readonly theme = this.themeService.selectedTheme;
   protected readonly isDark = this.themeService.isDark;
@@ -142,6 +143,39 @@ export class AppComponent implements OnDestroy {
       }
     });
 
+    if (this.isBrowser) {
+      // Intercept rogue hardware key events (e.g. OnePlus alert slider / physical mute switches)
+      // which fire KEYCODE_SEARCH / DomKey: BrowserSearch / Find, triggering the browser's Find-in-page bar
+      this.suppressRogueSearch = (e: KeyboardEvent) => {
+        const key = e.key;
+        const code = e.code;
+        const keyCode = e.keyCode || e.which;
+
+        const isRogue =
+          key === 'BrowserSearch' ||
+          key === 'Search' ||
+          key === 'Find' ||
+          code === 'BrowserSearch' ||
+          code === 'Find' ||
+          ((keyCode === 84 || keyCode === 170) && key !== 't' && key !== 'T');
+
+        if (isRogue) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        }
+      };
+
+      window.addEventListener('keydown', this.suppressRogueSearch, {
+        capture: true,
+        passive: false,
+      });
+      window.addEventListener('keyup', this.suppressRogueSearch, {
+        capture: true,
+        passive: false,
+      });
+    }
+
     if (this.isBrowser && this.swUpdate.isEnabled) {
       // Check for updates immediately on startup
       void this.swUpdate.checkForUpdate().catch(() => {
@@ -197,6 +231,15 @@ export class AppComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.suppressRogueSearch && typeof window !== 'undefined') {
+      window.removeEventListener('keydown', this.suppressRogueSearch, {
+        capture: true,
+      });
+      window.removeEventListener('keyup', this.suppressRogueSearch, {
+        capture: true,
+      });
+      this.suppressRogueSearch = null;
+    }
     if (this.swCheckInterval !== null) {
       clearInterval(this.swCheckInterval);
       this.swCheckInterval = null;
