@@ -53,16 +53,14 @@ describe('ThemeService', () => {
     expect(statusBarStyle?.getAttribute('content')).toBe('black');
     expect(colorScheme?.getAttribute('content')).toBe('dark');
     expect(document.documentElement.getAttribute('tuiTheme')).toBe('dark');
-    expect(document.documentElement.style.colorScheme).toBe('dark');
 
     service.setTheme(Themes.LIGHT);
     TestBed.flushEffects();
 
-    expect(themeColor?.getAttribute('content')).toBe('#ffffff');
-    expect(statusBarStyle?.getAttribute('content')).toBe('default');
-    expect(colorScheme?.getAttribute('content')).toBe('light');
+    expect(themeColor?.getAttribute('content')).toBe('#0b1220');
+    expect(statusBarStyle?.getAttribute('content')).toBe('black');
+    expect(colorScheme?.getAttribute('content')).toBe('dark');
     expect(document.documentElement.getAttribute('tuiTheme')).toBe('light');
-    expect(document.documentElement.style.colorScheme).toBe('light');
   });
 
   it('should correctly evaluate isDark for dark and light themes', () => {

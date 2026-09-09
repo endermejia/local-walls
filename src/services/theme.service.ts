@@ -103,13 +103,10 @@ export class ThemeService {
     if (!this.isBrowser) return;
 
     const color = dark ? '#0b1220' : '#ffffff';
-    const statusBarStyle = dark ? 'black' : 'default';
-    const colorScheme = dark ? 'dark' : 'light';
 
     // 1. Root & body styling and attributes
     const docEl = this.doc.documentElement;
     docEl.setAttribute('tuiTheme', dark ? 'dark' : 'light');
-    docEl.style.setProperty('color-scheme', colorScheme);
     docEl.style.setProperty('--tui-theme-color', color);
     docEl.style.backgroundColor = color;
     if (this.doc.body) {
@@ -118,11 +115,35 @@ export class ThemeService {
     docEl.classList.toggle('dark', dark);
     docEl.classList.toggle('light', !dark);
 
-    // 2. Force re-evaluation of meta tags for mobile browsers (WebKit & Chromium)
-    this.updateMetaTag('theme-color', color);
-    this.updateMetaTag('apple-mobile-web-app-status-bar-style', statusBarStyle);
-    this.updateMetaTag('color-scheme', colorScheme);
+    // 2. Mobile OS status bar: always maintain dark theme (#0b1220) with white icons ('black' / 'dark')
+    // so icons are consistently visible and never disappear on Android WebAPK or iOS PWA
+    this.updateThemeColor('#0b1220');
+    this.updateMetaTag('apple-mobile-web-app-status-bar-style', 'black');
+    this.updateMetaTag('color-scheme', 'dark');
   });
+
+  private updateThemeColor(color: string): void {
+    const metas = Array.from(
+      this.doc.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'),
+    );
+    let meta = metas[0];
+    for (let i = 1; i < metas.length; i++) {
+      metas[i].remove();
+    }
+    if (!meta) {
+      meta = this.doc.createElement('meta');
+      meta.setAttribute('name', 'theme-color');
+      this.doc.head.appendChild(meta);
+    }
+    meta.removeAttribute('media');
+    meta.setAttribute('content', color);
+
+    const parent = meta.parentNode;
+    if (parent) {
+      parent.removeChild(meta);
+      parent.appendChild(meta);
+    }
+  }
 
   private updateMetaTag(name: string, content: string): void {
     let meta = this.doc.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
