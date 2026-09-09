@@ -1050,6 +1050,7 @@ export class UserProfileConfigComponent {
     this.model.update((m) => ({ ...m, deleteEmail: '' }));
     void firstValueFrom(
       this.dialogs.open(template, {
+        label: this.translate.instant('profile.deleteAccount.title'),
         size: 'm',
       }),
       { defaultValue: undefined },
@@ -1094,6 +1095,7 @@ export class UserProfileConfigComponent {
     this.passwordModel.set({ newPassword: '', confirmPassword: '' });
     void firstValueFrom(
       this.dialogs.open(template, {
+        label: this.translate.instant('auth.setNewPassword'),
         size: 'm',
       }),
       { defaultValue: undefined },

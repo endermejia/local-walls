@@ -15,7 +15,6 @@ import {
   TuiLabel,
   TuiNotification,
   TuiTextfield,
-  TuiTitle,
 } from '@taiga-ui/core';
 import { TuiPassword } from '@taiga-ui/kit';
 
@@ -35,7 +34,6 @@ import { Observer } from 'rxjs';
     TuiNotification,
     TuiPassword,
     TuiTextfield,
-    TuiTitle,
   ],
   template: `
     <div
@@ -90,8 +88,6 @@ import { Observer } from 'rxjs';
     <!-- Change Password Dialog Template -->
     <ng-template #changePasswordDialog let-observer>
       <div class="flex flex-col gap-4">
-        <h3 tuiTitle>{{ 'auth.setNewPassword' | translate }}</h3>
-
         <tui-textfield class="block">
           <label tuiLabel for="newPasswordInput">{{
             'newPassword' | translate
@@ -158,7 +154,6 @@ import { Observer } from 'rxjs';
     <!-- Delete Account Dialog Template -->
     <ng-template #deleteDialog let-observer>
       <div class="flex flex-col gap-4">
-        <h3 tuiTitle>{{ 'profile.deleteAccount.title' | translate }}</h3>
         <p class="text-(--tui-text-negative) font-bold">
           {{ 'profile.deleteAccount.warning' | translate }}
         </p>
