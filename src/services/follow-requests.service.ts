@@ -24,6 +24,7 @@ export class FollowRequestsService {
 
   async requestFollow(followedUserId: string): Promise<boolean> {
     if (!this.isBrowser) return false;
+    await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
     if (!userId) return false;
 
@@ -47,6 +48,7 @@ export class FollowRequestsService {
 
   async cancelRequest(followedUserId: string): Promise<boolean> {
     if (!this.isBrowser) return false;
+    await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
     if (!userId) return false;
 
@@ -69,6 +71,7 @@ export class FollowRequestsService {
 
   async acceptRequestByFollower(followerId: string): Promise<boolean> {
     if (!this.isBrowser) return false;
+    await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
     if (!userId) return false;
 
@@ -87,6 +90,7 @@ export class FollowRequestsService {
 
   async acceptRequest(requestId: number): Promise<boolean> {
     if (!this.isBrowser) return false;
+    await this.supabase.whenReady();
 
     const { error } = await this.supabase.client.rpc('accept_follow_request', {
       p_request_id: requestId,
@@ -105,6 +109,7 @@ export class FollowRequestsService {
 
   async rejectRequest(requestId: number): Promise<boolean> {
     if (!this.isBrowser) return false;
+    await this.supabase.whenReady();
 
     const { error } = await this.supabase.client.rpc('reject_follow_request', {
       p_request_id: requestId,
@@ -123,6 +128,7 @@ export class FollowRequestsService {
 
   async getPendingOutgoingRequestIds(): Promise<string[]> {
     if (!this.isBrowser) return [];
+    await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
     if (!userId) return [];
 
@@ -145,6 +151,7 @@ export class FollowRequestsService {
 
   async getPendingIncomingRequestIds(): Promise<string[]> {
     if (!this.isBrowser) return [];
+    await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
     if (!userId) return [];
 
@@ -167,6 +174,7 @@ export class FollowRequestsService {
 
   async getIncomingRequestsCount(): Promise<number> {
     if (!this.isBrowser) return 0;
+    await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
     if (!userId) return 0;
 
@@ -192,6 +200,7 @@ export class FollowRequestsService {
     pageSize: number,
   ): Promise<{ items: PopulatedFollowRequestDto[]; total: number }> {
     if (!this.isBrowser) return { items: [], total: 0 };
+    await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
     if (!userId) return { items: [], total: 0 };
 

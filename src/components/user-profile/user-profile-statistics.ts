@@ -36,6 +36,7 @@ import {
   filterAscentsByDate,
   getMaxGrade,
   getMaxGradeRoutes,
+  safeResourceValue,
 } from '../../utils';
 
 import { UserProfileStatsPyramidComponent } from './statistics/grade-pyramid';
@@ -134,13 +135,18 @@ export class UserProfileStatisticsComponent {
     }),
     loader: async ({ params }) => {
       if (!params.userId) return [];
-      return await this.ascentsService.getUserStats(params.userId);
+      try {
+        return await this.ascentsService.getUserStats(params.userId);
+      } catch {
+        return [];
+      }
     },
   });
 
   // Create a filtered signal based on the control
   private rawStats = computed(() => {
-    const data = (this.statsResource.value() as UserAscentStatRecord[]) ?? [];
+    const data =
+      safeResourceValue<UserAscentStatRecord[]>(this.statsResource, []) ?? [];
     return data.filter((a) => a.ascent_type !== 'attempt');
   });
 

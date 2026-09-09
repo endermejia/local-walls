@@ -56,64 +56,18 @@ export class ErrorLogService {
   ): Promise<void> {
     if (!this.isBrowser) return;
 
-    let message = 'Unexpected error';
-    let stack: string | null = null;
-    let code: string | null = null;
+    const { message, code, stack } = this.unwrapError(error);
 
-    if (error instanceof Error) {
-      message = error.message;
-      stack = error.stack ?? null;
-
-      if (message === '[object Object]' || message === 'Error' || !message) {
-        const anyErr = error as unknown as Record<string, unknown>;
-        if (anyErr['cause'] && typeof anyErr['cause'] === 'object') {
-          const cause = anyErr['cause'] as Record<string, unknown>;
-          message = String(
-            cause['message'] ||
-              cause['details'] ||
-              cause['hint'] ||
-              JSON.stringify(cause),
-          );
-          if (cause['code']) code = String(cause['code']);
-        }
-      }
-
-      if (
-        'context' in error &&
-        error.context &&
-        typeof error.context === 'object'
-      ) {
-        const ctx = error.context as Record<string, unknown>;
-        if (typeof ctx['status'] === 'number') {
-          code = String(ctx['status']);
-        }
-      }
-    } else if (error && typeof error === 'object') {
-      const errorObj = error as Record<string, unknown>;
-      const innerError = errorObj['error'] as
-        Record<string, unknown> | undefined;
-      const cause = errorObj['cause'] as Record<string, unknown> | undefined;
-      message = String(
-        errorObj['message'] ||
-          innerError?.['message'] ||
-          cause?.['message'] ||
-          errorObj['details'] ||
-          innerError?.['details'] ||
-          cause?.['details'] ||
-          errorObj['messageKey'] ||
-          errorObj['hint'] ||
-          JSON.stringify(error),
-      );
-      stack = errorObj['stack'] ? String(errorObj['stack']) : null;
-      code = errorObj['code']
-        ? String(errorObj['code'])
-        : errorObj['status']
-          ? String(errorObj['status'])
-          : innerError?.['code']
-            ? String(innerError['code'])
-            : null;
-    } else if (error) {
-      message = String(error);
+    // Ignore empty/blank error messages or empty JSON that have no actionable information
+    const trimmed = message.trim();
+    if (
+      !trimmed ||
+      trimmed === '{"message":""}' ||
+      trimmed === '{}' ||
+      trimmed === 'null' ||
+      trimmed === 'undefined'
+    ) {
+      return;
     }
 
     const userId = this.supabase.authUserId();
@@ -272,5 +226,131 @@ export class ErrorLogService {
     } catch {
       // ignore
     }
+  }
+
+  private unwrapError(
+    error: unknown,
+    depth = 0,
+  ): { message: string; code: string | null; stack: string | null } {
+    if (depth > 5 || !error) {
+      return { message: 'Unexpected error', code: null, stack: null };
+    }
+
+    if (typeof error === 'string') {
+      return { message: error, code: null, stack: null };
+    }
+
+    if (error instanceof Error) {
+      let message = error.message;
+      let stack = error.stack ?? null;
+      let code: string | null = null;
+
+      if (
+        'context' in error &&
+        error.context &&
+        typeof error.context === 'object'
+      ) {
+        const ctx = error.context as Record<string, unknown>;
+        if (typeof ctx['status'] === 'number') {
+          code = String(ctx['status']);
+        }
+      }
+
+      if (!message || message === '[object Object]' || message === 'Error') {
+        const anyErr = error as unknown as Record<string, unknown>;
+        if (anyErr['cause']) {
+          const inner = this.unwrapError(anyErr['cause'], depth + 1);
+          if (
+            inner.message &&
+            inner.message !== '[object Object]' &&
+            inner.message !== 'Error'
+          ) {
+            message = inner.message;
+          }
+          if (inner.code) code = inner.code;
+          if (!stack && inner.stack) stack = inner.stack;
+        }
+      }
+
+      return {
+        message: message || 'Unexpected error',
+        code,
+        stack,
+      };
+    }
+
+    if (typeof error === 'object') {
+      const errorObj = error as Record<string, unknown>;
+      const innerError = errorObj['error'];
+      const cause = errorObj['cause'];
+
+      const code: string | null = errorObj['code']
+        ? String(errorObj['code'])
+        : errorObj['status']
+          ? String(errorObj['status'])
+          : null;
+      const stack = errorObj['stack'] ? String(errorObj['stack']) : null;
+
+      // Check explicit text fields
+      const candidate =
+        errorObj['message'] ||
+        errorObj['details'] ||
+        errorObj['messageKey'] ||
+        errorObj['hint'];
+
+      if (
+        typeof candidate === 'string' &&
+        candidate.trim() &&
+        candidate !== '[object Object]'
+      ) {
+        return { message: candidate, code, stack };
+      }
+
+      // Check cause or inner error recursively
+      if (cause) {
+        const inner = this.unwrapError(cause, depth + 1);
+        if (
+          inner.message &&
+          inner.message !== '[object Object]' &&
+          inner.message !== 'Error'
+        ) {
+          return {
+            message: inner.message,
+            code: code || inner.code,
+            stack: stack || inner.stack,
+          };
+        }
+      }
+
+      if (innerError) {
+        const inner = this.unwrapError(innerError, depth + 1);
+        if (
+          inner.message &&
+          inner.message !== '[object Object]' &&
+          inner.message !== 'Error'
+        ) {
+          return {
+            message: inner.message,
+            code: code || inner.code,
+            stack: stack || inner.stack,
+          };
+        }
+      }
+
+      try {
+        const json = JSON.stringify(error);
+        if (json && json !== '{}' && json !== '{"message":""}') {
+          return { message: json, code, stack };
+        }
+      } catch {
+        // cyclic
+      }
+    }
+
+    return {
+      message: String(error ?? 'Unexpected error'),
+      code: null,
+      stack: null,
+    };
   }
 }

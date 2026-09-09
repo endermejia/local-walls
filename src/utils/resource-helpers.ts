@@ -166,3 +166,30 @@ export function createCachedResource<P, T>(
 
   return { resource: res, signal: sig };
 }
+
+/**
+ * Safely reads a resource's value, returning a fallback if the resource is in an error state
+ * or hasn't produced a value yet, avoiding uncaught ResourceValueError exceptions in computed signals.
+ */
+export function safeResourceValue<T>(res: {
+  value: () => T | undefined;
+  error?: () => unknown;
+}): T | undefined;
+export function safeResourceValue<T>(
+  res: { value: () => T | undefined; error?: () => unknown },
+  fallback: T,
+): T;
+export function safeResourceValue<T>(
+  res: { value: () => T | undefined; error?: () => unknown },
+  fallback?: T,
+): T | undefined {
+  try {
+    if (res.error?.()) {
+      return fallback;
+    }
+    const val = res.value();
+    return val !== undefined ? val : fallback;
+  } catch {
+    return fallback;
+  }
+}

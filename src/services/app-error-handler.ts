@@ -12,6 +12,18 @@ export class AppErrorHandler implements ErrorHandler {
 
   handleError(error: unknown): void {
     const msg = this.extractMessage(error);
+    const trimmed = msg.trim();
+
+    // 0. Empty, blank, or meaningless cancellation/rejection errors that should never be logged
+    if (
+      !trimmed ||
+      trimmed === '{"message":""}' ||
+      trimmed === '{}' ||
+      trimmed === 'null' ||
+      trimmed === 'undefined'
+    ) {
+      return;
+    }
 
     // 1. Benign browser notifications that should never be logged
     if (
@@ -69,16 +81,55 @@ export class AppErrorHandler implements ErrorHandler {
     this.errorLogService.logError(error, 'critical', 'AppErrorHandler');
   }
 
-  private extractMessage(error: unknown): string {
+  private extractMessage(error: unknown, depth = 0): string {
+    if (depth > 5 || !error) {
+      return '';
+    }
     if (error instanceof Error) {
-      return error.message;
+      if (
+        error.message &&
+        error.message !== '[object Object]' &&
+        error.message !== 'Error'
+      ) {
+        return error.message;
+      }
+      if ('cause' in error && error.cause) {
+        const causeMsg = this.extractMessage(error.cause, depth + 1);
+        if (causeMsg) return causeMsg;
+      }
+      return error.message || '';
     }
     if (typeof error === 'string') {
       return error;
     }
-    if (error && typeof error === 'object') {
+    if (typeof error === 'object') {
       const rec = error as Record<string, unknown>;
-      if (typeof rec['message'] === 'string') return rec['message'];
+      if (
+        typeof rec['message'] === 'string' &&
+        rec['message'].trim() &&
+        rec['message'] !== '[object Object]'
+      ) {
+        return rec['message'];
+      }
+      if (rec['cause']) {
+        const causeMsg = this.extractMessage(rec['cause'], depth + 1);
+        if (causeMsg) return causeMsg;
+      }
+      if (rec['error']) {
+        const innerMsg = this.extractMessage(rec['error'], depth + 1);
+        if (innerMsg) return innerMsg;
+      }
+      if (typeof rec['details'] === 'string' && rec['details'].trim()) {
+        return rec['details'];
+      }
+      try {
+        const json = JSON.stringify(error);
+        if (json && json !== '{}' && json !== '{"message":""}') {
+          return json;
+        }
+      } catch {
+        // ignore cyclic
+      }
     }
     return String(error ?? '');
   }

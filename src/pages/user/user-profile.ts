@@ -48,7 +48,7 @@ import { UserInfoComponent } from '../../components/ui/user-info';
 import { UserProfileAscentsComponent } from '../../components/user-profile/user-profile-ascents';
 import { UserProfileStatisticsComponent } from '../../components/user-profile/user-profile-statistics';
 
-import { openPhotoViewer } from '../../utils';
+import { openPhotoViewer, safeResourceValue } from '../../utils';
 
 import { IS_BROWSER } from '../../app/is-browser';
 
@@ -386,21 +386,27 @@ export class UserProfileComponent {
     loader: async ({ params: paramId }) => {
       if (!paramId || !this.isBrowser) return null;
 
-      // If param is the same as the current user id, we use our own profile (computed below)
-      const currentId = this.supabase.authUserId();
-      if (currentId && paramId === currentId) return null;
+      try {
+        await this.supabase.whenReady();
+        // If param is the same as the current user id, we use our own profile (computed below)
+        const currentId = this.supabase.authUserId();
+        if (currentId && paramId === currentId) return null;
 
-      const { data, error } = await this.supabase.client
-        .from('user_profiles')
-        .select('*')
-        .eq('id', paramId)
-        .maybeSingle();
+        const { data, error } = await this.supabase.client
+          .from('user_profiles')
+          .select('*')
+          .eq('id', paramId)
+          .maybeSingle();
 
-      if (error) {
-        console.error('[UserProfile] fetch by id error', error);
+        if (error) {
+          console.error('[UserProfile] fetch by id error', error);
+          return null;
+        }
+        return data;
+      } catch (err) {
+        console.error('[UserProfile] fetch by id exception', err);
         return null;
       }
-      return data;
     },
   });
 
@@ -408,31 +414,40 @@ export class UserProfileComponent {
     params: () => this.profile()?.id,
     loader: async ({ params: userId }) => {
       if (!userId || !this.isBrowser) return null;
-      const { data: equipper, error } = await this.supabase.client
-        .from('equippers')
-        .select('id')
-        .eq('user_id', userId)
-        .maybeSingle();
+      try {
+        await this.supabase.whenReady();
+        const { data: equipper, error } = await this.supabase.client
+          .from('equippers')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
 
-      if (error || !equipper) {
-        if (error) {
-          console.error('[UserProfile] equipperResource error', error);
+        if (error || !equipper) {
+          if (error) {
+            console.error('[UserProfile] equipperResource error', error);
+          }
+          return null;
         }
+
+        // Query count of routes from route_equippers
+        const { count, error: countError } = await this.supabase.client
+          .from('route_equippers')
+          .select('*', { count: 'exact', head: true })
+          .eq('equipper_id', equipper.id);
+
+        if (countError) {
+          console.error(
+            '[UserProfile] equipper routes count error',
+            countError,
+          );
+          return { id: equipper.id, routesCount: 0 };
+        }
+
+        return { id: equipper.id, routesCount: count ?? 0 };
+      } catch (err) {
+        console.error('[UserProfile] equipperResource exception', err);
         return null;
       }
-
-      // Query count of routes from route_equippers
-      const { count, error: countError } = await this.supabase.client
-        .from('route_equippers')
-        .select('*', { count: 'exact', head: true })
-        .eq('equipper_id', equipper.id);
-
-      if (countError) {
-        console.error('[UserProfile] equipper routes count error', countError);
-        return { id: equipper.id, routesCount: 0 };
-      }
-
-      return { id: equipper.id, routesCount: count ?? 0 };
     },
   });
 
@@ -445,7 +460,7 @@ export class UserProfileComponent {
       return ownProfile ?? null;
     }
 
-    return this.externalProfileResource.value() ?? null;
+    return safeResourceValue(this.externalProfileResource, null);
   });
 
   readonly loading = computed(
@@ -477,51 +492,61 @@ export class UserProfileComponent {
     loader: async ({ params }) => {
       if (!params.userId || !this.isBrowser)
         return { blockMessages: false, blockAscents: false };
-      return this.blockingService.getBlockState(params.userId);
+      try {
+        return await this.blockingService.getBlockState(params.userId);
+      } catch {
+        return { blockMessages: false, blockAscents: false };
+      }
     },
   });
 
-  readonly blockState = computed(
-    () =>
-      this.blockStateResource.value() ?? {
-        blockMessages: false,
-        blockAscents: false,
-      },
+  readonly blockState = computed(() =>
+    safeResourceValue(this.blockStateResource, {
+      blockMessages: false,
+      blockAscents: false,
+    }),
   );
 
   readonly hasProjectsDataResource = resource({
     params: () => this.profile()?.id,
     loader: async ({ params: userId }) => {
       if (!userId || !this.isBrowser) return false;
-      await this.supabase.whenReady();
+      try {
+        await this.supabase.whenReady();
 
-      const { count: pyramidCount } = await this.supabase.client
-        .from('user_pyramid_slots')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .limit(1);
+        const { count: pyramidCount } = await this.supabase.client
+          .from('user_pyramid_slots')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .limit(1);
 
-      if (pyramidCount && pyramidCount > 0) return true;
+        if (pyramidCount && pyramidCount > 0) return true;
 
-      const { count: projectCount } = await this.supabase.client
-        .from('route_projects')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .limit(1);
+        const { count: projectCount } = await this.supabase.client
+          .from('route_projects')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .limit(1);
 
-      return (projectCount && projectCount > 0) || false;
+        return (projectCount && projectCount > 0) || false;
+      } catch {
+        return false;
+      }
     },
   });
 
   readonly hasProjects = computed(() => {
     if (this.isOwnProfile()) return true;
-    const value = this.hasProjectsDataResource.value();
+    const value = safeResourceValue(this.hasProjectsDataResource, undefined);
     return value === undefined || value !== false;
   });
 
   readonly hasAscents = computed(() => {
     if (this.isOwnProfile()) return true;
-    const count = this.profileData.userTotalAscentsCountResource.value();
+    const count = safeResourceValue(
+      this.profileData.userTotalAscentsCountResource,
+      undefined,
+    );
     return count === undefined || count !== 0;
   });
 
@@ -549,7 +574,11 @@ export class UserProfileComponent {
     loader: async ({ params }) => {
       const userId = params.userId;
       if (!userId || !this.isBrowser) return 0;
-      return await this.followsService.getFollowersCount(userId);
+      try {
+        return await this.followsService.getFollowersCount(userId);
+      } catch {
+        return 0;
+      }
     },
   });
 
@@ -561,15 +590,19 @@ export class UserProfileComponent {
     loader: async ({ params }) => {
       const userId = params.userId;
       if (!userId || !this.isBrowser) return 0;
-      return await this.followsService.getFollowingCount(userId);
+      try {
+        return await this.followsService.getFollowingCount(userId);
+      } catch {
+        return 0;
+      }
     },
   });
 
-  protected readonly followersCount = computed(
-    () => this.followersCountResource.value() ?? 0,
+  protected readonly followersCount = computed(() =>
+    safeResourceValue(this.followersCountResource, 0),
   );
-  protected readonly followingCount = computed(
-    () => this.followingCountResource.value() ?? 0,
+  protected readonly followingCount = computed(() =>
+    safeResourceValue(this.followingCountResource, 0),
   );
 
   constructor() {

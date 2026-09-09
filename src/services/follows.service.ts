@@ -28,6 +28,7 @@ export class FollowsService {
     filterValue: string,
   ): Promise<string[]> {
     if (!this.isBrowser) return [];
+    await this.supabase.whenReady();
 
     const allIds: string[] = [];
     let page = 0;
@@ -64,6 +65,7 @@ export class FollowsService {
 
   async follow(followedUserId: string): Promise<boolean> {
     if (!this.isBrowser) return false;
+    await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
     if (!userId) return false;
 
@@ -85,6 +87,7 @@ export class FollowsService {
 
   async unfollow(followedUserId: string): Promise<boolean> {
     if (!this.isBrowser) return false;
+    await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
     if (!userId) return false;
 
@@ -109,6 +112,7 @@ export class FollowsService {
 
   async getFollowersCount(userId: string): Promise<number> {
     if (!this.isBrowser) return 0;
+    await this.supabase.whenReady();
     const { count, error } = await this.supabase.client
       .from('user_follows')
       .select('id', { count: 'exact', head: true })
@@ -123,6 +127,7 @@ export class FollowsService {
 
   async getFollowingCount(userId: string): Promise<number> {
     if (!this.isBrowser) return 0;
+    await this.supabase.whenReady();
     const { count, error } = await this.supabase.client
       .from('user_follows')
       .select('id', { count: 'exact', head: true })

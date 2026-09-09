@@ -26,6 +26,7 @@ export class BlockingService {
 
   async getBlockState(targetUserId: string): Promise<BlockState> {
     if (!this.isBrowser) return { blockMessages: false, blockAscents: false };
+    await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
     if (!userId) return { blockMessages: false, blockAscents: false };
 
@@ -83,6 +84,7 @@ export class BlockingService {
     blockAscents: boolean,
   ): Promise<boolean> {
     if (!this.isBrowser) return false;
+    await this.supabase.whenReady();
     const userId = this.supabase.authUserId();
     if (!userId) return false;
 

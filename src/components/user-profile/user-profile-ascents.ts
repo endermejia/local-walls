@@ -28,7 +28,11 @@ import {
   UserProfileDto,
 } from '../../models';
 
-import { processAscentsToFeed, reactToObservable } from '../../utils';
+import {
+  processAscentsToFeed,
+  reactToObservable,
+  safeResourceValue,
+} from '../../utils';
 
 import { IS_BROWSER } from '../../app/is-browser';
 
@@ -142,13 +146,18 @@ export class UserProfileAscentsComponent {
 
   readonly ascentsResource = this.profileData.userAscentsResource;
   readonly totalAscents = computed(
-    () => this.ascentsResource.value()?.total ?? 0,
+    () =>
+      safeResourceValue(this.ascentsResource, { items: [], total: 0 }).total ??
+      0,
   );
   readonly hasMore = computed(() => {
     return this.accumulatedAscents().length < this.totalAscents();
   });
   readonly hasAscents = computed(() => {
-    const count = this.profileData.userTotalAscentsCountResource.value();
+    const count = safeResourceValue(
+      this.profileData.userTotalAscentsCountResource,
+      undefined,
+    );
     return count !== undefined && count !== 0;
   });
 

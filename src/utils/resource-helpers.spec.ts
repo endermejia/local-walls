@@ -10,6 +10,7 @@ import { IS_BROWSER } from '../app/is-browser';
 import {
   createCachedResource,
   createSafeResource,
+  safeResourceValue,
   waitForResource,
   watchResourceError,
 } from './resource-helpers';
@@ -90,6 +91,46 @@ describe('resource-helpers', () => {
 
       const result = await waitForResource(mockResource, 10, 10);
       expect(result).toBe('loaded');
+    });
+  });
+
+  describe('safeResourceValue', () => {
+    it('returns resource value when available', () => {
+      const mockResource = {
+        value: () => 'hello',
+        error: () => undefined,
+      };
+      expect(safeResourceValue(mockResource, 'fallback')).toBe('hello');
+    });
+
+    it('returns fallback when value is undefined', () => {
+      const mockResource = {
+        value: () => undefined,
+        error: () => undefined,
+      };
+      expect(safeResourceValue(mockResource, 'fallback')).toBe('fallback');
+    });
+
+    it('returns fallback when resource has error without calling value()', () => {
+      let valueCalled = false;
+      const mockResource = {
+        value: () => {
+          valueCalled = true;
+          throw new Error('Resource error');
+        },
+        error: () => new Error('Underlying error'),
+      };
+      expect(safeResourceValue(mockResource, 'fallback')).toBe('fallback');
+      expect(valueCalled).toBe(false);
+    });
+
+    it('catches error if value() throws and returns fallback', () => {
+      const mockResource = {
+        value: () => {
+          throw new Error('Unexpected throw');
+        },
+      };
+      expect(safeResourceValue(mockResource, 'fallback')).toBe('fallback');
     });
   });
 });
