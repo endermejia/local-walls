@@ -63,6 +63,7 @@ import {
   TopoPointStateBadgePipe,
   TopoPointStateColorPipe,
   TopoPointStateLabelPipe,
+  TopoRouteVisibilityStatePipe,
 } from '../../pipes';
 
 import {
@@ -113,6 +114,7 @@ export interface TopoPathEditorConfig {
     TopoPointStateBadgePipe,
     TopoPointStateColorPipe,
     TopoPointStateLabelPipe,
+    TopoRouteVisibilityStatePipe,
     TranslateModule,
     TuiButton,
     TuiIcon,
@@ -191,8 +193,6 @@ export interface TopoPathEditorConfig {
                     tr.route_id | topoHasPath: pathsMap : pathsVersion();
                   @let isTraverse =
                     tr.route_id | topoIsTraverse: pathsMap : pathsVersion();
-                  @let isVisible =
-                    tr.route_id | topoIsRouteVisible: hiddenRouteIds();
                   <div
                     cdkDrag
                     class="route-item"
@@ -232,16 +232,50 @@ export interface TopoPathEditorConfig {
                     />
 
                     <div class="flex items-center gap-1">
+                      @let visState =
+                        tr.route_id
+                          | topoRouteVisibilityState
+                            : hiddenRouteIds()
+                            : topoRoutes.length;
                       <button
                         tuiIconButton
                         appearance="flat"
                         size="s"
-                        class="rounded-full! opacity-60 hover:opacity-100"
-                        [iconStart]="isVisible ? '@tui.eye' : '@tui.eye-off'"
-                        [class.opacity-30]="!isVisible"
+                        class="rounded-full! shrink-0 transition-opacity"
+                        [iconStart]="
+                          visState === 'hidden'
+                            ? '@tui.eye-off'
+                            : visState === 'solo'
+                              ? '@tui.scan-eye'
+                              : '@tui.eye'
+                        "
+                        [class.opacity-30]="visState === 'hidden'"
+                        [class.opacity-60]="visState === 'visible'"
+                        [class.hover:opacity-100]="
+                          visState === 'visible' || visState === 'hidden'
+                        "
+                        [class.opacity-100]="visState === 'solo'"
+                        [class.text-(--tui-text-accent-1)!]="
+                          visState === 'solo'
+                        "
+                        [title]="
+                          (visState === 'hidden'
+                            ? 'showOnly'
+                            : visState === 'solo'
+                              ? 'showAll'
+                              : 'hide'
+                          ) | translate
+                        "
                         (click)="toggleRouteVisibility(tr.route_id, $event)"
                       >
-                        {{ (isVisible ? 'hide' : 'show') | translate }}
+                        {{
+                          (visState === 'hidden'
+                            ? 'showOnly'
+                            : visState === 'solo'
+                              ? 'showAll'
+                              : 'hide'
+                          ) | translate
+                        }}
                       </button>
                       <button
                         tuiIconButton
@@ -543,13 +577,13 @@ export interface TopoPathEditorConfig {
                           @let pillW =
                             strokeW *
                             (pt.state === 'match'
-                              ? 3.8
+                              ? 5.8
                               : pt.state === 'start'
-                                ? 3.6
+                                ? 5.5
                                 : pt.state === 'foot'
-                                  ? 3.4
-                                  : 2.8);
-                          @let pillH = strokeW * 1.4;
+                                  ? 5.0
+                                  : 4.2);
+                          @let pillH = strokeW * 2.1;
                           @let pillY = pt.y * height() + circleR + pillH * 0.45;
                           <g
                             class="pointer-events-none"
@@ -571,7 +605,7 @@ export interface TopoPathEditorConfig {
                               text-anchor="middle"
                               fill="white"
                               font-weight="bold"
-                              [attr.font-size]="strokeW * 0.95"
+                              [attr.font-size]="strokeW * 1.5"
                               font-family="sans-serif"
                               style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
                             >
@@ -658,13 +692,13 @@ export interface TopoPathEditorConfig {
                               @let pillW =
                                 strokeW *
                                 (pt.state === 'match'
-                                  ? 3.8
+                                  ? 5.8
                                   : pt.state === 'start'
-                                    ? 3.6
+                                    ? 5.5
                                     : pt.state === 'foot'
-                                      ? 3.4
-                                      : 2.8);
-                              @let pillH = strokeW * 1.4;
+                                      ? 5.0
+                                      : 4.2);
+                              @let pillH = strokeW * 2.1;
                               @let pillY = pt.y * height() + ptR + pillH * 0.45;
                               <g
                                 class="pointer-events-none"
@@ -686,7 +720,7 @@ export interface TopoPathEditorConfig {
                                   text-anchor="middle"
                                   fill="white"
                                   font-weight="bold"
-                                  [attr.font-size]="strokeW * 0.95"
+                                  [attr.font-size]="strokeW * 1.5"
                                   font-family="sans-serif"
                                   style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
                                 >
@@ -712,13 +746,13 @@ export interface TopoPathEditorConfig {
                               @let pillW =
                                 strokeW *
                                 (pt.state === 'match'
-                                  ? 3.8
+                                  ? 5.8
                                   : pt.state === 'start'
-                                    ? 3.6
+                                    ? 5.5
                                     : pt.state === 'foot'
-                                      ? 3.4
-                                      : 2.8);
-                              @let pillH = strokeW * 1.4;
+                                      ? 5.0
+                                      : 4.2);
+                              @let pillH = strokeW * 2.1;
                               @let pillY = pt.y * height() + ptR + pillH * 0.45;
                               <circle
                                 [attr.cx]="pt.x * width()"
@@ -748,7 +782,7 @@ export interface TopoPathEditorConfig {
                                   text-anchor="middle"
                                   fill="white"
                                   font-weight="bold"
-                                  [attr.font-size]="strokeW * 0.95"
+                                  [attr.font-size]="strokeW * 1.5"
                                   font-family="sans-serif"
                                   style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
                                 >
@@ -776,8 +810,8 @@ export interface TopoPathEditorConfig {
                               [attr.stroke-width]="isTop ? 1 : 0.5"
                             />
                             @if (isTop) {
-                              @let pillW = strokeW * 2.8;
-                              @let pillH = strokeW * 1.4;
+                              @let pillW = strokeW * 4.2;
+                              @let pillH = strokeW * 2.1;
                               @let pillY =
                                 last.y * height() - endR - pillH * 0.45;
                               <g
@@ -800,7 +834,7 @@ export interface TopoPathEditorConfig {
                                   text-anchor="middle"
                                   fill="white"
                                   font-weight="bold"
-                                  [attr.font-size]="strokeW * 0.95"
+                                  [attr.font-size]="strokeW * 1.5"
                                   font-family="sans-serif"
                                   style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
                                 >
@@ -930,13 +964,13 @@ export interface TopoPathEditorConfig {
                             @let pillW =
                               strokeW *
                               (pt.state === 'match'
-                                ? 3.8
+                                ? 5.8
                                 : pt.state === 'start'
-                                  ? 3.6
+                                  ? 5.5
                                   : pt.state === 'foot'
-                                    ? 3.4
-                                    : 2.8);
-                            @let pillH = strokeW * 1.4;
+                                    ? 5.0
+                                    : 4.2);
+                            @let pillH = strokeW * 2.1;
                             @let pillY = pt.y * height() + ptR + pillH * 0.45;
                             <g
                               class="pointer-events-none"
@@ -958,7 +992,7 @@ export interface TopoPathEditorConfig {
                                 text-anchor="middle"
                                 fill="white"
                                 font-weight="bold"
-                                [attr.font-size]="strokeW * 0.95"
+                                [attr.font-size]="strokeW * 1.5"
                                 font-family="sans-serif"
                                 style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
                               >
@@ -1761,20 +1795,60 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     );
   }
 
+  private preSoloHiddenRouteIds: Set<string | number> | null = null;
+
   toggleRouteVisibility(routeId: string | number, event?: Event): void {
     if (event) event.stopPropagation();
+    const isAlt = !!(event && (event as MouseEvent).altKey);
+    const totalCount = this.topoRoutes.length;
     this.hiddenRouteIds.update((set) => {
-      const next = new Set(set);
-      if (next.has(routeId)) {
-        next.delete(routeId);
-      } else {
-        next.add(routeId);
+      const isHidden = set.has(routeId);
+      const isSolo = totalCount > 1 && !isHidden && set.size >= totalCount - 1;
+
+      if (isAlt) {
+        if (isSolo) {
+          const saved = this.preSoloHiddenRouteIds ?? new Set();
+          this.preSoloHiddenRouteIds = null;
+          return new Set([...saved].filter((id) => id !== routeId));
+        }
+        if (!this.preSoloHiddenRouteIds) {
+          this.preSoloHiddenRouteIds = new Set(set);
+        }
+        const allOtherIds = this.topoRoutes
+          .filter((r) => r.route_id !== routeId)
+          .map((r) => r.route_id);
+        const matching = this.topoRoutes.find((r) => r.route_id === routeId);
+        if (matching) this.selectedRoute.set(matching);
+        return new Set(allOtherIds);
       }
-      return next;
+
+      if (isSolo) {
+        const saved = this.preSoloHiddenRouteIds ?? new Set();
+        this.preSoloHiddenRouteIds = null;
+        return new Set([...saved].filter((id) => id !== routeId));
+      } else if (isHidden) {
+        if (!this.preSoloHiddenRouteIds) {
+          this.preSoloHiddenRouteIds = new Set(set);
+        }
+        const allOtherIds = this.topoRoutes
+          .filter((r) => r.route_id !== routeId)
+          .map((r) => r.route_id);
+        const matching = this.topoRoutes.find((r) => r.route_id === routeId);
+        if (matching) this.selectedRoute.set(matching);
+        return new Set(allOtherIds);
+      } else {
+        if (this.selectedRoute()?.route_id === routeId) {
+          this.selectedRoute.set(null);
+        }
+        const next = new Set(set);
+        next.add(routeId);
+        return next;
+      }
     });
   }
 
   toggleAllRoutesVisibility(): void {
+    this.preSoloHiddenRouteIds = null;
     if (this.areAllRoutesVisible()) {
       const allIds = this.topoRoutes.map((tr) => tr.route_id);
       this.hiddenRouteIds.set(new Set(allIds));

@@ -18,6 +18,7 @@ export type ZoomPanElementsGetter = () => ViewerElements | null;
 export class ZoomPanController {
   readonly dragState: ViewerDragState = createViewerDragState();
   readonly viewerState: ViewerZoomPanState;
+  private lastDragEndTime = 0;
 
   constructor(
     public readonly zoomScale: WritableSignal<number>,
@@ -61,6 +62,9 @@ export class ZoomPanController {
   }
 
   onTouchEnd(): void {
+    if (this.dragState.hasMoved) {
+      this.lastDragEndTime = Date.now();
+    }
     this.dragState.isDragging = false;
   }
 
@@ -84,7 +88,16 @@ export class ZoomPanController {
   }
 
   onMouseUp(): void {
+    if (this.dragState.hasMoved) {
+      this.lastDragEndTime = Date.now();
+    }
     this.dragState.isDragging = false;
+  }
+
+  wasRecentlyDragging(cooldownMs = 300): boolean {
+    return (
+      this.dragState.hasMoved || Date.now() - this.lastDragEndTime < cooldownMs
+    );
   }
 
   centerOnPoint(

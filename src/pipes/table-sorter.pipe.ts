@@ -14,6 +14,7 @@ export interface TopoRouteRow {
   link: string[];
   climbed: boolean;
   project: boolean;
+  moves?: number;
   _ref: TopoRouteWithRoute;
 }
 
@@ -22,6 +23,9 @@ export const TOPO_ROUTE_SORTERS: Record<string, TuiComparator<TopoRouteRow>> = {
   name: (a, b) => tuiDefaultSort(a.name, b.name),
   grade: (a, b) => tuiDefaultSort(a.grade, b.grade),
   height: (a, b) => tuiDefaultSort(a.height ?? 0, b.height ?? 0),
+  moves: (a, b) =>
+    tuiDefaultSort(a.moves ?? 0, b.moves ?? 0) ||
+    tuiDefaultSort(a.name, b.name),
 };
 
 @Pipe({

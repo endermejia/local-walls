@@ -121,3 +121,38 @@ export class TopoIsRouteVisiblePipe implements PipeTransform {
     return !hiddenRouteIds.includes(routeId);
   }
 }
+
+export type TopoRouteVisibilityState = 'visible' | 'hidden' | 'solo';
+
+@Pipe({
+  name: 'topoRouteVisibilityState',
+  standalone: true,
+  pure: true,
+})
+export class TopoRouteVisibilityStatePipe implements PipeTransform {
+  transform(
+    routeId: string | number,
+    hiddenRouteIds:
+      Set<string | number> | (string | number)[] | null | undefined,
+    totalRoutesCount: number,
+  ): TopoRouteVisibilityState {
+    if (!hiddenRouteIds) return 'visible';
+    const isHidden =
+      hiddenRouteIds instanceof Set
+        ? hiddenRouteIds.has(routeId)
+        : hiddenRouteIds.includes(routeId);
+
+    if (isHidden) return 'hidden';
+
+    const hiddenCount =
+      hiddenRouteIds instanceof Set
+        ? hiddenRouteIds.size
+        : hiddenRouteIds.length;
+
+    if (totalRoutesCount > 1 && hiddenCount >= totalRoutesCount - 1) {
+      return 'solo';
+    }
+
+    return 'visible';
+  }
+}

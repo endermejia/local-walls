@@ -132,13 +132,13 @@ export interface RenderedRoute extends TopoRouteWithRoute {
                   @let pillW =
                     tr.width *
                     (pt.state === 'match'
-                      ? 3800
+                      ? 5800
                       : pt.state === 'start'
-                        ? 3600
+                        ? 5500
                         : pt.state === 'foot'
-                          ? 3400
-                          : 2800);
-                  @let pillH = tr.width * 1400;
+                          ? 5000
+                          : 4200);
+                  @let pillH = tr.width * 2100;
                   @let pillY = pt.y * hScale + circleR + pillH * 0.45;
                   <g class="pointer-events-none" style="user-select: none">
                     <rect
@@ -157,7 +157,7 @@ export interface RenderedRoute extends TopoRouteWithRoute {
                       text-anchor="middle"
                       fill="white"
                       font-weight="bold"
-                      [attr.font-size]="tr.width * 950"
+                      [attr.font-size]="tr.width * 1500"
                       font-family="sans-serif"
                       style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
                     >
@@ -223,13 +223,13 @@ export interface RenderedRoute extends TopoRouteWithRoute {
                     @let pillW =
                       tr.width *
                       (pt.state === 'match'
-                        ? 3800
+                        ? 5800
                         : pt.state === 'start'
-                          ? 3600
+                          ? 5500
                           : pt.state === 'foot'
-                            ? 3400
-                            : 2800);
-                    @let pillH = tr.width * 1400;
+                            ? 5000
+                            : 4200);
+                    @let pillH = tr.width * 2100;
                     @let pillY = pt.y * hScale + ptR + pillH * 0.45;
                     <g class="pointer-events-none" style="user-select: none">
                       <rect
@@ -248,7 +248,7 @@ export interface RenderedRoute extends TopoRouteWithRoute {
                         text-anchor="middle"
                         fill="white"
                         font-weight="bold"
-                        [attr.font-size]="tr.width * 950"
+                        [attr.font-size]="tr.width * 1500"
                         font-family="sans-serif"
                         style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
                       >
@@ -273,13 +273,13 @@ export interface RenderedRoute extends TopoRouteWithRoute {
                     @let pillW =
                       tr.width *
                       (pt.state === 'match'
-                        ? 3800
+                        ? 5800
                         : pt.state === 'start'
-                          ? 3600
+                          ? 5500
                           : pt.state === 'foot'
-                            ? 3400
-                            : 2800);
-                    @let pillH = tr.width * 1400;
+                            ? 5000
+                            : 4200);
+                    @let pillH = tr.width * 2100;
                     @let pillY = pt.y * hScale + ptR + pillH * 0.45;
                     <circle
                       [attr.cx]="pt.x * 1000"
@@ -306,7 +306,7 @@ export interface RenderedRoute extends TopoRouteWithRoute {
                         text-anchor="middle"
                         fill="white"
                         font-weight="bold"
-                        [attr.font-size]="tr.width * 950"
+                        [attr.font-size]="tr.width * 1500"
                         font-family="sans-serif"
                         style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
                       >
@@ -331,8 +331,8 @@ export interface RenderedRoute extends TopoRouteWithRoute {
                     [class.selected-circle-pulse]="!isGlowActive() && isSel"
                   />
                   @if (isTop) {
-                    @let pillW = tr.width * 2800;
-                    @let pillH = tr.width * 1400;
+                    @let pillW = tr.width * 4200;
+                    @let pillH = tr.width * 2100;
                     @let pillY = last.y * hScale - endR - pillH * 0.45;
                     <g class="pointer-events-none" style="user-select: none">
                       <rect
@@ -351,7 +351,7 @@ export interface RenderedRoute extends TopoRouteWithRoute {
                         text-anchor="middle"
                         fill="white"
                         font-weight="bold"
-                        [attr.font-size]="tr.width * 950"
+                        [attr.font-size]="tr.width * 1500"
                         font-family="sans-serif"
                         style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
                       >

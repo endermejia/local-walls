@@ -57,6 +57,7 @@ import {
   AscentInfoPipe,
   TableSorterPipe,
   TopoIsRouteVisiblePipe,
+  TopoRouteVisibilityStatePipe,
 } from '../../pipes';
 import { handleErrorToast } from '../../utils';
 
@@ -77,6 +78,7 @@ import type { TopoRouteRow } from './topo.types';
     AscentInfoPipe,
     TableSorterPipe,
     TopoIsRouteVisiblePipe,
+    TopoRouteVisibilityStatePipe,
     TranslatePipe,
     TuiAvatar,
     TuiButton,
@@ -131,11 +133,15 @@ import type { TopoRouteRow } from './topo.types';
                       [class.w-20!]="!isMobile() && col === 'grade'"
                       [class.w-24!]="
                         (isMobile() &&
-                          (col === 'actions' || col === 'admin_actions')) ||
+                          (col === 'actions' ||
+                            col === 'admin_actions' ||
+                            col === 'moves')) ||
                         (!isMobile() &&
                           (col === 'height' || col === 'admin_actions'))
                       "
-                      [class.w-28!]="!isMobile() && col === 'actions'"
+                      [class.w-28!]="
+                        !isMobile() && (col === 'actions' || col === 'moves')
+                      "
                     >
                       <div class="items-center justify-center gap-1">
                         @switch (col) {
@@ -150,6 +156,9 @@ import type { TopoRouteRow } from './topo.types';
                           }
                           @case ('height') {
                             {{ 'routes.height' | translate }}
+                          }
+                          @case ('moves') {
+                            {{ 'moves' | translate }}
                           }
                         }
                       </div>
@@ -245,31 +254,57 @@ import type { TopoRouteRow } from './topo.types';
                             >
                               <div class="flex items-center gap-1.5 min-w-0">
                                 @if (isIndoor()) {
-                                  @let isVisible =
+                                  @let visState =
                                     item._ref.route_id
-                                      | topoIsRouteVisible: hiddenRouteIds();
+                                      | topoRouteVisibilityState
+                                        : hiddenRouteIds()
+                                        : sortedTableData().length;
                                   <button
                                     tuiIconButton
                                     type="button"
                                     size="xs"
                                     appearance="flat"
                                     [iconStart]="
-                                      isVisible ? '@tui.eye' : '@tui.eye-off'
+                                      visState === 'hidden'
+                                        ? '@tui.eye-off'
+                                        : visState === 'solo'
+                                          ? '@tui.scan-eye'
+                                          : '@tui.eye'
                                     "
-                                    class="rounded-full! opacity-60 hover:opacity-100 shrink-0"
-                                    [class.opacity-30]="!isVisible"
+                                    class="rounded-full! shrink-0 transition-opacity"
+                                    [class.opacity-30]="visState === 'hidden'"
+                                    [class.opacity-60]="visState === 'visible'"
+                                    [class.hover:opacity-100]="
+                                      visState === 'visible' ||
+                                      visState === 'hidden'
+                                    "
+                                    [class.opacity-100]="visState === 'solo'"
+                                    [class.text-(--tui-text-accent-1)!]="
+                                      visState === 'solo'
+                                    "
                                     [title]="
-                                      (isVisible ? 'hide' : 'show') | translate
+                                      (visState === 'hidden'
+                                        ? 'showOnly'
+                                        : visState === 'solo'
+                                          ? 'showAll'
+                                          : 'hide'
+                                      ) | translate
                                     "
                                     (click.zoneless)="
-                                      toggleRouteVisibility.emit(
-                                        item._ref.route_id
+                                      onToggleRouteVisibility(
+                                        item._ref.route_id,
+                                        $event
                                       );
                                       $event.stopPropagation()
                                     "
                                   >
                                     {{
-                                      (isVisible ? 'hide' : 'show') | translate
+                                      (visState === 'hidden'
+                                        ? 'showOnly'
+                                        : visState === 'solo'
+                                          ? 'showAll'
+                                          : 'hide'
+                                      ) | translate
                                     }}
                                   </button>
                                 }
@@ -281,7 +316,11 @@ import type { TopoRouteRow } from './topo.types';
                                   {{ item.name }}
                                 </a>
                               </div>
-                              @if (isIndoor() && item.moves !== undefined) {
+                              @if (
+                                isIndoor() &&
+                                !columns().includes('moves') &&
+                                item.moves !== undefined
+                              ) {
                                 <span
                                   class="text-xs opacity-60 shrink-0 font-medium"
                                 >
@@ -327,6 +366,11 @@ import type { TopoRouteRow } from './topo.types';
                               } @else {
                                 {{ item.height ? item.height + 'm' : '-' }}
                               }
+                            </div>
+                          }
+                          @case ('moves') {
+                            <div tuiCell size="m" class="justify-center h-full">
+                              {{ item.moves ?? '-' }}
                             </div>
                           }
                           @case ('actions') {
@@ -462,7 +506,10 @@ export class TopoRoutesTableComponent {
   selectedRouteIdChange = output<string | number | null>();
   hoveredRouteIdChange = output<string | number | null>();
   sortChange = output<TuiTableSortChange<TopoRouteRow>>();
-  toggleRouteVisibility = output<string | number>();
+  toggleRouteVisibility = output<{
+    routeId: string | number;
+    isAlt?: boolean;
+  }>();
 
   protected readonly indexInputs =
     viewChildren<ElementRef<HTMLInputElement>>('indexInput');
@@ -491,6 +538,14 @@ export class TopoRoutesTableComponent {
 
   protected onSortChange(event: TuiTableSortChange<TopoRouteRow>): void {
     this.sortChange.emit(event);
+  }
+
+  protected onToggleRouteVisibility(
+    routeId: string | number,
+    event: Event,
+  ): void {
+    const isAlt = event instanceof MouseEvent ? event.altKey : false;
+    this.toggleRouteVisibility.emit({ routeId, isAlt });
   }
 
   protected onLogAscent(tr: TopoRouteWithRoute): void {

@@ -32,7 +32,7 @@ import { TopoIsRouteVisiblePipe } from '../../pipes';
 import { clamp } from '../../utils';
 
 export interface IndoorTopoFilterRouteItem {
-  id: number;
+  id: string | number;
   name: string;
   moves: number;
 }
@@ -41,14 +41,14 @@ export interface IndoorTopoFilterDialogData {
   gradeRange: [number, number];
   movesRange: [number, number];
   maxPossibleMoves: number;
-  hiddenRouteIds: number[];
+  hiddenRouteIds: (string | number)[];
   routes: IndoorTopoFilterRouteItem[];
 }
 
 export interface IndoorTopoFilterDialogResult {
   gradeRange: [number, number];
   movesRange: [number, number];
-  hiddenRouteIds: number[];
+  hiddenRouteIds: (string | number)[];
 }
 
 @Component({
@@ -178,7 +178,7 @@ export interface IndoorTopoFilterDialogResult {
                   type="checkbox"
                   [ngModel]="isVisible"
                   [ngModelOptions]="{ standalone: true }"
-                  (ngModelChange)="toggleRoute(r.id)"
+                  (ngModelChange)="onRouteVisibilityChange(r.id, $event)"
                 />
                 <span class="truncate font-medium flex-1">{{ r.name }}</span>
                 <span class="text-xs opacity-60 shrink-0"
@@ -247,7 +247,7 @@ export class IndoorTopoFilterDialogComponent {
   protected readonly routes: IndoorTopoFilterRouteItem[] =
     this.context.data?.routes ?? [];
 
-  protected readonly hiddenRouteIds = signal<Set<number>>(
+  protected readonly hiddenRouteIds = signal<Set<string | number>>(
     new Set(this.context.data?.hiddenRouteIds ?? []),
   );
 
@@ -317,7 +317,22 @@ export class IndoorTopoFilterDialogComponent {
     this.form.controls.gradeRange.setValue(this.sanitizeGradeRange(next));
   }
 
-  protected toggleRoute(routeId: number): void {
+  protected onRouteVisibilityChange(
+    routeId: string | number,
+    visible: boolean,
+  ): void {
+    this.hiddenRouteIds.update((set) => {
+      const next = new Set(set);
+      if (visible) {
+        next.delete(routeId);
+      } else {
+        next.add(routeId);
+      }
+      return next;
+    });
+  }
+
+  protected toggleRoute(routeId: string | number): void {
     this.hiddenRouteIds.update((set) => {
       const next = new Set(set);
       if (next.has(routeId)) {

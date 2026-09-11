@@ -577,14 +577,12 @@ import { IS_BROWSER } from '../../app/is-browser';
                       />
                     </tui-textfield>
                     <tui-badged-content>
-                      @if (activeRouteFilterCount(); as count) {
+                      @if (hasActiveRouteFilters()) {
                         <tui-badge-notification
                           tuiAppearance="accent"
                           size="s"
                           tuiSlot="top"
-                        >
-                          {{ count }}
-                        </tui-badge-notification>
+                        />
                       }
                       <button
                         tuiButton
@@ -770,6 +768,10 @@ export class IndoorCenterComponent {
       count++;
     }
     return count;
+  });
+
+  protected readonly hasActiveRouteFilters = computed(() => {
+    return this.activeRouteFilterCount() > 0;
   });
 
   protected readonly filteredCenterRoutes = computed(() => {

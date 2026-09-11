@@ -7,6 +7,8 @@ import {
   signal,
 } from '@angular/core';
 
+import { TuiSortDirection } from '@taiga-ui/addon-table';
+import type { TuiComparator } from '@taiga-ui/addon-table/types';
 import {
   TuiAppearance,
   TuiButton,
@@ -50,6 +52,7 @@ import {
   type VERTICAL_LIFE_GRADES,
 } from '../../models';
 
+import { TOPO_ROUTE_SORTERS } from '../../pipes';
 import { calculateRouteMoves } from '../../utils';
 
 import { TopoPageBase } from '../area/topo-page-base';
@@ -93,14 +96,12 @@ import { TopoPageBase } from '../area/topo-page-base';
                   </span>
                 }
                 <tui-badged-content class="shrink-0">
-                  @if (activeFilterCount(); as count) {
+                  @if (hasActiveFilters()) {
                     <tui-badge-notification
                       tuiAppearance="accent"
                       size="s"
                       tuiSlot="top"
-                    >
-                      {{ count }}
-                    </tui-badge-notification>
+                    />
                   }
                   <button
                     tuiButton
@@ -264,13 +265,20 @@ export class IndoorTopoComponent extends TopoPageBase {
   protected readonly columns = computed(() => {
     const isMobile = this.layoutService.isMobile();
     const base = isMobile
-      ? ['index', 'grade', 'name']
-      : ['index', 'grade', 'name', 'actions'];
+      ? ['grade', 'name', 'moves']
+      : ['grade', 'name', 'moves', 'actions'];
     if (!isMobile && this.canEdit()) {
       base.push('admin_actions');
     }
     return base;
   });
+
+  protected override readonly direction = signal<TuiSortDirection>(
+    TuiSortDirection.Asc,
+  );
+  protected override readonly sorter = signal<TuiComparator<TopoRouteRow>>(
+    TOPO_ROUTE_SORTERS['moves'],
+  );
 
   protected readonly maxGradeIndex = ORDERED_GRADE_VALUES.length - 2;
 
@@ -314,9 +322,9 @@ export class IndoorTopoComponent extends TopoPageBase {
       gradeRange: this.gradeRange() ?? [0, this.maxGradeIndex],
       movesRange: this.movesRange() ?? [0, maxMoves],
       maxPossibleMoves: maxMoves,
-      hiddenRouteIds: Array.from(this.hiddenRouteIds()).map(Number),
+      hiddenRouteIds: Array.from(this.hiddenRouteIds()),
       routes: this.tableData().map((r) => ({
-        id: Number(r._ref.route_id),
+        id: r._ref.route_id,
         name: r.name,
         moves: r.moves ?? 0,
       })),
@@ -340,17 +348,63 @@ export class IndoorTopoComponent extends TopoPageBase {
     this.gradeRange.set(result.gradeRange);
     this.movesRange.set(result.movesRange);
     this.hiddenRouteIds.set(new Set(result.hiddenRouteIds));
+    this.preSoloHiddenRouteIds = null;
+    const currentSelected = this.selectedRouteId();
+    if (currentSelected && result.hiddenRouteIds.includes(currentSelected)) {
+      this.selectedRouteId.set(null);
+    }
   }
 
-  protected toggleRouteVisibility(routeId: string | number): void {
+  private preSoloHiddenRouteIds: Set<string | number> | null = null;
+
+  protected toggleRouteVisibility(event: {
+    routeId: string | number;
+    isAlt?: boolean;
+  }): void {
+    const { routeId, isAlt } = event;
+    const allRoutes = this.tableData();
+    const totalCount = allRoutes.length;
     this.hiddenRouteIds.update((set) => {
-      const next = new Set(set);
-      if (next.has(routeId)) {
-        next.delete(routeId);
-      } else {
-        next.add(routeId);
+      const isHidden = set.has(routeId);
+      const isSolo = totalCount > 1 && !isHidden && set.size >= totalCount - 1;
+
+      if (isAlt) {
+        if (isSolo) {
+          const saved = this.preSoloHiddenRouteIds ?? new Set();
+          this.preSoloHiddenRouteIds = null;
+          return new Set([...saved].filter((id) => id !== routeId));
+        }
+        if (!this.preSoloHiddenRouteIds) {
+          this.preSoloHiddenRouteIds = new Set(set);
+        }
+        const allOtherIds = allRoutes
+          .map((r) => r._ref.route_id)
+          .filter((id) => id !== routeId);
+        this.selectedRouteId.set(routeId);
+        return new Set(allOtherIds);
       }
-      return next;
+
+      if (isSolo) {
+        const saved = this.preSoloHiddenRouteIds ?? new Set();
+        this.preSoloHiddenRouteIds = null;
+        return new Set([...saved].filter((id) => id !== routeId));
+      } else if (isHidden) {
+        if (!this.preSoloHiddenRouteIds) {
+          this.preSoloHiddenRouteIds = new Set(set);
+        }
+        const allOtherIds = allRoutes
+          .map((r) => r._ref.route_id)
+          .filter((id) => id !== routeId);
+        this.selectedRouteId.set(routeId);
+        return new Set(allOtherIds);
+      } else {
+        if (this.selectedRouteId() === routeId) {
+          this.selectedRouteId.set(null);
+        }
+        const next = new Set(set);
+        next.add(routeId);
+        return next;
+      }
     });
   }
 
@@ -410,7 +464,7 @@ export class IndoorTopoComponent extends TopoPageBase {
     if (!sorter) return data;
     return [...data].sort((a, b) => {
       const result = sorter(a, b);
-      return direction === 1 ? -result : result;
+      return direction === 1 ? result : -result;
     });
   });
 

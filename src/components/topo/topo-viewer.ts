@@ -54,6 +54,7 @@ import {
       (mousemove.zoneless)="zoomPan.onMouseMove($event)"
       (mouseup.zoneless)="zoomPan.onMouseUp()"
       (mouseleave.zoneless)="zoomPan.onMouseUp()"
+      (dblclick.zoneless)="onImageDblClick()"
     >
       <div class="h-full w-full flex items-center justify-center min-w-full">
         <div
@@ -137,6 +138,7 @@ import {
           class="relative transition-transform duration-75 ease-out zoom-container origin-top-left"
           [class.duration-0!]="zoomPan.dragState.isDragging"
           (click)="onImageClick(); $event.stopPropagation()"
+          (dblclick)="onImageDblClick(); $event.stopPropagation()"
           (keydown.enter)="$event.stopPropagation()"
           tabindex="-1"
           [style.transform]="
@@ -176,6 +178,7 @@ import {
           <div
             class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-(--tui-background-base) border border-(--tui-border-normal) rounded-2xl shadow-2xl p-4 w-[90vw] md:w-auto md:min-w-80 max-w-[95vw] z-10"
             (click)="$event.stopPropagation()"
+            (dblclick)="$event.stopPropagation()"
             (keydown.enter)="$event.stopPropagation()"
             tabindex="-1"
           >
@@ -256,6 +259,7 @@ export class TopoViewerComponent {
 
   protected readonly isFullscreen = signal(false);
   protected readonly imageRatio = signal(1);
+  private lastImageClickTime = 0;
 
   protected readonly zoomScale = linkedSignal({
     source: () => ({ fs: this.isFullscreen() }),
@@ -329,11 +333,31 @@ export class TopoViewerComponent {
   }
 
   protected onImageClick(): void {
-    if (this.zoomPan.dragState.hasMoved) return;
-    if (this.selectedRouteId()) {
-      this.selectedRouteIdChange.emit(null);
-    } else if (!this.isFullscreen()) {
+    if (this.zoomPan.wasRecentlyDragging()) return;
+
+    const now = Date.now();
+    const isDoubleClick = now - this.lastImageClickTime < 350;
+    this.lastImageClickTime = now;
+
+    if (isDoubleClick) {
+      this.lastImageClickTime = 0;
+      this.handleBackgroundDblClick();
+      return;
+    }
+
+    if (!this.selectedRouteId() && !this.isFullscreen()) {
       this.toggleFullscreen(!!this.topoImage());
+    }
+  }
+
+  protected onImageDblClick(): void {
+    if (this.zoomPan.wasRecentlyDragging()) return;
+    this.handleBackgroundDblClick();
+  }
+
+  private handleBackgroundDblClick(): void {
+    if (this.selectedRouteId() !== null) {
+      this.selectedRouteIdChange.emit(null);
     }
   }
 
