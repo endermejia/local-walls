@@ -11,6 +11,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import {
+  TuiAppearance,
   TuiButton,
   TuiDataList,
   TuiDialogService,
@@ -47,6 +48,7 @@ import { FilterDialog, FilterDialogComponent } from '../dialogs/filter-dialog';
     FormsModule,
     ReactiveFormsModule,
     TranslatePipe,
+    TuiAppearance,
     TuiBadgedContent,
     TuiBadgeNotification,
     TuiButton,

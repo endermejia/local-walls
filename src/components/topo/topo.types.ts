@@ -9,5 +9,6 @@ export interface TopoRouteRow {
   link: string[];
   climbed: boolean;
   project: boolean;
+  moves?: number;
   _ref: TopoRouteWithRoute;
 }

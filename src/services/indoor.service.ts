@@ -499,14 +499,20 @@ export class IndoorService {
   openIndoorRouteForm(
     centerId: string,
     routeData?: IndoorRouteDto,
-  ): Promise<boolean> {
+    options?: { hideTopo?: boolean; defaultTopoId?: string },
+  ): Promise<IndoorRouteDto | boolean> {
     return firstValueFrom(
-      this.dialogs.open<boolean>(
+      this.dialogs.open<IndoorRouteDto | boolean>(
         new PolymorpheusComponent(IndoorRouteFormComponent),
         {
           label: this.translate.instant(routeData ? 'edit' : 'create'),
           size: 'm',
-          data: { centerId, routeData },
+          data: {
+            centerId,
+            routeData,
+            hideTopo: options?.hideTopo,
+            defaultTopoId: options?.defaultTopoId,
+          },
           dismissible: false,
         },
       ),

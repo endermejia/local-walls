@@ -79,10 +79,10 @@ export class RoutesService {
       height?: number | null;
       eight_anu_route_slugs?: string[] | null;
     };
-  }): void {
+  }): Promise<string | boolean | null> {
     const isEdit = !!data.routeData?.id;
     const oldSlug = data.routeData?.slug;
-    void firstValueFrom(
+    return firstValueFrom(
       this.dialogs.open<string | boolean | null>(
         new PolymorpheusComponent(RouteFormComponent),
         {
@@ -118,6 +118,7 @@ export class RoutesService {
           }
         }
       }
+      return result;
     });
   }
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
 import {
+  calculateRouteMoves,
   cyclePointState,
   getPointStateBadge,
   getPointStateColor,
@@ -83,6 +84,62 @@ describe('topo-styles.utils', () => {
       const map = new Map([[1, { points: [] }]]);
       expect(hasPath(1, map)).toBe(false);
       expect(hasPath(2, map)).toBe(false);
+    });
+  });
+
+  describe('calculateRouteMoves', () => {
+    it('returns 0 for undefined, null, or empty points', () => {
+      expect(calculateRouteMoves(undefined)).toBe(0);
+      expect(calculateRouteMoves(null)).toBe(0);
+      expect(calculateRouteMoves({ points: [] })).toBe(0);
+    });
+
+    it('counts start and foot points as 0 moves', () => {
+      expect(
+        calculateRouteMoves({
+          points: [
+            { x: 0.1, y: 0.1, state: 'start' },
+            { x: 0.2, y: 0.2, state: 'foot' },
+          ],
+        }),
+      ).toBe(0);
+    });
+
+    it('counts match points as 2 moves', () => {
+      expect(
+        calculateRouteMoves({
+          points: [{ x: 0.1, y: 0.1, state: 'match' }],
+        }),
+      ).toBe(2);
+    });
+
+    it('counts neutral, top, or undefined states as 1 move each', () => {
+      expect(
+        calculateRouteMoves({
+          points: [
+            { x: 0.1, y: 0.1, state: 'neutral' },
+            { x: 0.2, y: 0.2, state: 'top' },
+            { x: 0.3, y: 0.3 },
+          ],
+        }),
+      ).toBe(3);
+    });
+
+    it('correctly calculates mixed point states', () => {
+      // 2 start (0 each) + 1 foot (0) + 2 neutral (1 each) + 1 match (2) + 1 top (1) = 5 moves
+      expect(
+        calculateRouteMoves({
+          points: [
+            { x: 0.1, y: 0.1, state: 'start' },
+            { x: 0.15, y: 0.15, state: 'start' },
+            { x: 0.12, y: 0.3, state: 'foot' },
+            { x: 0.3, y: 0.4, state: 'neutral' },
+            { x: 0.4, y: 0.5, state: 'match' },
+            { x: 0.5, y: 0.6 },
+            { x: 0.6, y: 0.8, state: 'top' },
+          ],
+        }),
+      ).toBe(5);
     });
   });
 });

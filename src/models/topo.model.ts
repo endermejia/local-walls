@@ -1,4 +1,5 @@
 import { AmountByEveryGrade } from './grade.model';
+import { IndoorRouteDto } from './indoor.model';
 import { RouteBasicWithOwnData } from './route.model';
 
 import { Json, RouteAscentDto, RouteDto, TopoDto } from './supabase-interfaces';
@@ -79,4 +80,5 @@ export interface TopoPathEditorResult {
     path: TopoPath;
   }[];
   routeIds?: (string | number)[];
+  newIndoorRoutes?: IndoorRouteDto[];
 }

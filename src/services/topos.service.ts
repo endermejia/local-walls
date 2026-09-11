@@ -296,7 +296,9 @@ export class ToposService {
         result === true ||
         (result && typeof result === 'object' && result.saved)
       ) {
-        this.outdoorData.topoDetailResource.reload();
+        if (!data.isIndoor) {
+          this.outdoorData.topoDetailResource.reload();
+        }
       }
 
       return result;

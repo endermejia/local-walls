@@ -4,6 +4,7 @@ import {
   GRADE_NUMBER_TO_LABEL,
   GradeLabel,
   PointState,
+  TopoPath,
   colorForGrade,
 } from '../models';
 
@@ -170,4 +171,19 @@ export function hasPath(
 ): boolean {
   const pathData = pathsMap.get(routeId);
   return !!pathData && pathData.points.length > 0;
+}
+
+/**
+ * Calculates the number of moves for a route's path.
+ * - Points with state 'start' or 'foot' count as 0 moves.
+ * - Points with state 'match' count as 2 moves.
+ * - Any other points (neutral, top, or unspecified) count as 1 move.
+ */
+export function calculateRouteMoves(path?: TopoPath | null): number {
+  if (!path?.points || path.points.length === 0) return 0;
+  return path.points.reduce((acc, pt) => {
+    if (pt.state === 'start' || pt.state === 'foot') return acc;
+    if (pt.state === 'match') return acc + 2;
+    return acc + 1;
+  }, 0);
 }

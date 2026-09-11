@@ -46,6 +46,7 @@ export class TopoHasPathPipe implements PipeTransform {
       string | number,
       { points: TopoPoint[] | { x: number; y: number }[] }
     >,
+    _version?: number,
   ): boolean {
     return hasPathUtil(routeId, pathsMap);
   }
@@ -96,7 +97,27 @@ export class TopoIsTraversePipe implements PipeTransform {
       string | number,
       { isTraverse?: boolean; [key: string]: unknown }
     >,
+    _version?: number,
   ): boolean {
     return !!pathsMap.get(routeId)?.isTraverse;
+  }
+}
+
+@Pipe({
+  name: 'topoIsRouteVisible',
+  standalone: true,
+  pure: true,
+})
+export class TopoIsRouteVisiblePipe implements PipeTransform {
+  transform(
+    routeId: string | number,
+    hiddenRouteIds:
+      Set<string | number> | (string | number)[] | null | undefined,
+  ): boolean {
+    if (!hiddenRouteIds) return true;
+    if (hiddenRouteIds instanceof Set) {
+      return !hiddenRouteIds.has(routeId);
+    }
+    return !hiddenRouteIds.includes(routeId);
   }
 }

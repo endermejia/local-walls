@@ -139,7 +139,7 @@ export interface RenderedRoute extends TopoRouteWithRoute {
                           ? 3400
                           : 2800);
                   @let pillH = tr.width * 1400;
-                  @let pillY = pt.y * hScale - circleR - pillH * 0.45;
+                  @let pillY = pt.y * hScale + circleR + pillH * 0.45;
                   <g class="pointer-events-none" style="user-select: none">
                     <rect
                       [attr.x]="pt.x * 1000 - pillW / 2"
@@ -230,7 +230,7 @@ export interface RenderedRoute extends TopoRouteWithRoute {
                             ? 3400
                             : 2800);
                     @let pillH = tr.width * 1400;
-                    @let pillY = pt.y * hScale - ptR - pillH * 0.45;
+                    @let pillY = pt.y * hScale + ptR + pillH * 0.45;
                     <g class="pointer-events-none" style="user-select: none">
                       <rect
                         [attr.x]="pt.x * 1000 - pillW / 2"
@@ -280,7 +280,7 @@ export interface RenderedRoute extends TopoRouteWithRoute {
                             ? 3400
                             : 2800);
                     @let pillH = tr.width * 1400;
-                    @let pillY = pt.y * hScale - ptR - pillH * 0.45;
+                    @let pillY = pt.y * hScale + ptR + pillH * 0.45;
                     <circle
                       [attr.cx]="pt.x * 1000"
                       [attr.cy]="pt.y * hScale"

@@ -37,18 +37,28 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { firstValueFrom } from 'rxjs';
 
+import { IndoorDataService } from '../../services/indoor-data.service';
+import { IndoorService } from '../../services/indoor.service';
+import { RoutesService } from '../../services/routes.service';
+import { SupabaseService } from '../../services/supabase.service';
 import { ToastService } from '../../services/toast.service';
 import { ToposService } from '../../services/topos.service';
 
 import {
-  TopoPoint,
-  TopoRouteWithRoute,
+  ClimbingKind,
+  IndoorRouteDto,
+  RouteBasicWithOwnData,
   TopoPath,
   TopoPathEditorResult,
+  topoPathToJson,
+  TopoPoint,
+  TopoRouteWithRoute,
 } from '../../models';
 
 import {
+  GradeLabelPipe,
   TopoHasPathPipe,
+  TopoIsRouteVisiblePipe,
   TopoIsTraversePipe,
   TopoPointStateBadgePipe,
   TopoPointStateColorPipe,
@@ -77,9 +87,11 @@ export interface TopoPathEditorConfig {
   imageUrl: string;
   topoRoutes: TopoRouteWithRoute[];
   topoName?: string;
-  topoId?: number; // Needed if standalone = true
+  topoId?: number | string; // Needed if standalone = true
   // If true, the dialog saves directly to database via ToposService
   standalone?: boolean;
+  isIndoor?: boolean;
+  centerId?: string;
 }
 
 @Component({
@@ -90,11 +102,13 @@ export interface TopoPathEditorConfig {
     FormsModule,
 
     GradeComponent,
+    GradeLabelPipe,
     CdkDrag,
     CdkDragHandle,
     CdkDragPlaceholder,
     CdkDropList,
     TopoHasPathPipe,
+    TopoIsRouteVisiblePipe,
     TopoIsTraversePipe,
     TopoPointStateBadgePipe,
     TopoPointStateColorPipe,
@@ -114,7 +128,58 @@ export interface TopoPathEditorConfig {
         <!-- ── ROUTE SIDEBAR ── -->
         <aside class="route-sidebar" [class.sidebar-open]="sidebarOpen()">
           <div class="sidebar-inner">
-            <p class="sidebar-label">{{ 'routes' | translate }}</p>
+            <div
+              class="flex items-center justify-between px-5 pt-4 pb-2 shrink-0"
+            >
+              <div class="flex items-center gap-2">
+                <button
+                  tuiIconButton
+                  appearance="flat"
+                  size="s"
+                  iconStart="@tui.x"
+                  class="rounded-full! xl:hidden"
+                  type="button"
+                  [attr.aria-label]="'close' | translate"
+                  (click)="sidebarOpen.set(false)"
+                >
+                  {{ 'close' | translate }}
+                </button>
+                <p class="sidebar-label m-0! p-0!">
+                  {{ 'routes' | translate }}
+                </p>
+              </div>
+              <div class="flex items-center gap-1">
+                @if (topoRoutes.length > 0) {
+                  <button
+                    tuiIconButton
+                    appearance="flat"
+                    size="s"
+                    class="rounded-full!"
+                    [iconStart]="
+                      areAllRoutesVisible() ? '@tui.eye' : '@tui.eye-off'
+                    "
+                    (click)="toggleAllRoutesVisibility()"
+                  >
+                    {{
+                      (areAllRoutesVisible() ? 'hideAll' : 'showAll')
+                        | translate
+                    }}
+                  </button>
+                }
+                @if (context.data.isIndoor && context.data.centerId) {
+                  <button
+                    tuiButton
+                    appearance="flat"
+                    size="s"
+                    iconStart="@tui.plus"
+                    class="rounded-full!"
+                    (click)="createNewIndoorRoute()"
+                  >
+                    {{ 'new' | translate }}
+                  </button>
+                }
+              </div>
+            </div>
             <tui-scrollbar class="sidebar-scroll">
               <div
                 class="route-list"
@@ -122,8 +187,12 @@ export interface TopoPathEditorConfig {
                 (cdkDropListDropped)="dropRoute($event)"
               >
                 @for (tr of topoRoutes; track $index; let idx = $index) {
-                  @let hasPath = tr.route_id | topoHasPath: pathsMap;
-                  @let isTraverse = tr.route_id | topoIsTraverse: pathsMap;
+                  @let hasPath =
+                    tr.route_id | topoHasPath: pathsMap : pathsVersion();
+                  @let isTraverse =
+                    tr.route_id | topoIsTraverse: pathsMap : pathsVersion();
+                  @let isVisible =
+                    tr.route_id | topoIsRouteVisible: hiddenRouteIds();
                   <div
                     cdkDrag
                     class="route-item"
@@ -144,7 +213,7 @@ export interface TopoPathEditorConfig {
                     <div class="route-num">{{ idx + 1 }}</div>
                     <div class="route-info">
                       <div class="route-name">{{ tr.route.name }}</div>
-                      @if (hasPath && isTraverse) {
+                      @if (isTraverse) {
                         <span
                           class="text-[10px] text-(--tui-text-tertiary) flex items-center gap-0.5"
                         >
@@ -163,6 +232,28 @@ export interface TopoPathEditorConfig {
                     />
 
                     <div class="flex items-center gap-1">
+                      <button
+                        tuiIconButton
+                        appearance="flat"
+                        size="s"
+                        class="rounded-full! opacity-60 hover:opacity-100"
+                        [iconStart]="isVisible ? '@tui.eye' : '@tui.eye-off'"
+                        [class.opacity-30]="!isVisible"
+                        (click)="toggleRouteVisibility(tr.route_id, $event)"
+                      >
+                        {{ (isVisible ? 'hide' : 'show') | translate }}
+                      </button>
+                      <button
+                        tuiIconButton
+                        appearance="flat"
+                        size="s"
+                        iconStart="@tui.pencil"
+                        class="rounded-full! opacity-60 hover:opacity-100"
+                        [title]="'edit' | translate"
+                        (click)="editRoute(tr, $event)"
+                      >
+                        {{ 'edit' | translate }}
+                      </button>
                       @if (hasPath) {
                         @if (selectedRoute()?.route_id === tr.route_id) {
                           <button
@@ -364,75 +455,76 @@ export interface TopoPathEditorConfig {
                 @let routeId = entry[0];
                 @let pathData = entry[1];
                 @let isSelected = selectedRoute()?.route_id == routeId;
-                @let style =
-                  routeStyleMap()[routeId] || {
-                    stroke: '#22c55e',
-                    opacity: 0.8,
-                    isDashed: true,
-                  };
-                @let strokeWidthFactor =
-                  routeStrokeWidthMap()[routeId] ?? lineWidth() / 1000;
-                <g
-                  class="path-group"
-                  (click)="
-                    selectRoute(pathData._ref || { route_id: routeId });
-                    $event.stopPropagation()
-                  "
-                  (touchstart)="
-                    selectRoute(pathData._ref || { route_id: routeId });
-                    $event.stopPropagation()
-                  "
-                >
-                  @if (pathData.type === 'circle') {
-                    @let strokeW = strokeWidthFactor * width();
-                    @let circleR = strokeW * 3.5;
-                    @let isTraverse = pathData.isTraverse;
-                    @for (pt of pathData.points; track $index) {
-                      @let ptColor =
-                        pt.state | topoPointStateColor: style.stroke;
-                      @let badge = pt.state | topoPointStateBadge;
-                      <!-- Hit area circle -->
-                      <circle
-                        [attr.cx]="pt.x * width()"
-                        [attr.cy]="pt.y * height()"
-                        [attr.r]="circleR + strokeW * 2"
-                        fill="transparent"
-                      />
-                      <!-- Shadow circle -->
-                      <circle
-                        [attr.cx]="pt.x * width()"
-                        [attr.cy]="pt.y * height()"
-                        [attr.r]="circleR"
-                        fill="none"
-                        stroke="white"
-                        [style.opacity]="style.isDashed ? 1 : 0.7"
-                        [attr.stroke-width]="
-                          strokeW + (style.isDashed ? 2.5 : 1.5)
-                        "
-                        [attr.stroke-dasharray]="
-                          style.isDashed
-                            ? width() * 0.008 + ' ' + width() * 0.008
-                            : 'none'
-                        "
-                      />
-                      <!-- Main circle -->
-                      <circle
-                        [attr.cx]="pt.x * width()"
-                        [attr.cy]="pt.y * height()"
-                        [attr.r]="circleR"
-                        fill="rgba(0,0,0,0.05)"
-                        [attr.stroke]="style.stroke"
-                        [style.color]="style.stroke"
-                        [style.opacity]="style.opacity"
-                        [attr.stroke-width]="strokeW"
-                        [attr.stroke-dasharray]="
-                          style.isDashed
-                            ? width() * 0.008 + ' ' + width() * 0.008
-                            : 'none'
-                        "
-                        [class.selected-circle-pulse]="isSelected"
-                      />
-                      @if (!isSelected) {
+                @let isVisible = routeId | topoIsRouteVisible: hiddenRouteIds();
+                @if (isSelected || isVisible) {
+                  @let style =
+                    routeStyleMap()[routeId] || {
+                      stroke: '#22c55e',
+                      opacity: 0.8,
+                      isDashed: true,
+                    };
+                  @let strokeWidthFactor =
+                    routeStrokeWidthMap()[routeId] ?? lineWidth() / 1000;
+                  <g
+                    class="path-group"
+                    (click)="
+                      selectRoute(pathData._ref || { route_id: routeId });
+                      $event.stopPropagation()
+                    "
+                    (touchstart)="
+                      selectRoute(pathData._ref || { route_id: routeId });
+                      $event.stopPropagation()
+                    "
+                  >
+                    @if (pathData.type === 'circle') {
+                      @let strokeW = strokeWidthFactor * width();
+                      @let circleR = strokeW * 3.5;
+                      @let isTraverse = pathData.isTraverse;
+                      @for (pt of pathData.points; track $index) {
+                        @let ptColor =
+                          pt.state | topoPointStateColor: style.stroke;
+                        @let badge = pt.state | topoPointStateBadge;
+                        <!-- Hit area circle -->
+                        <circle
+                          [attr.cx]="pt.x * width()"
+                          [attr.cy]="pt.y * height()"
+                          [attr.r]="circleR + strokeW * 2"
+                          fill="transparent"
+                        />
+                        <!-- Shadow circle -->
+                        <circle
+                          [attr.cx]="pt.x * width()"
+                          [attr.cy]="pt.y * height()"
+                          [attr.r]="circleR"
+                          fill="none"
+                          stroke="white"
+                          [style.opacity]="style.isDashed ? 1 : 0.7"
+                          [attr.stroke-width]="
+                            strokeW + (style.isDashed ? 2.5 : 1.5)
+                          "
+                          [attr.stroke-dasharray]="
+                            style.isDashed
+                              ? width() * 0.008 + ' ' + width() * 0.008
+                              : 'none'
+                          "
+                        />
+                        <!-- Main circle -->
+                        <circle
+                          [attr.cx]="pt.x * width()"
+                          [attr.cy]="pt.y * height()"
+                          [attr.r]="circleR"
+                          fill="rgba(0,0,0,0.05)"
+                          [attr.stroke]="style.stroke"
+                          [style.color]="style.stroke"
+                          [style.opacity]="style.opacity"
+                          [attr.stroke-width]="strokeW"
+                          [attr.stroke-dasharray]="
+                            style.isDashed
+                              ? width() * 0.008 + ' ' + width() * 0.008
+                              : 'none'
+                          "
+                          [class.selected-circle-pulse]="isSelected"
+                        />
                         @if (isTraverse) {
                           <text
                             [attr.x]="pt.x * width()"
@@ -458,7 +550,7 @@ export interface TopoPathEditorConfig {
                                   ? 3.4
                                   : 2.8);
                           @let pillH = strokeW * 1.4;
-                          @let pillY = pt.y * height() - circleR - pillH * 0.45;
+                          @let pillY = pt.y * height() + circleR + pillH * 0.45;
                           <g
                             class="pointer-events-none"
                             style="user-select: none"
@@ -488,202 +580,395 @@ export interface TopoPathEditorConfig {
                           </g>
                         }
                       }
-                    }
-                  } @else {
-                    @let isTraverse = pathData.isTraverse;
-                    <!-- Hit area -->
-                    <polyline
-                      [attr.points]="pointsStringMap()[routeId]"
-                      fill="none"
-                      stroke="transparent"
-                      [attr.stroke-width]="strokeWidthFactor * width() * 5"
-                      stroke-linejoin="round"
-                      stroke-linecap="round"
-                    />
-                    <!-- Shadow -->
-                    <polyline
-                      [attr.points]="pointsStringMap()[routeId]"
-                      fill="none"
-                      stroke="white"
-                      [style.opacity]="style.isDashed ? 1 : 0.7"
-                      [attr.stroke-width]="
-                        strokeWidthFactor * width() +
-                        (style.isDashed ? 2.5 : 1.5)
-                      "
-                      [attr.stroke-dasharray]="
-                        style.isDashed
-                          ? width() * 0.01 + ' ' + width() * 0.01
-                          : 'none'
-                      "
-                      stroke-linejoin="round"
-                      stroke-linecap="round"
-                    />
-                    <!-- Main line -->
-                    <polyline
-                      [attr.points]="pointsStringMap()[routeId]"
-                      fill="none"
-                      [attr.stroke]="style.stroke"
-                      [style.color]="style.stroke"
-                      [style.opacity]="style.opacity"
-                      [attr.stroke-width]="strokeWidthFactor * width()"
-                      [attr.stroke-dasharray]="
-                        style.isDashed
-                          ? width() * 0.01 + ' ' + width() * 0.01
-                          : 'none'
-                      "
-                      stroke-linejoin="round"
-                      stroke-linecap="round"
-                    />
-
-                    @if (!isSelected && isTraverse) {
-                      @for (pt of pathData.points; track $index) {
-                        @let ptColor =
-                          pt.state | topoPointStateColor: style.stroke;
-                        @let badge = pt.state | topoPointStateBadge;
-                        @let ptR = strokeWidthFactor * width() * 1.8;
-                        <circle
-                          [attr.cx]="pt.x * width()"
-                          [attr.cy]="pt.y * height()"
-                          [attr.r]="ptR"
-                          [attr.fill]="ptColor"
-                          stroke="white"
-                          stroke-width="1"
-                        />
-                        <text
-                          [attr.x]="pt.x * width()"
-                          [attr.y]="pt.y * height() + ptR * 0.35"
-                          text-anchor="middle"
-                          fill="white"
-                          font-weight="bold"
-                          [attr.font-size]="ptR * 0.85"
-                          style="pointer-events: none; user-select: none; text-shadow: 0 0 3px rgba(0,0,0,0.9)"
-                        >
-                          {{ $index + 1 }}{{ badge ? '·' + badge : '' }}
-                        </text>
-                      }
-                    }
-
-                    <!-- End dot -->
-                    @if (pathData.points[pathData.points.length - 1]; as last) {
-                      @let isTop = last.state === 'top';
-                      <circle
-                        [attr.cx]="last.x * width()"
-                        [attr.cy]="last.y * height()"
-                        [attr.r]="
-                          strokeWidthFactor * width() * (isTop ? 1.6 : 1)
-                        "
-                        [attr.fill]="isTop ? '#EF4444' : 'white'"
-                        [style.opacity]="style.opacity"
-                        [attr.stroke]="isTop ? 'white' : 'black'"
-                        [attr.stroke-width]="isTop ? 1 : 0.5"
+                    } @else {
+                      @let isTraverse = pathData.isTraverse;
+                      <!-- Hit area -->
+                      <polyline
+                        [attr.points]="pointsStringMap()[routeId]"
+                        fill="none"
+                        stroke="transparent"
+                        [attr.stroke-width]="strokeWidthFactor * width() * 5"
+                        stroke-linejoin="round"
+                        stroke-linecap="round"
                       />
-                      @if (isTop && !isSelected) {
-                        <text
-                          [attr.x]="last.x * width()"
-                          [attr.y]="
-                            last.y * height() +
-                            strokeWidthFactor * width() * 0.55
-                          "
-                          text-anchor="middle"
-                          fill="white"
-                          font-weight="bold"
-                          [attr.font-size]="strokeWidthFactor * width() * 1.4"
-                          style="pointer-events: none; user-select: none; text-shadow: 0 0 2px rgba(0,0,0,0.9)"
-                        >
-                          T
-                        </text>
-                      }
-                    }
-                  }
-                </g>
-
-                <!-- Control points (selected only) -->
-                @if (isSelected) {
-                  @for (pt of pathData.points; track $index) {
-                    @let strokeW = strokeWidthFactor;
-                    @let ptColor = pt.state | topoPointStateColor: style.stroke;
-                    @let badge = pt.state | topoPointStateBadge;
-                    @let isTraverse = pathData.isTraverse;
-                    <g
-                      class="control-point"
-                      (mousedown)="startDragging($event, routeId, $index)"
-                      (touchstart)="startDraggingTouch($event, routeId, $index)"
-                      (contextmenu)="removePoint($event, routeId, $index)"
-                      (dblclick)="cyclePointState($event, routeId, $index)"
-                    >
-                      <circle
-                        [attr.cx]="pt.x * width()"
-                        [attr.cy]="pt.y * height()"
-                        [attr.r]="strokeW * width() * 1.5"
-                        fill="rgba(0,0,0,0.4)"
-                      />
-                      <circle
-                        [attr.cx]="pt.x * width()"
-                        [attr.cy]="pt.y * height()"
-                        [attr.r]="strokeW * width() * 0.9"
-                        [attr.fill]="style.stroke"
+                      <!-- Shadow -->
+                      <polyline
+                        [attr.points]="pointsStringMap()[routeId]"
+                        fill="none"
                         stroke="white"
-                        stroke-width="1"
+                        [style.opacity]="style.isDashed ? 1 : 0.7"
+                        [attr.stroke-width]="
+                          strokeWidthFactor * width() +
+                          (style.isDashed ? 2.5 : 1.5)
+                        "
+                        [attr.stroke-dasharray]="
+                          style.isDashed
+                            ? width() * 0.01 + ' ' + width() * 0.01
+                            : 'none'
+                        "
+                        stroke-linejoin="round"
+                        stroke-linecap="round"
                       />
-                      @if (isTraverse) {
-                        <text
-                          [attr.x]="pt.x * width()"
-                          [attr.y]="pt.y * height() + strokeW * width() * 0.35"
-                          text-anchor="middle"
-                          fill="white"
-                          font-weight="bold"
-                          [attr.font-size]="strokeW * width() * 0.9"
-                          style="pointer-events: none; user-select: none; text-shadow: 0 0 2px rgba(0,0,0,0.9)"
-                        >
-                          {{ $index + 1 }}
-                        </text>
+                      <!-- Main line -->
+                      <polyline
+                        [attr.points]="pointsStringMap()[routeId]"
+                        fill="none"
+                        [attr.stroke]="style.stroke"
+                        [style.color]="style.stroke"
+                        [style.opacity]="style.opacity"
+                        [attr.stroke-width]="strokeWidthFactor * width()"
+                        [attr.stroke-dasharray]="
+                          style.isDashed
+                            ? width() * 0.01 + ' ' + width() * 0.01
+                            : 'none'
+                        "
+                        stroke-linejoin="round"
+                        stroke-linecap="round"
+                      />
+
+                      @if (!isSelected) {
+                        @if (isTraverse) {
+                          @for (pt of pathData.points; track $index) {
+                            @let strokeW = strokeWidthFactor * width();
+                            @let ptColor =
+                              pt.state | topoPointStateColor: style.stroke;
+                            @let badge = pt.state | topoPointStateBadge;
+                            @let ptR = strokeW * 1.8;
+                            <circle
+                              [attr.cx]="pt.x * width()"
+                              [attr.cy]="pt.y * height()"
+                              [attr.r]="ptR"
+                              [attr.fill]="style.stroke"
+                              stroke="white"
+                              stroke-width="1"
+                            />
+                            <text
+                              [attr.x]="pt.x * width()"
+                              [attr.y]="pt.y * height() + ptR * 0.35"
+                              text-anchor="middle"
+                              fill="white"
+                              font-weight="bold"
+                              [attr.font-size]="ptR * 0.85"
+                              style="pointer-events: none; user-select: none; text-shadow: 0 0 3px rgba(0,0,0,0.9)"
+                            >
+                              {{ $index + 1 }}
+                            </text>
+                            @if (badge) {
+                              @let label = pt.state | topoPointStateLabel;
+                              @let pillW =
+                                strokeW *
+                                (pt.state === 'match'
+                                  ? 3.8
+                                  : pt.state === 'start'
+                                    ? 3.6
+                                    : pt.state === 'foot'
+                                      ? 3.4
+                                      : 2.8);
+                              @let pillH = strokeW * 1.4;
+                              @let pillY = pt.y * height() + ptR + pillH * 0.45;
+                              <g
+                                class="pointer-events-none"
+                                style="user-select: none"
+                              >
+                                <rect
+                                  [attr.x]="pt.x * width() - pillW / 2"
+                                  [attr.y]="pillY - pillH / 2"
+                                  [attr.width]="pillW"
+                                  [attr.height]="pillH"
+                                  [attr.rx]="pillH / 2"
+                                  [attr.fill]="ptColor"
+                                  stroke="white"
+                                  stroke-width="0.75"
+                                />
+                                <text
+                                  [attr.x]="pt.x * width()"
+                                  [attr.y]="pillY + pillH * 0.32"
+                                  text-anchor="middle"
+                                  fill="white"
+                                  font-weight="bold"
+                                  [attr.font-size]="strokeW * 0.95"
+                                  font-family="sans-serif"
+                                  style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
+                                >
+                                  {{ label }}
+                                </text>
+                              </g>
+                            }
+                          }
+                        } @else {
+                          <!-- Intermediate state points for polylines -->
+                          @for (pt of pathData.points; track $index) {
+                            @if (
+                              $index > 0 &&
+                              $index < pathData.points.length - 1 &&
+                              pt.state &&
+                              pt.state !== 'neutral'
+                            ) {
+                              @let strokeW = strokeWidthFactor * width();
+                              @let ptColor =
+                                pt.state | topoPointStateColor: style.stroke;
+                              @let label = pt.state | topoPointStateLabel;
+                              @let ptR = strokeW * 1.4;
+                              @let pillW =
+                                strokeW *
+                                (pt.state === 'match'
+                                  ? 3.8
+                                  : pt.state === 'start'
+                                    ? 3.6
+                                    : pt.state === 'foot'
+                                      ? 3.4
+                                      : 2.8);
+                              @let pillH = strokeW * 1.4;
+                              @let pillY = pt.y * height() + ptR + pillH * 0.45;
+                              <circle
+                                [attr.cx]="pt.x * width()"
+                                [attr.cy]="pt.y * height()"
+                                [attr.r]="ptR"
+                                fill="white"
+                                [attr.stroke]="style.stroke"
+                                stroke-width="1.5"
+                              />
+                              <g
+                                class="pointer-events-none"
+                                style="user-select: none"
+                              >
+                                <rect
+                                  [attr.x]="pt.x * width() - pillW / 2"
+                                  [attr.y]="pillY - pillH / 2"
+                                  [attr.width]="pillW"
+                                  [attr.height]="pillH"
+                                  [attr.rx]="pillH / 2"
+                                  [attr.fill]="ptColor"
+                                  stroke="white"
+                                  stroke-width="0.75"
+                                />
+                                <text
+                                  [attr.x]="pt.x * width()"
+                                  [attr.y]="pillY + pillH * 0.32"
+                                  text-anchor="middle"
+                                  fill="white"
+                                  font-weight="bold"
+                                  [attr.font-size]="strokeW * 0.95"
+                                  font-family="sans-serif"
+                                  style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
+                                >
+                                  {{ label }}
+                                </text>
+                              </g>
+                            }
+                          }
+
+                          <!-- End dot -->
+                          @if (
+                            pathData.points[pathData.points.length - 1];
+                            as last
+                          ) {
+                            @let strokeW = strokeWidthFactor * width();
+                            @let isTop = last.state === 'top';
+                            @let endR = strokeW * (isTop ? 1.6 : 1.2);
+                            <circle
+                              [attr.cx]="last.x * width()"
+                              [attr.cy]="last.y * height()"
+                              [attr.r]="endR"
+                              [attr.fill]="isTop ? '#EF4444' : 'white'"
+                              [style.opacity]="style.opacity"
+                              [attr.stroke]="isTop ? 'white' : 'black'"
+                              [attr.stroke-width]="isTop ? 1 : 0.5"
+                            />
+                            @if (isTop) {
+                              @let pillW = strokeW * 2.8;
+                              @let pillH = strokeW * 1.4;
+                              @let pillY =
+                                last.y * height() - endR - pillH * 0.45;
+                              <g
+                                class="pointer-events-none"
+                                style="user-select: none"
+                              >
+                                <rect
+                                  [attr.x]="last.x * width() - pillW / 2"
+                                  [attr.y]="pillY - pillH / 2"
+                                  [attr.width]="pillW"
+                                  [attr.height]="pillH"
+                                  [attr.rx]="pillH / 2"
+                                  fill="#EF4444"
+                                  stroke="white"
+                                  stroke-width="0.75"
+                                />
+                                <text
+                                  [attr.x]="last.x * width()"
+                                  [attr.y]="pillY + pillH * 0.32"
+                                  text-anchor="middle"
+                                  fill="white"
+                                  font-weight="bold"
+                                  [attr.font-size]="strokeW * 0.95"
+                                  font-family="sans-serif"
+                                  style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
+                                >
+                                  TOP
+                                </text>
+                              </g>
+                            }
+                          }
+                        }
                       }
-                      @if (badge) {
-                        @let label = pt.state | topoPointStateLabel;
-                        @let pillW =
-                          strokeW *
-                          width() *
-                          (pt.state === 'match'
-                            ? 3.8
-                            : pt.state === 'start'
-                              ? 3.6
-                              : pt.state === 'foot'
-                                ? 3.4
-                                : 2.8);
-                        @let pillH = strokeW * width() * 1.4;
-                        @let pillY =
-                          pt.y * height() -
-                          strokeW * width() * 1.5 -
-                          pillH * 0.45;
-                        <g
-                          class="pointer-events-none"
-                          style="user-select: none"
-                        >
-                          <rect
-                            [attr.x]="pt.x * width() - pillW / 2"
-                            [attr.y]="pillY - pillH / 2"
-                            [attr.width]="pillW"
-                            [attr.height]="pillH"
-                            [attr.rx]="pillH / 2"
-                            [attr.fill]="ptColor"
-                            stroke="white"
-                            stroke-width="0.75"
-                          />
-                          <text
-                            [attr.x]="pt.x * width()"
-                            [attr.y]="pillY + pillH * 0.32"
-                            text-anchor="middle"
-                            fill="white"
-                            font-weight="bold"
-                            [attr.font-size]="strokeW * width() * 0.95"
-                            font-family="sans-serif"
-                            style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
+                    }
+
+                    <!-- Traverse route grade pill at start point -->
+                    @if (pathData.isTraverse && pathData.points.length > 0) {
+                      @if (pathData.points[0]; as first) {
+                        @let strokeW = strokeWidthFactor * width();
+                        @let gradeStr = pathData._ref.route.grade | gradeLabel;
+                        @if (gradeStr) {
+                          <g
+                            class="pointer-events-none"
+                            style="user-select: none"
                           >
-                            {{ label }}
-                          </text>
-                        </g>
+                            <rect
+                              [attr.x]="first.x * width() - strokeW * 2.2"
+                              [attr.y]="first.y * height() - strokeW * 3.8"
+                              [attr.width]="strokeW * 4.4"
+                              [attr.height]="strokeW * 1.8"
+                              [attr.rx]="strokeW * 0.9"
+                              [attr.fill]="style.stroke"
+                              stroke="white"
+                              stroke-width="1"
+                            />
+                            <text
+                              [attr.x]="first.x * width()"
+                              [attr.y]="first.y * height() - strokeW * 2.5"
+                              text-anchor="middle"
+                              fill="white"
+                              style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
+                              [attr.font-size]="strokeW * 1.3"
+                              font-weight="bold"
+                              font-family="sans-serif"
+                            >
+                              {{ gradeStr }}
+                            </text>
+                          </g>
+                        }
                       }
-                    </g>
+                    }
+                  </g>
+
+                  <!-- Control points (selected only) -->
+                  @if (isSelected) {
+                    @let strokeW = strokeWidthFactor * width();
+                    @let isTraverse = pathData.isTraverse;
+                    @for (pt of pathData.points; track $index) {
+                      @let ptColor =
+                        pt.state | topoPointStateColor: style.stroke;
+                      @let badge = pt.state | topoPointStateBadge;
+                      <g
+                        class="control-point"
+                        (mousedown)="startDragging($event, routeId, $index)"
+                        (touchstart)="
+                          startDraggingTouch($event, routeId, $index)
+                        "
+                        (contextmenu)="removePoint($event, routeId, $index)"
+                        (dblclick)="cyclePointState($event, routeId, $index)"
+                      >
+                        @if (pathData.type === 'circle') {
+                          @let circleR = strokeW * 3.5;
+                          <!-- Circle mode control hit area -->
+                          <circle
+                            [attr.cx]="pt.x * width()"
+                            [attr.cy]="pt.y * height()"
+                            [attr.r]="circleR"
+                            fill="transparent"
+                          />
+                          @if (!isTraverse) {
+                            <circle
+                              [attr.cx]="pt.x * width()"
+                              [attr.cy]="pt.y * height()"
+                              [attr.r]="strokeW * 1.5"
+                              fill="rgba(0,0,0,0.4)"
+                            />
+                            <circle
+                              [attr.cx]="pt.x * width()"
+                              [attr.cy]="pt.y * height()"
+                              [attr.r]="strokeW * 0.9"
+                              [attr.fill]="style.stroke"
+                              stroke="white"
+                              stroke-width="1"
+                            />
+                          }
+                        } @else {
+                          <!-- Polyline mode control points -->
+                          @let ptR = isTraverse ? strokeW * 1.8 : strokeW * 0.9;
+                          @let haloR =
+                            isTraverse ? ptR + strokeW * 0.5 : strokeW * 1.5;
+                          <circle
+                            [attr.cx]="pt.x * width()"
+                            [attr.cy]="pt.y * height()"
+                            [attr.r]="haloR"
+                            fill="rgba(0,0,0,0.4)"
+                          />
+                          <circle
+                            [attr.cx]="pt.x * width()"
+                            [attr.cy]="pt.y * height()"
+                            [attr.r]="ptR"
+                            [attr.fill]="style.stroke"
+                            stroke="white"
+                            stroke-width="1"
+                          />
+                          @if (isTraverse) {
+                            <text
+                              [attr.x]="pt.x * width()"
+                              [attr.y]="pt.y * height() + ptR * 0.35"
+                              text-anchor="middle"
+                              fill="white"
+                              font-weight="bold"
+                              [attr.font-size]="ptR * 0.85"
+                              style="pointer-events: none; user-select: none; text-shadow: 0 0 3px rgba(0,0,0,0.9)"
+                            >
+                              {{ $index + 1 }}
+                            </text>
+                          }
+                          @if (badge) {
+                            @let label = pt.state | topoPointStateLabel;
+                            @let pillW =
+                              strokeW *
+                              (pt.state === 'match'
+                                ? 3.8
+                                : pt.state === 'start'
+                                  ? 3.6
+                                  : pt.state === 'foot'
+                                    ? 3.4
+                                    : 2.8);
+                            @let pillH = strokeW * 1.4;
+                            @let pillY = pt.y * height() + ptR + pillH * 0.45;
+                            <g
+                              class="pointer-events-none"
+                              style="user-select: none"
+                            >
+                              <rect
+                                [attr.x]="pt.x * width() - pillW / 2"
+                                [attr.y]="pillY - pillH / 2"
+                                [attr.width]="pillW"
+                                [attr.height]="pillH"
+                                [attr.rx]="pillH / 2"
+                                [attr.fill]="ptColor"
+                                stroke="white"
+                                stroke-width="0.75"
+                              />
+                              <text
+                                [attr.x]="pt.x * width()"
+                                [attr.y]="pillY + pillH * 0.32"
+                                text-anchor="middle"
+                                fill="white"
+                                font-weight="bold"
+                                [attr.font-size]="strokeW * 0.95"
+                                font-family="sans-serif"
+                                style="text-shadow: 0 0 2px rgba(0,0,0,0.8)"
+                              >
+                                {{ label }}
+                              </text>
+                            </g>
+                          }
+                        }
+                      </g>
+                    }
                   }
                 }
               }
@@ -699,15 +984,19 @@ export interface TopoPathEditorConfig {
         </div>
 
         <!-- Mobile FAB to toggle sidebar -->
-        <button
-          tuiIconButton
-          appearance="floating"
-          size="m"
-          class="fab-routes bg-(--tui-background-base)!"
-          (click)="sidebarOpen.set(!sidebarOpen())"
-        >
-          <tui-icon [icon]="sidebarOpen() ? '@tui.x' : '@tui.list'" />
-        </button>
+        @if (!sidebarOpen()) {
+          <button
+            tuiIconButton
+            appearance="floating"
+            size="m"
+            class="fab-routes bg-(--tui-background-base)!"
+            type="button"
+            [attr.aria-label]="'routes' | translate"
+            (click)="sidebarOpen.set(true)"
+          >
+            <tui-icon icon="@tui.list" />
+          </button>
+        }
       </div>
 
       <!-- ═══════════════════════ FOOTER ═══════════════════════ -->
@@ -872,7 +1161,6 @@ export interface TopoPathEditorConfig {
 
     .route-item:hover {
       background: var(--tui-background-neutral-1-hover);
-      transform: translateX(4px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       border-color: var(--tui-border-hover);
     }
@@ -898,7 +1186,6 @@ export interface TopoPathEditorConfig {
       color: var(--tui-text-primary-on-accent-2) !important;
       border-color: transparent !important;
       box-shadow: 0 4px 15px var(--tui-background-accent-2-half) !important;
-      transform: translateX(4px);
     }
 
     .route-num {
@@ -1028,12 +1315,12 @@ export interface TopoPathEditorConfig {
       .route-sidebar {
         position: absolute;
         top: 0;
-        right: 0;
+        left: 0;
         bottom: 0;
         width: 85vw;
         max-width: 26rem;
-        transform: translateX(100%);
-        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+        transform: translateX(-100%);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
       }
 
       .route-sidebar.sidebar-open {
@@ -1074,7 +1361,7 @@ export interface TopoPathEditorConfig {
     .fab-routes {
       position: absolute;
       top: 1rem;
-      right: 1rem;
+      left: 1rem;
       z-index: 30;
       border-radius: 50% !important;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
@@ -1152,6 +1439,10 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       TuiDialogContext<TopoPathEditorResult | boolean, TopoPathEditorConfig>
     >();
   private readonly topos = inject(ToposService);
+  private readonly indoor = inject(IndoorService);
+  private readonly indoorData = inject(IndoorDataService);
+  private readonly routesService = inject(RoutesService);
+  private readonly supabase = inject(SupabaseService);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
   private readonly translate = inject(TranslateService);
@@ -1168,6 +1459,11 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
   selectedRoute = signal<TopoRouteWithRoute | null>(null);
   sidebarOpen = signal(false);
   topoRoutes: TopoRouteWithRoute[] = [];
+  hiddenRouteIds = signal<Set<string | number>>(new Set());
+  areAllRoutesVisible = computed<boolean>(() => {
+    return this.hiddenRouteIds().size === 0;
+  });
+  newIndoorRoutes: IndoorRouteDto[] = [];
   pathsMap = new Map<
     string | number,
     {
@@ -1180,7 +1476,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     }
   >();
   lineWidth = signal(5);
-  private pathsVersion = signal(0);
+  protected pathsVersion = signal(0);
 
   protected readonly selectedRoutePathType = computed<'line' | 'circle'>(() => {
     this.pathsVersion();
@@ -1211,6 +1507,15 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
         _ref: selected,
       });
     }
+    if (selected.path) {
+      selected.path.type = type;
+    }
+    const matchingTopoRoute = this.topoRoutes.find(
+      (r) => r.route_id === selected.route_id,
+    );
+    if (matchingTopoRoute?.path) {
+      matchingTopoRoute.path.type = type;
+    }
     this.pathsVersion.update((v) => v + 1);
     this.cdr.markForCheck();
   }
@@ -1219,15 +1524,35 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     const selected = this.selectedRoute();
     if (!selected) return;
     const current = this.pathsMap.get(selected.route_id);
+    let nextVal = false;
     if (current) {
       current.isTraverse = !current.isTraverse;
+      nextVal = current.isTraverse;
     } else {
+      nextVal = true;
       this.pathsMap.set(selected.route_id, {
         points: [],
         type: 'circle',
         isTraverse: true,
         _ref: selected,
       });
+    }
+    if (selected.path) {
+      selected.path.isTraverse = nextVal;
+    }
+    const matchingTopoRoute = this.topoRoutes.find(
+      (r) => r.route_id === selected.route_id,
+    );
+    if (matchingTopoRoute) {
+      if (!matchingTopoRoute.path) {
+        matchingTopoRoute.path = {
+          points: [],
+          type: current?.type || 'circle',
+          isTraverse: nextVal,
+        };
+      } else {
+        matchingTopoRoute.path.isTraverse = nextVal;
+      }
     }
     this.pathsVersion.update((v) => v + 1);
     this.cdr.markForCheck();
@@ -1320,11 +1645,6 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
         });
       }
     });
-
-    // Select first route by default
-    if (this.topoRoutes.length > 0) {
-      this.selectedRoute.set(this.topoRoutes[0]);
-    }
   }
 
   ngAfterViewInit(): void {
@@ -1408,10 +1728,10 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       // 2. Sort by minX
       routesWithX.sort((a, b) => a.minX - b.minX);
 
-      // 3. Update numbers locally (starting from 1)
+      // 3. Update numbers locally (starting from 0)
       for (let i = 0; i < routesWithX.length; i++) {
         const tr = routesWithX[i].tr;
-        tr.number = i + 1;
+        tr.number = i;
       }
 
       // 4. Sort the original array to reflect changes in sidebar
@@ -1441,6 +1761,176 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
     );
   }
 
+  toggleRouteVisibility(routeId: string | number, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.hiddenRouteIds.update((set) => {
+      const next = new Set(set);
+      if (next.has(routeId)) {
+        next.delete(routeId);
+      } else {
+        next.add(routeId);
+      }
+      return next;
+    });
+  }
+
+  toggleAllRoutesVisibility(): void {
+    if (this.areAllRoutesVisible()) {
+      const allIds = this.topoRoutes.map((tr) => tr.route_id);
+      this.hiddenRouteIds.set(new Set(allIds));
+    } else {
+      this.hiddenRouteIds.set(new Set());
+    }
+  }
+
+  async createNewIndoorRoute(): Promise<void> {
+    const centerId = this.context.data.centerId;
+    if (!centerId) return;
+
+    const currentTopoId = this.context.data.topoId
+      ? String(this.context.data.topoId)
+      : undefined;
+
+    const result = await this.indoor.openIndoorRouteForm(centerId, undefined, {
+      hideTopo: true,
+      defaultTopoId: currentTopoId,
+    });
+    if (result && typeof result === 'object') {
+      const newRoute = result as IndoorRouteDto;
+      const newTopoRoute: TopoRouteWithRoute = {
+        topo_id: currentTopoId ?? 0,
+        route_id: newRoute.id,
+        number: this.topoRoutes.length + 1,
+        path: null,
+        route: newRoute as unknown as RouteBasicWithOwnData,
+      };
+      this.topoRoutes = [...this.topoRoutes, newTopoRoute];
+      this.newIndoorRoutes.push(newRoute);
+      this.pathsMap.set(newRoute.id, {
+        points: [],
+        type: 'line',
+        _ref: newTopoRoute,
+      });
+      this.pathsVersion.update((v) => v + 1);
+      this.selectRoute(newTopoRoute, true);
+      this.hiddenRouteIds.update((set) => {
+        const next = new Set(set);
+        next.delete(newRoute.id);
+        return next;
+      });
+      this.cdr.markForCheck();
+    }
+  }
+
+  async editRoute(tr: TopoRouteWithRoute, event?: Event): Promise<void> {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    if (this.context.data.isIndoor) {
+      const centerId =
+        this.context.data.centerId ||
+        (tr.route as unknown as IndoorRouteDto)?.center_id;
+      if (!centerId) return;
+
+      const currentTopoId = this.context.data.topoId
+        ? String(this.context.data.topoId)
+        : undefined;
+
+      const result = await this.indoor.openIndoorRouteForm(
+        centerId,
+        tr.route as unknown as IndoorRouteDto,
+        {
+          hideTopo: true,
+          defaultTopoId: currentTopoId,
+        },
+      );
+
+      if (result) {
+        const updated =
+          typeof result === 'object' ? (result as IndoorRouteDto) : null;
+
+        if (updated) {
+          tr.route.name = updated.name;
+          tr.route.grade = updated.grade ?? tr.route.grade;
+          tr.route.climbing_kind = (updated.climbing_kind ??
+            tr.route.climbing_kind) as ClimbingKind;
+          tr.route.color = updated.color;
+          const idx = this.newIndoorRoutes.findIndex(
+            (r) => r.id === tr.route_id,
+          );
+          if (idx !== -1) {
+            this.newIndoorRoutes[idx] = updated;
+          }
+        } else {
+          const { data } = await this.supabase.client
+            .from('indoor_routes')
+            .select('id, name, grade, climbing_kind, color')
+            .eq('id', String(tr.route_id))
+            .single();
+          if (data) {
+            tr.route.name = data.name;
+            tr.route.grade = data.grade ?? tr.route.grade;
+            tr.route.climbing_kind = (data.climbing_kind ??
+              tr.route.climbing_kind) as ClimbingKind;
+            tr.route.color = data.color;
+          }
+        }
+
+        const pathEntry = this.pathsMap.get(tr.route_id);
+        if (pathEntry) {
+          pathEntry._ref = tr;
+        }
+        this.pathsVersion.update((v) => v + 1);
+
+        if (this.selectedRoute()?.route_id === tr.route_id) {
+          this.selectedRoute.set({ ...tr });
+        }
+        this.cdr.markForCheck();
+      }
+    } else {
+      const cragId = (tr.route as unknown as { crag_id?: number }).crag_id;
+      const result = await this.routesService.openRouteForm({
+        cragId,
+        routeData: {
+          id: Number(tr.route_id),
+          crag_id: cragId,
+          name: tr.route.name,
+          slug: tr.route.slug,
+          grade: tr.route.grade,
+          climbing_kind: tr.route.climbing_kind,
+          height: (tr.route as unknown as { height?: number | null }).height,
+        },
+      });
+
+      if (result) {
+        const { data } = await this.routesService.getById(Number(tr.route_id));
+        if (data) {
+          tr.route.name = data.name;
+          tr.route.grade = data.grade ?? tr.route.grade;
+          tr.route.climbing_kind = (data.climbing_kind ??
+            tr.route.climbing_kind) as ClimbingKind;
+          tr.route.slug = data.slug;
+          if ('height' in data) {
+            (tr.route as unknown as { height?: number | null }).height =
+              data.height;
+          }
+        }
+
+        const pathEntry = this.pathsMap.get(tr.route_id);
+        if (pathEntry) {
+          pathEntry._ref = tr;
+        }
+        this.pathsVersion.update((v) => v + 1);
+
+        if (this.selectedRoute()?.route_id === tr.route_id) {
+          this.selectedRoute.set({ ...tr });
+        }
+        this.cdr.markForCheck();
+      }
+    }
+  }
+
   selectRoute(tr: TopoRouteWithRoute, fromList = false): void {
     const selected = this.selectedRoute();
 
@@ -1449,12 +1939,26 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
         this.selectedRoute.set(null);
       } else {
         this.selectedRoute.set(tr);
+        if (this.hiddenRouteIds().has(tr.route_id)) {
+          this.hiddenRouteIds.update((set) => {
+            const next = new Set(set);
+            next.delete(tr.route_id);
+            return next;
+          });
+        }
         // Center the view on the newly selected route
         this.centerOnRoute(tr);
       }
     } else {
       if (!selected) {
         this.selectedRoute.set(tr);
+        if (this.hiddenRouteIds().has(tr.route_id)) {
+          this.hiddenRouteIds.update((set) => {
+            const next = new Set(set);
+            next.delete(tr.route_id);
+            return next;
+          });
+        }
         this.centerOnRoute(tr);
       }
     }
@@ -1700,6 +2204,10 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
   }
 
   close(): void {
+    if (this.newIndoorRoutes.length > 0) {
+      const idsToDelete = this.newIndoorRoutes.map((r) => r.id);
+      void Promise.all(idsToDelete.map((id) => this.indoor.deleteRoute(id)));
+    }
     this.context.completeWith(false);
   }
 
@@ -1725,6 +2233,7 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
           saved: true,
           paths: pathsToUpdate,
           routeIds: this.topoRoutes.map((tr) => tr.route_id),
+          newIndoorRoutes: this.newIndoorRoutes,
         });
         return;
       }
@@ -1732,17 +2241,44 @@ export class TopoPathEditorDialogComponent implements AfterViewInit {
       const topoId = this.context.data.topoId;
       if (!topoId) throw new Error('Missing topoId for database saving');
 
-      if (pathsToUpdate.length > 0) {
-        await this.topos.bulkUpdateRoutePaths(topoId, pathsToUpdate, false);
-      }
-
-      for (const tr of this.topoRoutes) {
-        await this.topos.updateRouteOrder(
-          topoId,
-          tr.route_id,
-          tr.number,
-          false,
+      if (this.context.data.isIndoor) {
+        const pathsMap = new Map(
+          pathsToUpdate.map((p) => [String(p.routeId), p.path]),
         );
+        const upsertPromises = this.topoRoutes.map((tr, idx) => {
+          const path = pathsMap.get(String(tr.route_id)) || null;
+          return this.supabase.client.from('indoor_topo_routes').upsert({
+            topo_id: String(topoId),
+            route_id: String(tr.route_id),
+            number: idx,
+            path: path ? topoPathToJson(path) : null,
+          });
+        });
+        const upsertResults = await Promise.all(upsertPromises);
+        const upsertErr = upsertResults.find((r) => r.error)?.error;
+        if (upsertErr) throw upsertErr;
+
+        const routeIds = this.topoRoutes.map((tr) => String(tr.route_id));
+        if (routeIds.length > 0) {
+          const { error: updateErr } = await this.supabase.client
+            .from('indoor_routes')
+            .update({ topo_id: String(topoId) })
+            .in('id', routeIds);
+          if (updateErr) throw updateErr;
+        }
+
+        this.newIndoorRoutes = [];
+        this.indoorData.topoDetailResource.reload();
+        this.indoor.reloadCenterRoutes();
+      } else {
+        if (pathsToUpdate.length > 0) {
+          await this.topos.bulkUpdateRoutePaths(topoId, pathsToUpdate, false);
+        }
+
+        for (let i = 0; i < this.topoRoutes.length; i++) {
+          const tr = this.topoRoutes[i];
+          await this.topos.updateRouteOrder(topoId, tr.route_id, i, false);
+        }
       }
 
       this.toast.success('messages.toasts.pathsSaved');

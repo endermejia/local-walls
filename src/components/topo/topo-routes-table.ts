@@ -53,7 +53,11 @@ import { ToposService } from '../../services/topos.service';
 
 import { topoPathToJson, type TopoRouteWithRoute } from '../../models';
 
-import { AscentInfoPipe, TableSorterPipe } from '../../pipes';
+import {
+  AscentInfoPipe,
+  TableSorterPipe,
+  TopoIsRouteVisiblePipe,
+} from '../../pipes';
 import { handleErrorToast } from '../../utils';
 
 import { PaywallComponent } from '../paywall/paywall';
@@ -72,6 +76,7 @@ import type { TopoRouteRow } from './topo.types';
     RouterLink,
     AscentInfoPipe,
     TableSorterPipe,
+    TopoIsRouteVisiblePipe,
     TranslatePipe,
     TuiAvatar,
     TuiButton,
@@ -182,6 +187,13 @@ import type { TopoRouteRow } from './topo.types';
                           ? 'var(--tui-status-info-pale)'
                           : ''
                     "
+                    [class.opacity-50]="
+                      isIndoor() &&
+                      !(
+                        item._ref.route_id
+                        | topoIsRouteVisible: hiddenRouteIds()
+                      )
+                    "
                     class="group cursor-pointer"
                     (mouseenter)="hoveredRouteIdChange.emit(item._ref.route_id)"
                     (mouseleave)="hoveredRouteIdChange.emit(null)"
@@ -206,13 +218,14 @@ import type { TopoRouteRow } from './topo.types';
                                   <input
                                     #indexInput
                                     tuiInputNumber
+                                    [min]="1"
                                     class="text-center h-full! border-none! p-0! route-index-input"
                                     [ngModel]="item.index + 1"
                                     (blur.zoneless)="
-                                      onUpdateRouteNumber(item._ref, $event)
+                                      onUpdateRouteNumber(item, $event)
                                     "
                                     (keydown.enter)="
-                                      onUpdateRouteNumber(item._ref, $event);
+                                      onUpdateRouteNumber(item, $event);
                                       $event.stopPropagation()
                                     "
                                     (keydown)="onTableKeyDown($event, i)"
@@ -225,14 +238,56 @@ import type { TopoRouteRow } from './topo.types';
                             </div>
                           }
                           @case ('name') {
-                            <div tuiCell size="m" class="h-full">
-                              <a
-                                tuiLink
-                                [routerLink]="item.link"
-                                class="text-left"
-                              >
-                                {{ item.name }}
-                              </a>
+                            <div
+                              tuiCell
+                              size="m"
+                              class="h-full items-center justify-between gap-2"
+                            >
+                              <div class="flex items-center gap-1.5 min-w-0">
+                                @if (isIndoor()) {
+                                  @let isVisible =
+                                    item._ref.route_id
+                                      | topoIsRouteVisible: hiddenRouteIds();
+                                  <button
+                                    tuiIconButton
+                                    type="button"
+                                    size="xs"
+                                    appearance="flat"
+                                    [iconStart]="
+                                      isVisible ? '@tui.eye' : '@tui.eye-off'
+                                    "
+                                    class="rounded-full! opacity-60 hover:opacity-100 shrink-0"
+                                    [class.opacity-30]="!isVisible"
+                                    [title]="
+                                      (isVisible ? 'hide' : 'show') | translate
+                                    "
+                                    (click.zoneless)="
+                                      toggleRouteVisibility.emit(
+                                        item._ref.route_id
+                                      );
+                                      $event.stopPropagation()
+                                    "
+                                  >
+                                    {{
+                                      (isVisible ? 'hide' : 'show') | translate
+                                    }}
+                                  </button>
+                                }
+                                <a
+                                  tuiLink
+                                  [routerLink]="item.link"
+                                  class="text-left truncate"
+                                >
+                                  {{ item.name }}
+                                </a>
+                              </div>
+                              @if (isIndoor() && item.moves !== undefined) {
+                                <span
+                                  class="text-xs opacity-60 shrink-0 font-medium"
+                                >
+                                  {{ item.moves }} {{ 'moves' | translate }}
+                                </span>
+                              }
                             </div>
                           }
                           @case ('grade') {
@@ -402,10 +457,12 @@ export class TopoRoutesTableComponent {
   topoId = input.required<string | number>();
   areaId = input(0);
   areaPrice = input(0);
+  hiddenRouteIds = input<Set<string | number>>(new Set());
 
   selectedRouteIdChange = output<string | number | null>();
   hoveredRouteIdChange = output<string | number | null>();
   sortChange = output<TuiTableSortChange<TopoRouteRow>>();
+  toggleRouteVisibility = output<string | number>();
 
   protected readonly indexInputs =
     viewChildren<ElementRef<HTMLInputElement>>('indexInput');
@@ -467,24 +524,41 @@ export class TopoRoutesTableComponent {
     );
   }
 
-  protected onUpdateRouteNumber(tr: TopoRouteWithRoute, event: Event): void {
-    const newNumber = (event.target as HTMLInputElement).value;
+  protected onUpdateRouteNumber(item: TopoRouteRow, event: Event): void {
+    const tr = item._ref;
+    const inputEl = event.target as HTMLInputElement;
+    const newNumber = inputEl.value;
     const val =
       typeof newNumber === 'string' ? parseInt(newNumber, 10) : newNumber;
-    if (val === null || isNaN(val) || val === tr.number) return;
+
+    const currentDisplayVal = item.index + 1;
+    if (val === null || isNaN(val) || val < 1 || val === currentDisplayVal) {
+      inputEl.value = String(currentDisplayVal);
+      return;
+    }
+
+    const targetDbNumber = Math.max(0, val - 1);
+    const topoId = String(this.topoId() || tr.topo_id);
+
     if (this.isIndoor()) {
       this.supabase.client
         .from('indoor_topo_routes')
-        .update({ number: val })
-        .eq('topo_id', String(tr.topo_id))
+        .update({ number: targetDbNumber })
+        .eq('topo_id', topoId)
         .eq('route_id', String(tr.route_id))
         .then(({ error }) => {
-          if (error) handleErrorToast(error, this.toast);
+          if (error) {
+            handleErrorToast(error, this.toast);
+          } else {
+            this.indoorData.topoDetailResource.reload();
+            this.toast.success('messages.toasts.routeUpdated');
+          }
         });
       return;
     }
+
     this.toposService
-      .updateRouteOrder(tr.topo_id, tr.route_id, val - 1)
+      .updateRouteOrder(topoId, tr.route_id, targetDbNumber)
       .catch((err) => handleErrorToast(err, this.toast));
   }
 

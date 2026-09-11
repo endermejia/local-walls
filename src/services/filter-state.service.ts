@@ -67,6 +67,18 @@ export class FilterStateService {
   profileAscentsShowIndoor: WritableSignal<boolean> = signal(false);
   profileAscentsShowOutdoor: WritableSignal<boolean> = signal(false);
 
+  // ---- Indoor Routes Filters ----
+  private readonly indoorRoutesGradeRangeKey = 'indoor_routes_grade_range_v1';
+  private readonly indoorRoutesCategoriesKey = 'indoor_routes_categories_v1';
+  private readonly indoorRoutesToposOnlyKey = 'indoor_routes_topos_only_v1';
+
+  indoorRoutesGradeRange: WritableSignal<[number, number]> = signal([
+    0,
+    ORDERED_GRADE_VALUES.length - 1,
+  ]);
+  indoorRoutesCategories: WritableSignal<number[]> = signal([]);
+  indoorRoutesToposOnly: WritableSignal<boolean> = signal(false);
+
   readonly isOwnProfile = signal<boolean>(true);
 
   constructor() {
@@ -169,6 +181,26 @@ export class FilterStateService {
         String(showOutdoor),
       );
     });
+
+    // Indoor routes persistence
+    effect(() => {
+      this.localStorage.setItem(
+        this.indoorRoutesGradeRangeKey,
+        JSON.stringify(this.indoorRoutesGradeRange()),
+      );
+    });
+    effect(() => {
+      this.localStorage.setItem(
+        this.indoorRoutesCategoriesKey,
+        JSON.stringify(this.indoorRoutesCategories()),
+      );
+    });
+    effect(() => {
+      this.localStorage.setItem(
+        this.indoorRoutesToposOnlyKey,
+        String(this.indoorRoutesToposOnly()),
+      );
+    });
   }
 
   private hydrate(): void {
@@ -243,6 +275,31 @@ export class FilterStateService {
       const rawFeedOutdoor = this.localStorage.getItem(this.feedShowOutdoorKey);
       if (rawFeedOutdoor !== null) {
         this.feedShowOutdoor.set(rawFeedOutdoor === 'true');
+      }
+
+      // Indoor routes
+      const rawIndoorGradeRange = this.localStorage.getItem(
+        this.indoorRoutesGradeRangeKey,
+      );
+      if (rawIndoorGradeRange) {
+        const parsed = JSON.parse(rawIndoorGradeRange);
+        if (Array.isArray(parsed) && parsed.length === 2) {
+          this.indoorRoutesGradeRange.set(parsed as [number, number]);
+        }
+      }
+
+      const rawIndoorCategories = this.localStorage.getItem(
+        this.indoorRoutesCategoriesKey,
+      );
+      if (rawIndoorCategories) {
+        this.indoorRoutesCategories.set(JSON.parse(rawIndoorCategories));
+      }
+
+      const rawIndoorToposOnly = this.localStorage.getItem(
+        this.indoorRoutesToposOnlyKey,
+      );
+      if (rawIndoorToposOnly !== null) {
+        this.indoorRoutesToposOnly.set(rawIndoorToposOnly === 'true');
       }
 
       // Profile ascents

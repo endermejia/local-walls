@@ -307,7 +307,7 @@ import { GradeComponent } from '../ui/avatar-grade';
           <!-- Draw paths Button (Large and underneath) -->
           @if (
             (previewUrl() || existingPhotoUrl()) &&
-            model().selectedRoutes.length > 0
+            (model().selectedRoutes.length > 0 || isIndoor())
           ) {
             <div class="mt-2">
               <button
@@ -469,6 +469,7 @@ export class TopoFormComponent {
   );
 
   typeInput = input<'indoor' | 'outdoor'>('outdoor');
+  centerIdInput = input<string | undefined>(undefined);
 
   protected readonly type: Signal<'indoor' | 'outdoor'> = computed(
     () => this._dialogCtx?.data?.type ?? this.typeInput(),
@@ -476,6 +477,10 @@ export class TopoFormComponent {
 
   protected readonly isIndoor: Signal<boolean> = computed(
     () => this.type() === 'indoor',
+  );
+
+  protected readonly centerId: Signal<string | undefined> = computed(
+    () => this._dialogCtx?.data?.centerId ?? this.centerIdInput(),
   );
 
   private readonly dialogCragId = this._dialogCtx?.data?.cragId;
@@ -552,6 +557,7 @@ export class TopoFormComponent {
       path: { points: { x: number; y: number }[]; color?: string };
     }[]
   >([]);
+  protected readonly pendingNewIndoorRouteIds = signal<string[]>([]);
   private isInitialized = false;
 
   protected readonly indoorRoutes = resource({
@@ -841,6 +847,7 @@ export class TopoFormComponent {
           }
 
           if (topoId) {
+            this.pendingNewIndoorRouteIds.set([]);
             const initialIds = this.initialRouteIds as string[];
             const currentIds = selectedRoutes.map((r) => r.id as string);
 
@@ -854,6 +861,11 @@ export class TopoFormComponent {
                 .delete()
                 .eq('topo_id', topoId)
                 .in('route_id', removedIds);
+              await this.supabase.client
+                .from('indoor_routes')
+                .update({ topo_id: null })
+                .in('id', removedIds)
+                .eq('topo_id', topoId);
             }
 
             // 2. Add or update route associations
@@ -868,11 +880,21 @@ export class TopoFormComponent {
               return this.supabase.client.from('indoor_topo_routes').upsert({
                 topo_id: String(topoId),
                 route_id: String(r.id),
-                number: idx + 1,
+                number: idx,
                 path: pendingPath || existingPath,
               });
             });
             await Promise.all(upsertPromises);
+
+            // 3. Associate all selected routes to this topo in indoor_routes table
+            if (currentIds.length > 0) {
+              await this.supabase.client
+                .from('indoor_routes')
+                .update({ topo_id: topoId })
+                .in('id', currentIds);
+            }
+
+            this.indoor.reloadCenterRoutes();
           }
 
           if (this._dialogCtx) {
@@ -1184,6 +1206,12 @@ export class TopoFormComponent {
       overrideUrl || this.previewUrl() || this.existingPhotoUrl();
     if (!activeUrl) return;
 
+    const topoId = this.isIndoor()
+      ? this._dialogCtx?.data?.indoorTopoData?.id
+      : topo?.id != null
+        ? String(topo.id)
+        : undefined;
+
     const routes = (this.model().selectedRoutes || []).map((r, i) => {
       let existing: { number?: number; path?: TopoPath | null } | undefined;
       if (this.isIndoor()) {
@@ -1195,13 +1223,11 @@ export class TopoFormComponent {
         );
       }
 
-      const topo_id = this.isIndoor()
-        ? this._dialogCtx?.data?.indoorTopoData?.id || ''
-        : topo?.id || 0;
+      const topo_id = this.isIndoor() ? topoId || '' : topo?.id || 0;
       return {
         topo_id,
         route_id: this.isIndoor() ? r.id : Number(r.id),
-        number: (existing?.number || i) + 1,
+        number: existing?.number ?? i,
         route: { ...r, own_ascent: null, project: false },
         path:
           this.pendingPaths().find((p) => p.routeId === r.id)?.path ||
@@ -1217,17 +1243,39 @@ export class TopoFormComponent {
         (this.isIndoor()
           ? this._dialogCtx?.data?.indoorTopoData?.name
           : topo?.name) || this.model().name,
+      topoId,
       standalone: false, // Don't save to DB directly, return the paths
+      isIndoor: this.isIndoor(),
+      centerId: this.centerId(),
     });
 
     if (result && typeof result === 'object' && result.saved) {
       if (result.paths) {
         this.pendingPaths.set(result.paths);
       }
+      let currentRoutes = this.model().selectedRoutes;
+      if (result.newIndoorRoutes && result.newIndoorRoutes.length > 0) {
+        this.pendingNewIndoorRouteIds.update((ids) => [
+          ...ids,
+          ...result.newIndoorRoutes!.map((r) => r.id),
+        ]);
+        const existingIds = new Set(currentRoutes.map((r) => String(r.id)));
+        const toAdd = result.newIndoorRoutes.filter(
+          (r) => !existingIds.has(String(r.id)),
+        );
+        if (toAdd.length > 0) {
+          currentRoutes = [...currentRoutes, ...toAdd];
+          this.model.update((m) => ({
+            ...m,
+            selectedRoutes: currentRoutes,
+          }));
+        }
+      }
       if (result.routeIds) {
-        const current = this.model().selectedRoutes;
         const sorted = result.routeIds
-          .map((id) => current.find((r) => r.id === id || r.id === String(id)))
+          .map((id) =>
+            currentRoutes.find((r) => r.id === id || r.id === String(id)),
+          )
           .filter((r): r is SelectedRoute => r !== undefined);
         this.model.update((m) => ({ ...m, selectedRoutes: sorted }));
       }
@@ -1235,6 +1283,10 @@ export class TopoFormComponent {
   }
 
   goBack(): void {
+    const idsToDelete = this.pendingNewIndoorRouteIds();
+    if (idsToDelete.length > 0) {
+      void Promise.all(idsToDelete.map((id) => this.indoor.deleteRoute(id)));
+    }
     if (this._dialogCtx) {
       this._dialogCtx.$implicit.complete();
     } else {

@@ -58,6 +58,8 @@ import { IS_BROWSER } from '../../app/is-browser';
 export interface IndoorRouteFormData {
   centerId: string;
   routeData?: IndoorRouteDto;
+  hideTopo?: boolean;
+  defaultTopoId?: string;
 }
 
 @Component({
@@ -189,7 +191,7 @@ export interface IndoorRouteFormData {
         </tui-data-list>
       </tui-textfield>
 
-      @if (topos().length > 0) {
+      @if (!hideTopo() && topos().length > 0) {
         <tui-textfield
           tuiChevron
           [tuiTextfieldCleaner]="true"
@@ -283,8 +285,11 @@ export default class IndoorRouteFormComponent {
   protected readonly translate = inject(TranslateService);
 
   private readonly context =
-    injectContext<TuiDialogContext<boolean, IndoorRouteFormData>>();
+    injectContext<
+      TuiDialogContext<boolean | IndoorRouteDto, IndoorRouteFormData>
+    >();
 
+  protected readonly hideTopo = computed(() => !!this.context.data.hideTopo);
   protected readonly isSaving = signal(false);
   protected readonly gradeOptions: readonly number[] = Object.keys(
     GRADE_NUMBER_TO_LABEL,
@@ -447,6 +452,17 @@ export default class IndoorRouteFormComponent {
       this.indoor.getRouteEquippers(data.id).then((equippers) => {
         this.model.update((m) => ({ ...m, equippers }));
       });
+    } else if (this.context.data.defaultTopoId) {
+      const defId = this.context.data.defaultTopoId;
+      effect(() => {
+        const toposList = this.topos();
+        if (toposList.length > 0 && defId) {
+          const matched = toposList.find((t) => String(t.id) === String(defId));
+          if (matched) {
+            this.model.update((m) => ({ ...m, topo: matched }));
+          }
+        }
+      });
     }
   }
 
@@ -463,6 +479,8 @@ export default class IndoorRouteFormComponent {
       this.isSaving.set(true);
       try {
         const m = this.model();
+        const assignedTopoId =
+          this.context.data.defaultTopoId || m.topo?.id || null;
         const payload = {
           center_id: this.context.data.centerId,
           name: m.name,
@@ -470,21 +488,24 @@ export default class IndoorRouteFormComponent {
           climbing_kind: m.climbing_kind,
           grade: m.grade,
           color: m.color || null,
-          topo_id: m.topo?.id || null,
+          topo_id: assignedTopoId,
           legacy: m.legacy,
         };
 
         let savedRouteId = this.context.data.routeData?.id;
+        let savedRoute: IndoorRouteDto | null = null;
 
         if (this.context.data.routeData) {
           await this.indoor.updateRoute(
             this.context.data.routeData.id,
             payload,
           );
+          savedRoute = { ...this.context.data.routeData, ...payload };
           this.toast.success('messages.toasts.routeUpdated');
         } else {
           const result = await this.indoor.createRoute(payload);
           if (result) {
+            savedRoute = result;
             savedRouteId = result.id;
           }
           this.toast.success('messages.toasts.routeCreated');
@@ -492,9 +513,17 @@ export default class IndoorRouteFormComponent {
 
         if (savedRouteId) {
           await this.indoor.setRouteEquippers(savedRouteId, m.equippers);
+          if (assignedTopoId && !this.context.data.hideTopo) {
+            await this.supabase.client.from('indoor_topo_routes').upsert({
+              topo_id: assignedTopoId,
+              route_id: savedRouteId,
+              number: 0,
+              path: null,
+            });
+          }
         }
 
-        this.context.completeWith(true);
+        this.context.completeWith(savedRoute ?? true);
       } catch (e) {
         console.error('[IndoorRouteFormComponent] Error saving route:', e);
         handleErrorToast(e, this.toast);

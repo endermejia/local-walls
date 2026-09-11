@@ -22,19 +22,23 @@ import {
   TuiDialogService,
   TuiHint,
   TuiIcon,
+  TuiInput,
+  TuiLabel,
   TuiLoader,
   TuiNotification,
   TuiScrollbar,
   TuiTextfield,
 } from '@taiga-ui/core';
 import {
-  TuiAvatar,
-  TuiTabs,
-  TuiComboBox,
-  TuiDataListWrapper,
-  TuiChevron,
   TUI_CONFIRM,
+  TuiAvatar,
+  TuiBadgedContent,
+  TuiBadgeNotification,
+  TuiChevron,
+  TuiComboBox,
   TuiConfirmData,
+  TuiDataListWrapper,
+  TuiTabs,
 } from '@taiga-ui/kit';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -45,6 +49,7 @@ import { AuthStateService } from '../../services/auth-state.service';
 import { BreadcrumbsService } from '../../services/breadcrumbs.service';
 import { CacheService } from '../../services/cache.service';
 import { FilterStateService } from '../../services/filter-state.service';
+import { FiltersService } from '../../services/filters.service';
 import { IndoorCentersDataService } from '../../services/indoor-centers-data.service';
 import { IndoorService } from '../../services/indoor.service';
 import { MapDataService } from '../../services/map-data.service';
@@ -65,14 +70,20 @@ import { SectionHeaderComponent } from '../../components/ui/section-header';
 import { UserInfoHintComponent } from '../../components/ui/user-info-hint';
 
 import {
+  ClimbingKinds,
+  GRADE_NUMBER_TO_LABEL,
   IndoorCenterDto,
+  IndoorRouteWithExtras,
+  ORDERED_GRADE_VALUES,
+  PROJECT_GRADE_LABEL,
   RouteAscentWithExtras,
   UserProfileBasicDto,
+  VERTICAL_LIFE_GRADES,
 } from '../../models';
 
 import { CACHE_KEYS } from '../../constants';
 import { AnyToSchedulePipe, AvatarUrlPipe } from '../../pipes';
-import { handleErrorToast, mapLocationUrl } from '../../utils';
+import { handleErrorToast, mapLocationUrl, matchesQuery } from '../../utils';
 
 import { IS_BROWSER } from '../../app/is-browser';
 
@@ -85,23 +96,23 @@ import { IS_BROWSER } from '../../app/is-browser';
     TranslateModule,
     TuiAppearance,
     TuiAvatar,
+    TuiBadgedContent,
+    TuiBadgeNotification,
     TuiButton,
+    TuiCarousel,
     TuiCheckbox,
     TuiChevron,
     TuiComboBox,
     TuiDataListWrapper,
     TuiHint,
     TuiIcon,
+    TuiInput,
+    TuiLabel,
     TuiLoader,
+    TuiNotification,
     TuiScrollbar,
     TuiTabs,
-    TuiCarousel,
     TuiTextfield,
-    TuiComboBox,
-    TuiDataListWrapper,
-    TuiChevron,
-    TuiNotification,
-    TuiCheckbox,
     RouterLink,
     SectionHeaderComponent,
     IndoorVouchersComponent,
@@ -479,8 +490,8 @@ import { IS_BROWSER } from '../../app/is-browser';
           }
           <div class="overflow-x-auto no-scrollbar">
             <tui-tabs [(activeItemIndex)]="activeTabIndex">
-              <button tuiTab>{{ 'indoor.routes' | translate }}</button>
               <button tuiTab>{{ 'indoor.topos' | translate }}</button>
+              <button tuiTab>{{ 'indoor.routes' | translate }}</button>
               <button tuiTab>{{ 'indoor.ascents' | translate }}</button>
               @if (hasVouchers()) {
                 <button tuiTab>{{ 'indoor.vouchers' | translate }}</button>
@@ -493,6 +504,14 @@ import { IS_BROWSER } from '../../app/is-browser';
               <div
                 [hidden]="activeTabIndex() !== 0"
                 [class.hidden]="activeTabIndex() !== 0"
+              >
+                <app-indoor-topos [centerId]="c.id" [centerSlug]="c.slug" />
+              </div>
+            }
+            @if (loadedTabs().has(1)) {
+              <div
+                [hidden]="activeTabIndex() !== 1"
+                [class.hidden]="activeTabIndex() !== 1"
               >
                 <div class="flex flex-col gap-4">
                   <div class="flex items-center justify-between px-3">
@@ -541,21 +560,51 @@ import { IS_BROWSER } from '../../app/is-browser';
                     }
                   </div>
 
+                  <div class="flex items-end gap-2">
+                    <tui-textfield class="grow block" tuiTextfieldSize="l">
+                      <label tuiLabel for="indoor-route-search">{{
+                        'searchPlaceholder' | translate
+                      }}</label>
+                      <input
+                        tuiInput
+                        #indoorRouteSearch
+                        id="indoor-route-search"
+                        autocomplete="off"
+                        [value]="routeQuery()"
+                        (input.zoneless)="
+                          routeQuery.set(indoorRouteSearch.value)
+                        "
+                      />
+                    </tui-textfield>
+                    <tui-badged-content>
+                      @if (activeRouteFilterCount(); as count) {
+                        <tui-badge-notification
+                          tuiAppearance="accent"
+                          size="s"
+                          tuiSlot="top"
+                        >
+                          {{ count }}
+                        </tui-badge-notification>
+                      }
+                      <button
+                        tuiButton
+                        appearance="textfield"
+                        size="l"
+                        type="button"
+                        iconStart="@tui.sliders-horizontal"
+                        [attr.aria-label]="'filters' | translate"
+                        (click.zoneless)="openRouteFilters()"
+                      ></button>
+                    </tui-badged-content>
+                  </div>
+
                   <app-indoor-routes-table
-                    [data]="centerRoutes()"
+                    [data]="filteredCenterRoutes()"
                     [centerId]="c.id"
                     [centerSlug]="c.slug"
                     [availableTopos]="toposResource.value() || []"
                   />
                 </div>
-              </div>
-            }
-            @if (loadedTabs().has(1)) {
-              <div
-                [hidden]="activeTabIndex() !== 1"
-                [class.hidden]="activeTabIndex() !== 1"
-              >
-                <app-indoor-topos [centerId]="c.id" [centerSlug]="c.slug" />
               </div>
             }
             @if (loadedTabs().has(2)) {
@@ -628,6 +677,7 @@ export class IndoorCenterComponent {
   protected readonly authState = inject(AuthStateService);
   protected readonly breadcrumbsService = inject(BreadcrumbsService);
   protected readonly filterState = inject(FilterStateService);
+  protected readonly filtersService = inject(FiltersService);
   protected readonly mapData = inject(MapDataService);
   protected readonly indoorCentersData = inject(IndoorCentersDataService);
   protected readonly indoor = inject(IndoorService);
@@ -699,6 +749,98 @@ export class IndoorCenterComponent {
   protected readonly centerRoutes = computed(
     () => this.centerRoutesResource.value() ?? [],
   );
+
+  protected readonly routeQuery = signal('');
+  protected readonly selectedGradeRange =
+    this.filterState.indoorRoutesGradeRange;
+  protected readonly selectedCategories =
+    this.filterState.indoorRoutesCategories;
+  protected readonly selectedToposOnly = this.filterState.indoorRoutesToposOnly;
+
+  protected readonly activeRouteFilterCount = computed(() => {
+    let count = 0;
+    const [lo, hi] = this.selectedGradeRange();
+    if (lo > 0 || hi < ORDERED_GRADE_VALUES.length - 1) {
+      count++;
+    }
+    if (this.selectedCategories().length > 0) {
+      count++;
+    }
+    if (this.selectedToposOnly()) {
+      count++;
+    }
+    return count;
+  });
+
+  protected readonly filteredCenterRoutes = computed(() => {
+    const routes = this.centerRoutes();
+    const query = this.routeQuery().trim();
+    const [minIdx, maxIdx] = this.selectedGradeRange();
+    const allowedLabels = ORDERED_GRADE_VALUES.slice(minIdx, maxIdx + 1);
+    const categories = this.selectedCategories();
+    const toposOnly = this.selectedToposOnly();
+
+    const textMatches = (r: IndoorRouteWithExtras) => {
+      if (!query) return true;
+      const gradeLabel =
+        r.grade != null
+          ? GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES]
+          : null;
+      const equippersNames = (r.equippers || [])
+        .map((e) => e.name)
+        .filter(Boolean);
+      const toposNames = (r.topos || []).map((t) => t.name).filter(Boolean);
+      const translatedColor = r.color
+        ? this.translate.instant('colors.' + r.color)
+        : null;
+
+      return (
+        matchesQuery(r.name, query) ||
+        (gradeLabel ? matchesQuery(gradeLabel, query) : false) ||
+        (r.color ? matchesQuery(r.color, query) : false) ||
+        (translatedColor ? matchesQuery(translatedColor, query) : false) ||
+        equippersNames.some((name) => matchesQuery(name, query)) ||
+        toposNames.some((name) => matchesQuery(name, query))
+      );
+    };
+
+    const gradeMatches = (r: IndoorRouteWithExtras) => {
+      if (minIdx === 0 && maxIdx === ORDERED_GRADE_VALUES.length - 1)
+        return true;
+      if (r.grade == null) return true;
+      const label = GRADE_NUMBER_TO_LABEL[r.grade as VERTICAL_LIFE_GRADES];
+      if (!label || label === PROJECT_GRADE_LABEL) return true;
+      return (allowedLabels as readonly string[]).includes(label);
+    };
+
+    const categoryMatches = (r: IndoorRouteWithExtras) => {
+      if (categories.length === 0) return true;
+      const kind = r.climbing_kind;
+      if (!kind) return true;
+      if (categories.includes(0) && kind === ClimbingKinds.SPORT) return true;
+      if (categories.includes(1) && kind === ClimbingKinds.BOULDER) return true;
+      if (categories.includes(2) && kind === ClimbingKinds.MULTIPITCH)
+        return true;
+      return false;
+    };
+
+    const toposOnlyMatches = (r: IndoorRouteWithExtras) => {
+      if (!toposOnly) return true;
+      return (r.topos && r.topos.length > 0) || !!r.topo_id;
+    };
+
+    return routes.filter(
+      (r) =>
+        textMatches(r) &&
+        gradeMatches(r) &&
+        categoryMatches(r) &&
+        toposOnlyMatches(r),
+    );
+  });
+
+  protected openRouteFilters(): void {
+    this.filtersService.openIndoorRouteFilters();
+  }
 
   protected readonly totalRoutes = computed(() => {
     return this.centerRoutes().length;
