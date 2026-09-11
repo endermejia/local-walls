@@ -60,7 +60,7 @@ import { FilterDialog, FilterDialogComponent } from '../dialogs/filter-dialog';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
-      class="flex flex-col gap-2 mb-4 shrink-0 w-full min-w-0 px-4 lg:px-0 pt-1"
+      class="flex flex-col gap-2 mb-4 shrink-0 w-full min-w-0 px-4 lg:px-1 pt-2"
     >
       <!-- Primary Date Filter + Modal Filters Button -->
       <div class="flex items-center gap-2 w-full min-w-0">

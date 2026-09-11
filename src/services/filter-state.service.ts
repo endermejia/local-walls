@@ -67,6 +67,8 @@ export class FilterStateService {
   profileAscentsShowIndoor: WritableSignal<boolean> = signal(false);
   profileAscentsShowOutdoor: WritableSignal<boolean> = signal(false);
 
+  readonly isOwnProfile = signal<boolean>(true);
+
   constructor() {
     this.hydrate();
 
@@ -134,29 +136,37 @@ export class FilterStateService {
       );
     });
 
-    // Profile ascents persistence
+    // Profile ascents persistence (only persisted for own profile)
     effect(() => {
+      const gradeRange = this.profileAscentsGradeRange();
+      if (!this.isOwnProfile()) return;
       this.localStorage.setItem(
         this.profileAscentsGradeRangeKey,
-        JSON.stringify(this.profileAscentsGradeRange()),
+        JSON.stringify(gradeRange),
       );
     });
     effect(() => {
+      const categories = this.profileAscentsCategories();
+      if (!this.isOwnProfile()) return;
       this.localStorage.setItem(
         this.profileAscentsCategoriesKey,
-        JSON.stringify(this.profileAscentsCategories()),
+        JSON.stringify(categories),
       );
     });
     effect(() => {
+      const showIndoor = this.profileAscentsShowIndoor();
+      if (!this.isOwnProfile()) return;
       this.localStorage.setItem(
         this.profileAscentsShowIndoorKey,
-        String(this.profileAscentsShowIndoor()),
+        String(showIndoor),
       );
     });
     effect(() => {
+      const showOutdoor = this.profileAscentsShowOutdoor();
+      if (!this.isOwnProfile()) return;
       this.localStorage.setItem(
         this.profileAscentsShowOutdoorKey,
-        String(this.profileAscentsShowOutdoor()),
+        String(showOutdoor),
       );
     });
   }
@@ -236,6 +246,49 @@ export class FilterStateService {
       }
 
       // Profile ascents
+      this.hydrateProfileFilters();
+    } catch {
+      // Silent fail on hydration
+    }
+  }
+
+  setProfileContext(isOwnProfile: boolean): void {
+    if (this.isOwnProfile() && !isOwnProfile) {
+      this.saveOwnProfileFilters();
+    }
+    this.isOwnProfile.set(isOwnProfile);
+    if (isOwnProfile) {
+      this.hydrateProfileFilters();
+    } else {
+      this.resetProfileFilters();
+    }
+  }
+
+  saveOwnProfileFilters(): void {
+    try {
+      this.localStorage.setItem(
+        this.profileAscentsGradeRangeKey,
+        JSON.stringify(this.profileAscentsGradeRange()),
+      );
+      this.localStorage.setItem(
+        this.profileAscentsCategoriesKey,
+        JSON.stringify(this.profileAscentsCategories()),
+      );
+      this.localStorage.setItem(
+        this.profileAscentsShowIndoorKey,
+        String(this.profileAscentsShowIndoor()),
+      );
+      this.localStorage.setItem(
+        this.profileAscentsShowOutdoorKey,
+        String(this.profileAscentsShowOutdoor()),
+      );
+    } catch {
+      // Silent fail on storage error
+    }
+  }
+
+  hydrateProfileFilters(): void {
+    try {
       const rawProfileGradeRange = this.localStorage.getItem(
         this.profileAscentsGradeRangeKey,
       );
@@ -243,7 +296,14 @@ export class FilterStateService {
         const parsed = JSON.parse(rawProfileGradeRange);
         if (Array.isArray(parsed) && parsed.length === 2) {
           this.profileAscentsGradeRange.set(parsed as [number, number]);
+        } else {
+          this.profileAscentsGradeRange.set([
+            0,
+            ORDERED_GRADE_VALUES.length - 1,
+          ]);
         }
+      } else {
+        this.profileAscentsGradeRange.set([0, ORDERED_GRADE_VALUES.length - 1]);
       }
 
       const rawProfileCategories = this.localStorage.getItem(
@@ -251,6 +311,8 @@ export class FilterStateService {
       );
       if (rawProfileCategories) {
         this.profileAscentsCategories.set(JSON.parse(rawProfileCategories));
+      } else {
+        this.profileAscentsCategories.set([]);
       }
 
       const rawProfileIndoor = this.localStorage.getItem(
@@ -258,6 +320,8 @@ export class FilterStateService {
       );
       if (rawProfileIndoor !== null) {
         this.profileAscentsShowIndoor.set(rawProfileIndoor === 'true');
+      } else {
+        this.profileAscentsShowIndoor.set(false);
       }
 
       const rawProfileOutdoor = this.localStorage.getItem(
@@ -265,9 +329,18 @@ export class FilterStateService {
       );
       if (rawProfileOutdoor !== null) {
         this.profileAscentsShowOutdoor.set(rawProfileOutdoor === 'true');
+      } else {
+        this.profileAscentsShowOutdoor.set(false);
       }
     } catch {
-      // Silent fail on hydration
+      this.resetProfileFilters();
     }
+  }
+
+  resetProfileFilters(): void {
+    this.profileAscentsGradeRange.set([0, ORDERED_GRADE_VALUES.length - 1]);
+    this.profileAscentsCategories.set([]);
+    this.profileAscentsShowIndoor.set(false);
+    this.profileAscentsShowOutdoor.set(false);
   }
 }

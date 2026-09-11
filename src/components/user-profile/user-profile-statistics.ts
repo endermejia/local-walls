@@ -150,55 +150,7 @@ export class UserProfileStatisticsComponent {
     return data.filter((a) => a.ascent_type !== 'attempt');
   });
 
-  // Filtered Stats (for pyramid, score card, etc. - respects date filter)
-  stats = computed(() => {
-    const dateFiltered = filterAscentsByDate(
-      this.rawStats(),
-      this.dateFilterValue(),
-    );
-    const [minGradeIndex, maxGradeIndex] =
-      this.filterState.profileAscentsGradeRange();
-    const categories = this.filterState.profileAscentsCategories();
-    const showIndoor = this.filterState.profileAscentsShowIndoor();
-    const showOutdoor = this.filterState.profileAscentsShowOutdoor();
-
-    const allowedGrades =
-      minGradeIndex === 0 && maxGradeIndex === ORDERED_GRADE_VALUES.length - 1
-        ? null
-        : new Set(
-            ORDERED_GRADE_VALUES.slice(minGradeIndex, maxGradeIndex + 1)
-              .map((grade) => LABEL_TO_VERTICAL_LIFE[grade])
-              .filter((grade): grade is number => grade !== undefined),
-          );
-    const allowedKinds = categories.length
-      ? new Set(
-          categories
-            .map(
-              (category) =>
-                [
-                  ClimbingKinds.SPORT,
-                  ClimbingKinds.BOULDER,
-                  ClimbingKinds.MULTIPITCH,
-                ][category] as ClimbingKind | undefined,
-            )
-            .filter((kind): kind is ClimbingKind => kind !== undefined),
-        )
-      : null;
-
-    return dateFiltered.filter(
-      (ascent) =>
-        ((showIndoor && showOutdoor) ||
-          (!showIndoor && !showOutdoor) ||
-          (showIndoor && ascent.is_indoor) ||
-          (showOutdoor && !ascent.is_indoor)) &&
-        (!allowedGrades || allowedGrades.has(ascent.route_grade)) &&
-        (!allowedKinds ||
-          (ascent.climbing_kind != null &&
-            allowedKinds.has(ascent.climbing_kind as ClimbingKind))),
-    );
-  });
-
-  // Stats for trend chart (no date filter, but respects other filters)
+  // Stats for trend chart (respects grade, category, and indoor/outdoor filters)
   statsForTrend = computed(() => {
     const [minGradeIndex, maxGradeIndex] =
       this.filterState.profileAscentsGradeRange();
@@ -235,11 +187,17 @@ export class UserProfileStatisticsComponent {
           (!showIndoor && !showOutdoor) ||
           (showIndoor && ascent.is_indoor) ||
           (showOutdoor && !ascent.is_indoor)) &&
-        (!allowedGrades || allowedGrades.has(ascent.route_grade)) &&
+        (!allowedGrades ||
+          allowedGrades.has(ascent.ascent_grade || ascent.route_grade)) &&
         (!allowedKinds ||
           (ascent.climbing_kind != null &&
             allowedKinds.has(ascent.climbing_kind as ClimbingKind))),
     );
+  });
+
+  // Filtered Stats (for pyramid, score card, etc. - respects date filter and other filters)
+  stats = computed(() => {
+    return filterAscentsByDate(this.statsForTrend(), this.dateFilterValue());
   });
 
   // --- Computed Signals for Dashboard ---

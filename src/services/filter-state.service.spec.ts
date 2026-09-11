@@ -90,4 +90,30 @@ describe('FilterStateService', () => {
     expect(service.profileAscentsShowIndoor()).toBe(true);
     expect(service.profileAscentsShowOutdoor()).toBe(false);
   });
+
+  it('should reset profile filters when entering another user profile and restore when returning to own profile', () => {
+    // 1. Set own profile filters
+    service.setProfileContext(true);
+    service.profileAscentsGradeRange.set([5, 20]);
+    service.profileAscentsCategories.set([1]);
+    service.profileAscentsShowIndoor.set(true);
+
+    // 2. Switch to another user's profile
+    service.setProfileContext(false);
+    expect(service.isOwnProfile()).toBe(false);
+    expect(service.profileAscentsGradeRange()).toEqual([
+      0,
+      ORDERED_GRADE_VALUES.length - 1,
+    ]);
+    expect(service.profileAscentsCategories()).toEqual([]);
+    expect(service.profileAscentsShowIndoor()).toBe(false);
+    expect(service.profileAscentsShowOutdoor()).toBe(false);
+
+    // 3. Switch back to own profile -> restores saved filters
+    service.setProfileContext(true);
+    expect(service.isOwnProfile()).toBe(true);
+    expect(service.profileAscentsGradeRange()).toEqual([5, 20]);
+    expect(service.profileAscentsCategories()).toEqual([1]);
+    expect(service.profileAscentsShowIndoor()).toBe(true);
+  });
 });

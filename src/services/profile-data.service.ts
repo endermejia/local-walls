@@ -211,9 +211,6 @@ export class ProfileDataService {
               .map((label) => LABEL_TO_VERTICAL_LIFE[label])
               .filter((g): g is number => g !== undefined)
           : null;
-        if (allowedDbGrades && !allowedDbGrades.includes(0)) {
-          allowedDbGrades.push(0);
-        }
 
         const idxToKind: Record<number, ClimbingKind> = {
           0: ClimbingKinds.SPORT,
@@ -260,7 +257,7 @@ export class ProfileDataService {
         const fetchOutdoor = async () => {
           let countQuery = this.supabase.client
             .from('route_ascents')
-            .select('*', { count: 'exact', head: true })
+            .select('routes!inner(id)', { count: 'exact', head: true })
             .eq('user_id', userId);
           if (queryText) {
             countQuery = countQuery.ilike(
@@ -363,7 +360,11 @@ export class ProfileDataService {
                     k === ClimbingKinds.SPORT || k === ClimbingKinds.BOULDER,
                 )
               : null;
-          if (allowedKinds && allowedKinds.length > 0 && !indoorKinds) {
+          if (
+            allowedKinds &&
+            allowedKinds.length > 0 &&
+            (!indoorKinds || indoorKinds.length === 0)
+          ) {
             indoorTotal = 0;
             indoorItems = [];
             return;
@@ -371,7 +372,10 @@ export class ProfileDataService {
 
           let countQuery = this.supabase.client
             .from('indoor_ascents')
-            .select('*', { count: 'exact', head: true })
+            .select('route:indoor_routes!inner(id)', {
+              count: 'exact',
+              head: true,
+            })
             .eq('user_id', userId);
           if (queryText) {
             countQuery = countQuery.ilike('route.name', `%${queryText}%`);

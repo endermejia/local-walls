@@ -31,6 +31,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 
 import { BlockingService } from '../../services/blocking.service';
+import { FilterStateService } from '../../services/filter-state.service';
 import { FollowRequestsService } from '../../services/follow-requests.service';
 import { FollowsService } from '../../services/follows.service';
 import { LayoutService } from '../../services/layout.service';
@@ -329,7 +330,7 @@ import { IS_BROWSER } from '../../app/is-browser';
         <!-- Right Column: Ascents (Takes full height from the top in desktop) -->
         @if (isOwnProfile() || !profile()?.private || isFollowing()) {
           <div
-            class="w-full lg:w-[420px] xl:w-[460px] 2xl:w-[500px] shrink-0 min-w-0 lg:h-full flex flex-col lg:overflow-hidden"
+            class="w-full lg:w-[420px] xl:w-[460px] 2xl:w-[500px] shrink-0 min-w-0 lg:h-full flex flex-col"
           >
             <app-user-profile-ascents
               [userId]="profile()?.id || id() || ''"
@@ -357,6 +358,7 @@ export class UserProfileComponent {
   protected readonly followRequestsService = inject(FollowRequestsService);
   protected readonly followsService = inject(FollowsService);
   private readonly blockingService = inject(BlockingService);
+  private readonly filterState = inject(FilterStateService);
   private readonly toast = inject(ToastService);
   private readonly dialogs = inject(TuiDialogService);
 
@@ -474,7 +476,10 @@ export class UserProfileComponent {
   );
 
   readonly isOwnProfile = computed(() => {
+    const paramId = this.id();
     const currentId = this.supabase.authUserId();
+    if (!paramId) return true;
+    if (currentId && paramId === currentId) return true;
     const viewedId = this.profile()?.id ?? null;
     return !!currentId && !!viewedId && currentId === viewedId;
   });
@@ -628,17 +633,26 @@ export class UserProfileComponent {
 
     destroyRef.onDestroy(() => {
       this.layout.isNavLoading.set(false);
+      this.filterState.setProfileContext(true);
+    });
+
+    // Sync filter profile context early when isOwnProfile changes
+    effect(() => {
+      const isOwn = this.isOwnProfile();
+      this.filterState.setProfileContext(isOwn);
     });
 
     // Track viewed user id for breadcrumbs and global state
     effect(() => {
       const profileId = this.profile()?.id;
+      const isOwn = this.isOwnProfile();
       this.id(); // Track the id signal to trigger on param change
 
       if (profileId) {
         this.profileData.profileUserId.set(profileId);
         this.profileData.resetPagination();
         this.outdoorData.clearSelection();
+        this.filterState.setProfileContext(isOwn);
       }
     });
 
