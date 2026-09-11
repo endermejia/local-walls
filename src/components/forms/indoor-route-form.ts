@@ -352,8 +352,8 @@ export default class IndoorRouteFormComponent {
     equippers: (EquipperDto | string)[];
   }>({
     name: '',
-    climbing_kind: ClimbingKinds.SPORT,
-    grade: 6,
+    climbing_kind: ClimbingKinds.BOULDER,
+    grade: VERTICAL_LIFE_GRADES.G7a,
     color: '#EF4444',
     topo: null,
     legacy: false,
@@ -429,8 +429,8 @@ export default class IndoorRouteFormComponent {
       this.model.set({
         name: data.name,
         climbing_kind:
-          (data.climbing_kind as ClimbingKind) || ClimbingKinds.SPORT,
-        grade: data.grade || 6,
+          (data.climbing_kind as ClimbingKind) || ClimbingKinds.BOULDER,
+        grade: data.grade ?? VERTICAL_LIFE_GRADES.G7a,
         color: data.color || '',
         topo: null, // will be matched below once resource loads
         legacy: !!data.legacy,

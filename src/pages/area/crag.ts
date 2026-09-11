@@ -201,11 +201,11 @@ import { IS_BROWSER } from '../../app/is-browser';
                 }
                 @defer (on viewport; hydrate on viewport) {
                   <app-chart-routes-by-grade
-                    class="md:hidden self-end"
+                    class="md:hidden! self-end"
                     [grades]="c.grades"
                   />
                 } @placeholder {
-                  <div class="h-20 md:hidden flex items-center justify-center">
+                  <div class="h-20 md:hidden! flex items-center justify-center">
                     <tui-loader size="s" />
                   </div>
                 }

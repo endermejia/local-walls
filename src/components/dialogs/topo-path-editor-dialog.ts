@@ -139,7 +139,7 @@ export interface TopoPathEditorConfig {
                   appearance="flat"
                   size="s"
                   iconStart="@tui.x"
-                  class="rounded-full! xl:hidden"
+                  class="rounded-full! xl:hidden!"
                   type="button"
                   [attr.aria-label]="'close' | translate"
                   (click)="sidebarOpen.set(false)"

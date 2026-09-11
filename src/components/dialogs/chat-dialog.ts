@@ -215,7 +215,7 @@ export interface ChatDialogData {
               size="s"
               iconStart="@tui.chevron-left"
               (click)="selectedRoom.set(null)"
-              class="md:hidden"
+              class="md:hidden!"
             >
               {{ 'back' | translate }}
             </button>
@@ -274,7 +274,7 @@ export interface ChatDialogData {
           />
         } @else {
           <!-- Empty state -->
-          <div class="max-md:hidden grow flex items-center justify-center">
+          <div class="max-md:hidden! grow flex items-center justify-center">
             <app-empty-state
               icon="@tui.message-circle"
               message="selectConversation"
